@@ -1,7 +1,7 @@
 import os
 
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 
 SECRET_KEY = "{{ secret_key }}"
 
