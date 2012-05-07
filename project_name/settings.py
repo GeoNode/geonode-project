@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import geonode
 
@@ -27,13 +29,13 @@ LANGUAGE_CODE = "en-us"
 
 LANGUAGES = (
     ('en', 'English'),
-    ('es', 'Español'),
-    ('it', 'Italiano'),
-    ('fr', 'Français'),
-    ('de', 'Deutsch'),
-    ('el', 'Ελληνικά'),
-    ('id', 'Bahasa Indonesia'),
-    ('zh', '中國的'),
+    ('es', 'Spanish'),
+    ('it', 'Italian'),
+    ('fr', 'French'),
+    ('de', 'German'),
+    ('el', 'Greek'),
+    ('id', 'Indonesian'),
+    ('zh', 'Chinese'
 )
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
