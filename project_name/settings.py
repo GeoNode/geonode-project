@@ -8,6 +8,12 @@ GEONODE_ROOT = os.path.dirname(geonode.__file__)
 
 SECRET_KEY = "{{ secret_key }}"
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(PROJECT_ROOT, "development.db"),
+    },
+}
 
 MANAGERS = ADMINS = []
 
