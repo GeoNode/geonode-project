@@ -8,7 +8,6 @@ SITENAME = '{{ project_name }}'
 DEBUG = TEMPLATE_DEBUG = True
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
-GEONODE_ROOT = os.path.dirname(geonode.__file__)
 
 SECRET_KEY = "{{ secret_key }}"
 
@@ -53,7 +52,6 @@ STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, "static"),
-    os.path.join(GEONODE_ROOT, "static"),
 ]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -78,7 +76,6 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 
 TEMPLATE_DIRS = [
     os.path.join(PROJECT_ROOT, "templates"),
-    os.path.join(GEONODE_ROOT, "templates"),
 ]
 
 
