@@ -18,6 +18,8 @@ USE_L10N = True
 TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en-us"
 
+WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
+
 # These are for user-uploaded content.
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, "media")
 MEDIA_URL = "/media/"
