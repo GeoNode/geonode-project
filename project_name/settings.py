@@ -3,6 +3,8 @@
 import os
 import geonode
 
+SITENAME = '{{ project_name }}'
+
 DEBUG = TEMPLATE_DEBUG = True
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
@@ -48,10 +50,10 @@ MEDIA_URL = "/media/"
 # This one is where static content is collected to.
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static_root")
 STATIC_URL = "/static/"
-ADMIN_MEDIA_PREFIX = "/static/admin/"
+
 STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, "static"),
-    os.path.join(GEONODE_ROOT, "media"),
+    os.path.join(GEONODE_ROOT, "static"),
 ]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
