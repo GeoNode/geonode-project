@@ -19,7 +19,7 @@ sitemaps = {
 
 urlpatterns = patterns('',
     # Static pages
-    url(r'^index/$', 'geonode.views.index', name='home'),
+    url(r'^$', 'geonode.views.index', name='home'),
     url(r'^help/$', 'geonode.views.help', name='help'),
     url(r'^developer/$', 'geonode.views.developer', name='dev'),
 
