@@ -6,16 +6,23 @@ You should write some docs, it's good for the soul.
 Installation
 ------------
 
-::
+With GeoNode's virtualenv activated in development or production mode, do the following::
 
-    $ django-admin.py startproject --template=<foo> -epy,rst
+
+    $ git clone git://github.com/ingenieroariel/geonode-project.git
+    $ django-admin.py startproject --template=geonode-project -epy,rst myprettygeonode
 
 Usage
 -----
 
-To use ``manage.py`` to execute scripts you must explicitly include the
-settings module to use with it, the default included settings are
-``development`` and ``production`` so to start the development server you would
-do::
+    $ pip install -e myprettygeonode
+    $ cd myprettygeonode
+    $ python manage.py runserver
 
-    $ python manage.py development runserver
+To install on a virtual environment do::
+
+    $ pip install -e myprettygeonode
+
+Replace all uses of ``geonode.settings`` for ``myprettygeonode.settings``.
+
+In production, you can modify the 'geonode' binary tool and geonode.wsgi file to point to this one.
