@@ -2,6 +2,7 @@ from django.conf.urls.defaults import *
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from geonode.sitemap import LayerSitemap, MapSitemap
 import geonode.proxy.urls
+import geonode.maps.urls
 
 from django.contrib import admin
 admin.autodiscover()
@@ -23,8 +24,8 @@ urlpatterns = patterns('',
     url(r'^developer/$', 'geonode.views.developer', name='dev'),
 
     # Data views
-    (r'^data/', include('geonode.maps.urls.datapatterns')),
-    (r'^maps/', include('geonode.maps.urls.urlpatterns')),
+    (r'^data/', include(geonode.maps.urls.datapatterns)),
+    (r'^maps/', include(geonode.maps.urls.urlpatterns)),
 
     (r'^comments/', include('dialogos.urls')),
     (r'^ratings/', include('agon_ratings.urls')),
