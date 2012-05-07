@@ -15,9 +15,7 @@ framework.
 """
 import os
 
-# Because we have multiple settings files, this is commented out by default,
-# you should pass this in the enviroment.
-# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
 
 # This application object is used by any WSGI server configured to use this
 # file. This includes Django's development server, if the WSGI_APPLICATION
