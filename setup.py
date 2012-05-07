@@ -1,5 +1,5 @@
 import os
-from setuptools import setup, find_packages
+from distutils.core import setup
 
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
@@ -21,7 +21,7 @@ setup(
     license="BSD",
     keywords="{{ project_name }} geonode django",
     url='https://github.com/{{ project_name }}/{{ project_name }}',
-    packages=find_packages('.'),
+    packages=['{{ project_name }}',],
     include_package_data=True,
     zip_safe=False,
 )
