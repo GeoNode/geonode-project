@@ -56,6 +56,7 @@ TEMPLATE_CONTEXT_PROCESSORS = [
 
 TEMPLATE_DIRS = [
     os.path.join(PROJECT_ROOT, "templates"),
+    os.path.join(GEONODE_ROOT, "templates"),
 ]
 
 
