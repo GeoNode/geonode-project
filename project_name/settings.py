@@ -35,7 +35,7 @@ LANGUAGES = (
     ('de', 'German'),
     ('el', 'Greek'),
     ('id', 'Indonesian'),
-    ('zh', 'Chinese'
+    ('zh', 'Chinese'),
 )
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
