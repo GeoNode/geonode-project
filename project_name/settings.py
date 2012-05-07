@@ -1,6 +1,7 @@
 import os
 import geonode
 
+DEBUG = TEMPLATE_DEBUG = True
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
 GEONODE_ROOT = os.path.dirname(geonode.__file__)
@@ -80,13 +81,30 @@ LOGGING = {
     },
 }
 
+
 INSTALLED_APPS = [
-    "django.contrib.sessions",
-    "django.contrib.staticfiles",
-    "django.contrib.messages",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.admin',
+    'django.contrib.sitemaps',
+    'django.contrib.staticfiles',
+    'django.contrib.messages',
+
+    'django_extensions',
+    'registration',
+    'profiles',
+    'avatar',
+    'dialogos',
+    'agon_ratings',
+    'south',
+
+    'geonode.core',
+    'geonode.maps',
+    'geonode.proxy',
 ]
+
 #
 # GeoNode specific settings
 #
