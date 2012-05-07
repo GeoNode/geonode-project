@@ -25,6 +25,17 @@ USE_L10N = True
 TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en-us"
 
+LANGUAGES = (
+    ('en', 'English'),
+    ('es', 'Español'),
+    ('it', 'Italiano'),
+    ('fr', 'Français'),
+    ('de', 'Deutsch'),
+    ('el', 'Ελληνικά'),
+    ('id', 'Bahasa Indonesia'),
+    ('zh', '中國的'),
+)
+
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
 
 # These are for user-uploaded content.
@@ -117,6 +128,30 @@ INSTALLED_APPS = [
 
 # Setting a custom test runner to avoid running the tests for some problematic 3rd party apps
 TEST_RUNNER='geonode.testrunner.GeoNodeTestRunner'
+
+NOSE_ARGS = [
+      '--verbosity=2',
+      '--cover-erase',
+      '--nocapture',
+      '--with-coverage',
+      '--cover-package=geonode',
+      '--cover-inclusive',
+      '--cover-tests',
+      '--detailed-errors',
+      '--with-xunit',
+
+# This is very beautiful/usable but requires: pip install rudolf
+#      '--with-color',
+
+# The settings below are useful while debugging test failures or errors
+
+#      '--failed',
+#      '--pdb-failures',
+#      '--stop',
+#      '--pdb',
+      ]
+# Google API Key valid for localhost. This is used for the Google Earth API
+GOOGLE_API_KEY = "ABQIAAAAkofooZxTfcCv9Wi3zzGTVxTnme5EwnLVtEDGnh-lFVzRJhbdQhQgAhB1eT_2muZtc0dl-ZSWrtzmrw"
 
 # Needed to override serving of Javascript files
 GEONODE_CLIENT_LOCATION = STATIC_URL + "geonode/"
