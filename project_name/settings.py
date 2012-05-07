@@ -7,7 +7,7 @@ SITENAME = '{{ project_name }}'
 
 DEBUG = TEMPLATE_DEBUG = True
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 SECRET_KEY = "{{ secret_key }}"
 

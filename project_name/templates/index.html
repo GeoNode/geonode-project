@@ -42,11 +42,11 @@
       </p>
     </div>
     <div class="span4">
-        <form class="form-search" action="{% url search %}" method="POST">
+        <form class="form-search" action="{% url data_search %}" method="POST">
           <input type="text" class="input-medium search-query" name="q">
           <button type="submit" class="btn btn-small">{% trans "Search" %}</button>
         </form>
-        <a href="{% url search %}">{% trans "Advanced Search" %}</a>
+        <a href="{% url data_search %}">{% trans "Advanced Search" %}</a>
     </div>
   </div>
 {% endblock %}
