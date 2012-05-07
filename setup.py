@@ -5,7 +5,7 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(
-    name="y{{ projecT_name }}",
+    name="{{ project_name }}",
     version="0.1",
     author="",
     author_email="",
