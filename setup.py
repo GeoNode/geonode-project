@@ -15,8 +15,6 @@ setup(
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 1 - Planning',
-        'Framework :: GeoNode',
-        'License :: License :: OSI Approved :: BSD License'
     ],
     license="BSD",
     keywords="{{ project_name }} geonode django",
