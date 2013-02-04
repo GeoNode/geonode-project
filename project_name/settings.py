@@ -46,7 +46,6 @@ LANGUAGES = (
     ('de', 'Deutsch'),
     ('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
-#    ('zh', '中文'),
     ('ja', '日本人'),
 )
 
