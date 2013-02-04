@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import geonode
 
@@ -43,7 +41,7 @@ LANGUAGES = (
     ('it', 'Italiano'),
     ('fr', 'Français'),
     ('de', 'Deutsch'),
-    ('el', 'Ελληνικά'),
+    #('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
 )
 
