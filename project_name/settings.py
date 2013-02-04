@@ -41,7 +41,6 @@ LANGUAGES = (
     ('it', 'Italiano'),
     ('fr', 'Français'),
     ('de', 'Deutsch'),
-    #('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
 )
 
