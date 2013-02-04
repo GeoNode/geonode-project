@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Django settings for the {{ project_name }} project.
 import os
 import geonode
 
