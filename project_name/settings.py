@@ -159,7 +159,6 @@ INSTALLED_APPS = (
     'geonode.search',
     'geonode.catalogue',
     'geonode.documents',
-    '{{ project_name }}',
 )
 
 LOGGING = {
