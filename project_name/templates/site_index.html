@@ -1,7 +1,7 @@
 {% extends 'index.html' %}
+{% block hero %}
+{{ block super }}
 {% comment %}
-You can override named blocks from GeoNode's default index.html here.
-title
-hero
-mainbody
+This is where you can override the hero area block. Remove the {{ block super }} line above
 {% endcomment %}
+{% endblock %}
