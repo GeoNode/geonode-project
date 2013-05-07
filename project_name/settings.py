@@ -143,22 +143,24 @@ INSTALLED_APPS = (
     'avatar',
     'dialogos',
     'agon_ratings',
-    #'notification',
+    'notification',
     'announcements',
     'actstream',
     'relationships',
     'user_messages',
 
     # GeoNode internal apps
-    'geonode.maps',
-    'geonode.upload',
-    'geonode.layers',
     'geonode.people',
+    'geonode.base',
+    'geonode.layers',
+    'geonode.upload',
+    'geonode.maps',
     'geonode.proxy',
     'geonode.security',
     'geonode.search',
     'geonode.catalogue',
     'geonode.documents',
+
 )
 
 LOGGING = {
