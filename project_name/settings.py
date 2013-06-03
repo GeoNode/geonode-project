@@ -2,6 +2,7 @@
 
 # Django settings for the {{ project_name }} project.
 import os
+import geonode
 
 #
 # General Django development settings
