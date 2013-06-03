@@ -40,14 +40,14 @@ LANGUAGE_CODE = 'en'
 
 LANGUAGES = (
     ('en', 'English'),
-    ('es', 'Espanol'),
+    ('es', 'Español'),
     ('it', 'Italiano'),
-    ('fr', 'Francais'),
+    ('fr', 'Français'),
     ('de', 'Deutsch'),
-    ('el', 'Greek'),
+    ('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
-    ('zh-cn', 'Chinese'),
-    ('ja', 'Japanese'),
+#    ('zh', '中文'),
+    ('ja', '日本人'),
 )
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
