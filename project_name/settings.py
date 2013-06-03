@@ -1,5 +1,7 @@
+# -*- coding: utf-8 -*-
+
+# Django settings for the {{ project_name }} project.
 import os
-import geonode
 
 #
 # General Django development settings
@@ -37,11 +39,14 @@ LANGUAGE_CODE = 'en'
 
 LANGUAGES = (
     ('en', 'English'),
-    ('es', 'Espanol'),
+    ('es', 'Español'),
     ('it', 'Italiano'),
-    ('fr', 'Francais'),
+    ('fr', 'Français'),
     ('de', 'Deutsch'),
+    ('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
+    ('zh', '中文'),
+    ('ja', '日本人'),
 )
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
@@ -61,7 +66,7 @@ MEDIA_URL = "/uploaded/"
 
 # Absolute path to the directory that holds static files like app media.
 # Example: "/home/media/media.lawrence.com/apps/"
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "static_root")
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "static_root/")
 
 # URL that handles the static files like app media.
 # Example: "http://media.lawrence.com"
@@ -91,10 +96,11 @@ TEMPLATE_DIRS = (
 # Location of translation files
 LOCALE_PATHS = (
     os.path.join(PROJECT_ROOT, "locale"),
+    os.path.join(GEONODE_ROOT, "locale"),
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = "{{ secret_key }}" 
+SECRET_KEY = '{{ secret_key }}'
 
 # Location of url mappings
 ROOT_URLCONF = '{{ project_name }}.urls'
@@ -108,6 +114,11 @@ LOGOUT_URL = '/account/logout/'
 
 # Activate the Documents application
 DOCUMENTS_APP = True
+ALLOWED_DOCUMENT_TYPES = [
+    'doc', 'docx', 'xls', 'xslx', 'pdf', 'zip', 'jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif', 'txt'
+]
+MAX_DOCUMENT_SIZE = 2 # MB
+
 
 INSTALLED_APPS = (
 
@@ -132,6 +143,7 @@ INSTALLED_APPS = (
     'friendlytagloader',
     'geoexplorer',
     'request',
+    'django_extensions',
 
     # Theme
     "pinax_theme_bootstrap_account",
@@ -160,13 +172,16 @@ INSTALLED_APPS = (
     'geonode.search',
     'geonode.catalogue',
     'geonode.documents',
-
 )
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'formatters': {
+	'standard': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
@@ -178,6 +193,14 @@ LOGGING = {
             'level':'ERROR',
             'class':'django.utils.log.NullHandler',
         },
+	'logfile': {
+	     'level':'DEBUG',
+	     'class':'logging.handlers.RotatingFileHandler',
+             'filename':PROJECT_ROOT + "/debug.log",
+	     'maxBytes': 50000,
+	     'backupCount': 2,
+	     'formatter': 'standard'	
+	},
         'console':{
             'level':'ERROR',
             'class':'logging.StreamHandler',
@@ -199,8 +222,8 @@ LOGGING = {
             "propagate": True,
         },
         "geonode": {
-            "handlers": ["console"],
-            "level": "ERROR",
+            "handlers": ["console", "logfile"],
+            "level": "DEBUG",
         },
 
         "gsconfig.catalog": {
@@ -290,6 +313,9 @@ AGON_RATINGS_CATEGORY_CHOICES = {
     },
     "layers.Layer": {
         "layer": "How good is this layer?"
+    },
+    "documents.Document": {
+        "document": "How good is this document?"
     }
 }
 
@@ -477,23 +503,40 @@ MAP_BASELAYERS = [{
 
 # GeoNode vector data backend configuration.
 
+# Uploader backend (rest or importer)
+
+UPLOADER_BACKEND_URL = 'importer' 
+
 #Import uploaded shapefiles into a database such as PostGIS?
-DB_DATASTORE = False
+# DB_DATASTORE = False
 
 #Database datastore connection settings
-DB_DATASTORE_DATABASE = ''
-DB_DATASTORE_USER = ''
-DB_DATASTORE_PASSWORD = ''
-DB_DATASTORE_HOST = ''
-DB_DATASTORE_PORT = ''
-DB_DATASTORE_TYPE = ''
-DB_DATASTORE_NAME = ''
+# DB_DATASTORE_DATABASE = ''
+# DB_DATASTORE_USER = ''
+# DB_DATASTORE_PASSWORD = ''
+# DB_DATASTORE_HOST = ''
+# DB_DATASTORE_PORT = ''
+# DB_DATASTORE_TYPE = ''
+# DB_DATASTORE_NAME = ''
 
 #The name of the store in Geoserver
 
 LEAFLET_CONFIG = {
     'TILES_URL': 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png'
 }
+
+# Default TopicCategory to be used for resources. Use the slug field here
+DEFAULT_TOPICCATEGORY = 'location'
+
+MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
+
+# Notify the user via email when their password is changed.
+# Disabled by default since this view will throw a 500 if no mail server is configured
+ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE = False
+
+# Require the user to confirm their email
+# Disabled by default, requires a mail server to be configured
+ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = False
 
 # Load more settings from a file called local_settings.py if it exists
 try:
