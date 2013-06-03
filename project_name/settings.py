@@ -504,21 +504,17 @@ MAP_BASELAYERS = [{
 
 # GeoNode vector data backend configuration.
 
-# Uploader backend (rest or importer)
-
-UPLOADER_BACKEND_URL = 'importer' 
-
 #Import uploaded shapefiles into a database such as PostGIS?
-# DB_DATASTORE = False
+DB_DATASTORE = False
 
 #Database datastore connection settings
-# DB_DATASTORE_DATABASE = ''
-# DB_DATASTORE_USER = ''
-# DB_DATASTORE_PASSWORD = ''
-# DB_DATASTORE_HOST = ''
-# DB_DATASTORE_PORT = ''
-# DB_DATASTORE_TYPE = ''
-# DB_DATASTORE_NAME = ''
+DB_DATASTORE_DATABASE = ''
+DB_DATASTORE_USER = ''
+DB_DATASTORE_PASSWORD = ''
+DB_DATASTORE_HOST = ''
+DB_DATASTORE_PORT = ''
+DB_DATASTORE_TYPE = ''
+DB_DATASTORE_NAME = ''
 
 #The name of the store in Geoserver
 
