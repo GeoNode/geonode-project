@@ -16,6 +16,8 @@ Create a new virtualenv for {{ project_name }}, install GeoNode and setup your p
 Usage
 -----
 
+Setup your GeoNode for usage. Download a geoserver.war to use and start the development server::
+
     $ cd my_geonode
     $ paver setup # downloads geoserver
     $ paver start 
