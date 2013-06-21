@@ -6,23 +6,16 @@ You should write some docs, it's good for the soul.
 Installation
 ------------
 
-With GeoNode's virtualenv activated in development or production mode, do the following::
+Create a new virtualenv for {{ project_name }}, install GeoNode and setup your project::
 
-
-    $ git clone git://github.com/GeoNode/geonode-project.git
-    $ django-admin.py startproject --template=geonode-project -epy,rst my_geonode 
+    $ mkvirtualenv my_geonode
+    $ pip install Django
+    $ django-admin.py startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/master.zip -epy,rst 
+    $ pip install -e my_geonode
 
 Usage
 -----
 
-    $ pip install -e my_geonode
     $ cd my_geonode
-    $ python manage.py runserver
-
-To install on a virtual environment do::
-
-    $ pip install -e my_geonode
-
-Replace all uses of ``geonode.settings`` for ``my_geonode.settings``.
-
-In production, you can modify the 'geonode' binary tool and geonode.wsgi file to point to this one.
+    $ paver setup # downloads geoserver
+    $ paver start 
