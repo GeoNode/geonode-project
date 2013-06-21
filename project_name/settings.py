@@ -46,8 +46,13 @@ LANGUAGES = (
     ('de', 'Deutsch'),
     ('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
-#    ('zh', '中文'),
     ('ja', '日本人'),
+    ('zh-cn', '中文'),
+    ('fa', 'Persian'),
+    ('pt', 'Portuguese'),
+    ('ru', 'Russian'),
+    ('vi', 'Vietnamese'),
+    #('fil', 'Filipino'),
 )
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
@@ -253,6 +258,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
+    'pinax_theme_bootstrap_account.context_processors.theme',
     'account.context_processors.account',
     # The context processor below adds things like SITEURL
     # and GEOSERVER_BASE_URL to all pages that use a RequestContext
@@ -530,6 +536,12 @@ ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE = False
 # Require the user to confirm their email
 # Disabled by default, requires a mail server to be configured
 ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = False
+
+THEME_ACCOUNT_CONTACT_EMAIL = 'admin@example.com'
+
+METADATA_DOWNLOAD_ALLOWS=True
+
+CACHE_TIME=0
 
 # Load more settings from a file called local_settings.py if it exists
 try:
