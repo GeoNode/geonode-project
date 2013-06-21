@@ -13,6 +13,10 @@ Create a new virtualenv for {{ project_name }}, install GeoNode and setup your p
     $ django-admin.py startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/master.zip -epy,rst 
     $ pip install -e my_geonode
 
+To install the latest from GeoNode's master branch use the following command::
+
+    $ pip install -e git+https://github.com/GeoNode/geonode.git#egg=geonode --upgrade
+
 Usage
 -----
 
