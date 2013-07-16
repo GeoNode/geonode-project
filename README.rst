@@ -17,7 +17,7 @@ To install the latest from GeoNode's master branch use the following command::
 
     $ pip install -e git+https://github.com/GeoNode/geonode.git#egg=geonode --upgrade
 
-..note:: You should NOT use the name geonode for your project as it will conflict with the default geonode package name.
+.. note:: You should NOT use the name geonode for your project as it will conflict with the default geonode package name.
 
 Usage
 -----
