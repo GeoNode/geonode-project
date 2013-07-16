@@ -20,7 +20,7 @@ setup(
     keywords="{{ project_name }} geonode django",
     url='https://github.com/{{ project_name }}/{{ project_name }}',
     packages=['{{ project_name }}',],
-    install_requires=["geonode==2.0b11"],
+    install_requires=["geonode==2.0b30"],
     include_package_data=True,
     zip_safe=False,
 )
