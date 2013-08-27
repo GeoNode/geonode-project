@@ -1,6 +1,24 @@
 # -*- coding: utf-8 -*-
+#########################################################################
+#
+# Copyright (C) 2012 OpenPlans
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
 
-# Django settings for the {{ project_name }} project.
+# Django settings for the GeoNode project.
 import os
 import geonode
 
@@ -15,16 +33,33 @@ SITENAME = '{{ project_name }}'
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 GEONODE_ROOT = os.path.abspath(os.path.dirname(geonode.__file__))
 
+
 # Setting debug to true makes Django serve static media and
 # present pretty error pages.
 DEBUG = TEMPLATE_DEBUG = True
+
+# Set to True to load non-minified versions of (static) client dependencies
+DEBUG_STATIC = False
+
+# This is needed for integration tests, they require
+# geonode to be listening for GeoServer auth requests.
+os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 
 # Defines settings for development
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(PROJECT_ROOT, 'development.db'),
-    }
+    },
+    # vector datastore for uploads
+    #'datastore' : {
+    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #    'NAME': '',
+    #    'USER' : '',
+    #    'PASSWORD' : '',
+    #    'HOST' : '',
+    #    'PORT' : '',
+    #}
 }
 
 # Local time zone for this installation. Choices can be found here:
@@ -46,13 +81,14 @@ LANGUAGES = (
     ('de', 'Deutsch'),
     ('el', 'Ελληνικά'),
     ('id', 'Bahasa Indonesia'),
-    ('ja', '日本人'),
     ('zh-cn', '中文'),
+    ('ja', '日本人'),
     ('fa', 'Persian'),
     ('pt', 'Portuguese'),
     ('ru', 'Russian'),
     ('vi', 'Vietnamese'),
     #('fil', 'Filipino'),
+    
 )
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
@@ -72,7 +108,7 @@ MEDIA_URL = "/uploaded/"
 
 # Absolute path to the directory that holds static files like app media.
 # Example: "/home/media/media.lawrence.com/apps/"
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "static_root/")
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "static_root")
 
 # URL that handles the static files like app media.
 # Example: "http://media.lawrence.com"
@@ -182,29 +218,22 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
     'formatters': {
-	'standard': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
-        },
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
         },
         'simple': {
             'format': '%(message)s',        },
     },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+     }
+    },
     'handlers': {
         'null': {
             'level':'ERROR',
             'class':'django.utils.log.NullHandler',
         },
-	'logfile': {
-	     'level':'DEBUG',
-	     'class':'logging.handlers.RotatingFileHandler',
-             'filename':PROJECT_ROOT + "/debug.log",
-	     'maxBytes': 50000,
-	     'backupCount': 2,
-	     'formatter': 'standard'	
-	},
         'console':{
             'level':'ERROR',
             'class':'logging.StreamHandler',
@@ -212,6 +241,7 @@ LOGGING = {
         },
         'mail_admins': {
             'level': 'ERROR',
+            'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         }
     },
@@ -221,8 +251,8 @@ LOGGING = {
             "level": "ERROR",
         },
         "geonode": {
-            "handlers": ["console", "logfile"],
-            "level": "DEBUG",
+            "handlers": ["console"],
+            "level": "ERROR",
         },
 
         "gsconfig.catalog": {
@@ -258,8 +288,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     'django.core.context_processors.request',
     'django.contrib.messages.context_processors.messages',
-    'pinax_theme_bootstrap_account.context_processors.theme',
     'account.context_processors.account',
+    'pinax_theme_bootstrap_account.context_processors.theme',
     # The context processor below adds things like SITEURL
     # and GEOSERVER_BASE_URL to all pages that use a RequestContext
     'geonode.context_processors.resource_urls',
@@ -275,6 +305,11 @@ MIDDLEWARE_CLASSES = (
     'pagination.middleware.PaginationMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # This middleware allows to print private layers for the users that have 
+    # the permissions to view them.
+    # It sets temporary the involved layers as public before restoring the permissions.
+    # Beware that for few seconds the involved layers are public there could be risks.
+    #'geonode.middleware.PrintProxyMiddleware',
 )
 
 
@@ -337,6 +372,9 @@ SOUTH_TESTS_MIGRATE=False
 AUTH_PROFILE_MODULE = 'people.Profile'
 REGISTRATION_OPEN = False
 
+# Email for users to contact admins.
+THEME_ACCOUNT_CONTACT_EMAIL = 'admin@example.com'
+
 #
 # Test Settings
 #
@@ -357,14 +395,40 @@ NOSE_ARGS = [
 
 SITEURL = "http://localhost:8000/"
 
-# GeoServer information
+# Default TopicCategory to be used for resources. Use the slug field here
+DEFAULT_TOPICCATEGORY = 'location'
 
-# The FULLY QUALIFIED url to the GeoServer instance for this GeoNode.
-GEOSERVER_BASE_URL = "http://localhost:8080/geoserver/"
+MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
 
-# The username and password for a user that can add and
-# edit layer details on GeoServer
-GEOSERVER_CREDENTIALS = "admin", "geoserver"
+# Search Snippet Cache Time in Seconds
+CACHE_TIME=0
+
+# OGC (WMS/WFS/WCS) Server Settings
+OGC_SERVER = {
+    'default' : {
+        'BACKEND' : 'geonode.geoserver',
+        'LOCATION' : 'http://localhost:8080/geoserver/',
+        'USER' : 'admin',
+        'PASSWORD' : 'geoserver',
+        'OPTIONS' : {
+            'MAPFISH_PRINT_ENABLED' : True,
+            'PRINTNG_ENABLED' : True,
+            'GEONODE_SECURITY_ENABLED' : True,
+            'GEOGIT_ENABLED' : False,
+            'WMST_ENABLED' : False,
+            # Set to name of database in DATABASES dictionary to enable
+            'DATASTORE': '', #'datastore',
+        }
+    }
+}
+
+# Uploader Settings
+UPLOADER = {
+    'OPTIONS' : {
+        'TIME_ENABLED' : False,
+        'GEOGIT_ENABLED' : False,
+    }
+}
 
 # CSW settings
 CATALOGUE = {
@@ -445,7 +509,7 @@ DEFAULT_MAP_ZOOM = 0
 MAP_BASELAYERS = [{
     "source": {
         "ptype": "gxp_wmscsource",
-        "url": GEOSERVER_BASE_URL + "wms",
+        "url": OGC_SERVER['default']['LOCATION'] + "wms",
         "restUrl": "/gs/rest"
      }
   },{
@@ -500,48 +564,19 @@ MAP_BASELAYERS = [{
 
 }]
 
-# GeoNode vector data backend configuration.
-
-# Uploader backend (rest or importer)
-
-UPLOADER_BACKEND_URL = 'rest'
-
-#Import uploaded shapefiles into a database such as PostGIS?
-DB_DATASTORE = False
-
-#Database datastore connection settings
-DB_DATASTORE_DATABASE = ''
-DB_DATASTORE_USER = ''
-DB_DATASTORE_PASSWORD = ''
-DB_DATASTORE_HOST = ''
-DB_DATASTORE_PORT = ''
-DB_DATASTORE_TYPE = ''
-DB_DATASTORE_NAME = ''
-
-#The name of the store in Geoserver
-
 LEAFLET_CONFIG = {
     'TILES_URL': 'http://{s}.tile2.opencyclemap.org/transport/{z}/{x}/{y}.png'
 }
 
-# Default TopicCategory to be used for resources. Use the slug field here
-DEFAULT_TOPICCATEGORY = 'location'
 
-MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
+# Require users to authenticate before using Geonode
+LOCKDOWN_GEONODE = False
 
-# Notify the user via email when their password is changed.
-# Disabled by default since this view will throw a 500 if no mail server is configured
-ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE = False
+# Add additional paths (as regular expressions) that don't require authentication.
+AUTH_EXEMPT_URLS = ()
 
-# Require the user to confirm their email
-# Disabled by default, requires a mail server to be configured
-ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = False
-
-THEME_ACCOUNT_CONTACT_EMAIL = 'admin@example.com'
-
-METADATA_DOWNLOAD_ALLOWS=True
-
-CACHE_TIME=0
+if LOCKDOWN_GEONODE:
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('geonode.security.middleware.LoginRequiredMiddleware',)
 
 # Load more settings from a file called local_settings.py if it exists
 try:

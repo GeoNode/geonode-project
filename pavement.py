@@ -1,3 +1,22 @@
+#########################################################################
+#
+# Copyright (C) 2012 OpenPlans
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#########################################################################
+
 import os
 import re
 import shutil
@@ -80,17 +99,28 @@ def _install_data_dir():
     download_dir = path('downloaded')
     data_dir_zip = download_dir / os.path.basename(DATA_DIR_URL)
 
-    print 'extracting datadir'
-    with zipfile.ZipFile(data_dir_zip, "r") as z:
-        z.extractall(geoserver_dir)
+    if os.path.exists(data_dir_zip):
+        print 'extracting datadir'
+        with zipfile.ZipFile(data_dir_zip, "r") as z:
+            z.extractall(geoserver_dir)
 
-    config = geoserver_dir / 'data/security/auth/geonodeAuthProvider/config.xml'
-    with open(config) as f:
-        xml = f.read()
-        m = re.search('baseUrl>([^<]+)', xml)
-        xml = xml[:m.start(1)] + "http://localhost:8000/" + xml[m.end(1):]
-    with open(config, 'w') as f: f.write(xml)
+        config = geoserver_dir / 'data/security/auth/geonodeAuthProvider/config.xml'
+        with open(config) as f:
+            xml = f.read()
+            m = re.search('baseUrl>([^<]+)', xml)
+            xml = xml[:m.start(1)] + "http://localhost:8000/" + xml[m.end(1):]
+        with open(config, 'w') as f: f.write(xml)
+    else:
+        print 'data_dir_zip not found, unable to extract and configure'
 
+
+@task
+def update_static(options):
+    with pushd('geonode/static'):
+        sh('npm install')
+        sh('bower install')
+        sh('grunt production')
+        
 
 @task
 @needs([
@@ -153,7 +183,7 @@ def package(options):
     # Create a distribution in zip format for the geonode python package.
     dist_dir = path('dist')
     dist_dir.rmtree()
-    sh('python setup.py sdist --format=zip')
+    sh('python setup.py sdist --formats=zip')
 
     with pushd('package'):
 
@@ -254,7 +284,8 @@ def start_geoserver(options):
     Start GeoServer with GeoNode extensions
     """
 
-    from geonode.settings import GEOSERVER_BASE_URL
+    from geonode.settings import OGC_SERVER 
+    GEOSERVER_BASE_URL = OGC_SERVER['default']['LOCATION']
 
     url = "http://localhost:8080/geoserver/"
     if GEOSERVER_BASE_URL != url:
@@ -433,15 +464,15 @@ def deb(options):
         if key is None and ppa is None:
             # A local installable package
             sh('debuild -uc -us -A')
-	elif key is None and ppa is not None:
-            # A sources package, signed by daemon
-            sh('debuild -S')
-	elif key is not None and ppa is None:
-            # A signed installable package
-            sh('debuild -k%s -A' % key)
-	elif key is not None and ppa is not None:
-            # A signed, source package
-            sh('debuild -k%s -S' % key)
+        elif key is None and ppa is not None:
+                # A sources package, signed by daemon
+                sh('debuild -S')
+        elif key is not None and ppa is None:
+                # A signed installable package
+                sh('debuild -k%s -A' % key)
+        elif key is not None and ppa is not None:
+                # A signed, source package
+                sh('debuild -k%s -S' % key)
 
     if ppa is not None:
         sh('dput ppa:%s geonode_%s_source.changes' % (ppa, simple_version))
@@ -465,6 +496,7 @@ def publish():
     sh('git push origin %s' % version)
     sh('git tag debian/%s' % simple_version)
     sh('git push origin debian/%s' % simple_version)
+    sh('python setup.py sdist upload')
 
 
 def versions():
