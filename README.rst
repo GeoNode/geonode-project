@@ -6,24 +6,37 @@ You should write some docs, it's good for the soul.
 Installation
 ------------
 
-Create a new virtualenv for {{ project_name }}, install GeoNode and setup your project::
+Install geonode with:
 
-    $ mkvirtualenv my_geonode
-    $ pip install Django
-    $ django-admin.py startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/master.zip -epy,rst 
-    $ pip install -e my_geonode
+    $ sudo add-apt-repository ppa:geonode/testing
+    $ sudo apt-get update
+    $ sudo apt-get install geonode
 
-To install the latest from GeoNode's master branch use the following command::
-
-    $ pip install -e git+https://github.com/GeoNode/geonode.git#egg=geonode --upgrade
+Create a new template based on the geonode example project.::
+    
+    $ django-admin startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/master.zip -epy,rst 
+    $ sudo pip install -e my_geonode
 
 .. note:: You should NOT use the name geonode for your project as it will conflict with the default geonode package name.
 
 Usage
 -----
+    
+    Edit the file /etc/apache2/sites-available/geonode and change the following directive from::
 
-Setup your GeoNode for usage. Download a geoserver.war to use and start the development server::
+    WSGIScriptAlias / /var/www/geonode/wsgi/geonode.wsgi
 
-    $ cd my_geonode
-    $ paver setup # downloads geoserver
-    $ paver start 
+    to::
+
+    WSGIScriptAlias / /path/to/my_geonode/my_geonode/wsgi.py
+
+    Restart apache::
+
+    $ sudo service apache2 restart
+
+    Edit the templates in my_geonode/templates, the css and images to match your needs.
+    In my_geonode run::
+
+    $ python manage.py collectstatic
+
+
