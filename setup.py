@@ -6,7 +6,7 @@ def read(*rnames):
 
 setup(
     name="{{ project_name }}",
-    version="0.1",
+    version="0.2",
     author="",
     author_email="",
     description="{{ project_name }}, based on GeoNode",
@@ -20,7 +20,6 @@ setup(
     keywords="{{ project_name }} geonode django",
     url='https://github.com/{{ project_name }}/{{ project_name }}',
     packages=['{{ project_name }}',],
-    install_requires=["geonode==2.0b30"],
     include_package_data=True,
     zip_safe=False,
 )
