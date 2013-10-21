@@ -24,21 +24,21 @@ Create a new template based on the geonode example project.::
 Usage
 -----
     
-    Edit the file /etc/apache2/sites-available/geonode and change the following directive from:
+Edit the file /etc/apache2/sites-available/geonode and change the following directive from:
 
     WSGIScriptAlias / /var/www/geonode/wsgi/geonode.wsgi
 
-    to:
+to:
 
     WSGIScriptAlias / /path/to/my_geonode/my_geonode/wsgi.py
 
-    Restart apache::
+Restart apache::
 
     $ sudo service apache2 restart
 
-    Edit the templates in my_geonode/templates, the css and images to match your needs.
+Edit the templates in my_geonode/templates, the css and images to match your needs.
 
-    In the my_geonode folder run::
+In the my_geonode folder run::
 
     $ python manage.py collectstatic
 
