@@ -6,10 +6,12 @@ You should write some docs, it's good for the soul.
 Installation
 ------------
 
-Install geonode with:
+Install geonode with::
 
     $ sudo add-apt-repository ppa:geonode/testing
+
     $ sudo apt-get update
+
     $ sudo apt-get install geonode
 
 Create a new template based on the geonode example project.::
@@ -22,11 +24,11 @@ Create a new template based on the geonode example project.::
 Usage
 -----
     
-    Edit the file /etc/apache2/sites-available/geonode and change the following directive from::
+    Edit the file /etc/apache2/sites-available/geonode and change the following directive from:
 
     WSGIScriptAlias / /var/www/geonode/wsgi/geonode.wsgi
 
-    to::
+    to:
 
     WSGIScriptAlias / /path/to/my_geonode/my_geonode/wsgi.py
 
@@ -35,7 +37,8 @@ Usage
     $ sudo service apache2 restart
 
     Edit the templates in my_geonode/templates, the css and images to match your needs.
-    In my_geonode run::
+
+    In the my_geonode folder run::
 
     $ python manage.py collectstatic
 
