@@ -23,7 +23,9 @@ Create a new template based on the geonode example project.::
 
 Usage
 -----
-    
+
+Copy the local_settings.py file from /etc/geonode to the project folder.
+
 Edit the file /etc/apache2/sites-available/geonode and change the following directive from:
 
     WSGIScriptAlias / /var/www/geonode/wsgi/geonode.wsgi
