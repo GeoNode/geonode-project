@@ -1,13 +1,12 @@
 import os
 from distutils.core import setup
 
-
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(
     name="{{ project_name }}",
-    version="0.1",
+    version="0.2",
     author="",
     author_email="",
     description="{{ project_name }}, based on GeoNode",
@@ -20,8 +19,7 @@ setup(
     license="BSD",
     keywords="{{ project_name }} geonode django",
     url='https://github.com/{{ project_name }}/{{ project_name }}',
-    packages=['{{ project_name }}'],
-    install_requires=["geonode==2.0b52"],
+    packages=['{{ project_name }}',],
     include_package_data=True,
     zip_safe=False,
 )
