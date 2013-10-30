@@ -24,7 +24,7 @@ Create a new template based on the geonode example project.::
 Usage
 -----
 
-Copy the local_settings.py file from /etc/geonode to the project folder.
+Rename the local_settings.py.sample to local_settings.py and edit it's content by setting the SITEURL and SITENAME.
 
 Edit the file /etc/apache2/sites-available/geonode and change the following directive from:
 
