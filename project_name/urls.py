@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, url
 
-from geonode.urls import urlpatterns
+from geonode.urls import *
 
 urlpatterns = patterns('',
 
