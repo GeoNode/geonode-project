@@ -33,15 +33,6 @@ LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
 
-
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.path.join(LOCAL_ROOT, "uploaded")
-
-# Absolute path to the directory that holds static files like app media.
-# Example: "/home/media/media.lawrence.com/apps/"
-STATIC_ROOT = os.path.join(LOCAL_ROOT, "static_root")
-
 # Additional directories which hold static files
 STATICFILES_DIRS.append(
     os.path.join(LOCAL_ROOT, "static"),
