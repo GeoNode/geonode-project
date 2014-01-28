@@ -47,6 +47,11 @@ TEMPLATE_DIRS = (
 # Location of url mappings
 ROOT_URLCONF = '{{ project_name }}.urls'
 
+# Location of locale files
+LOCALE_PATHS = (
+    os.path.join(LOCAL_ROOT, 'locale'),
+    ) + LOCALE_PATHS
+
 # Load more settings from a file called local_settings.py if it exists
 try:
     from local_settings import *
