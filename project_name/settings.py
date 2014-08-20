@@ -33,6 +33,13 @@ LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 WSGI_APPLICATION = "{{ project_name }}.wsgi.application"
 
+
+# Load more settings from a file called local_settings.py if it exists
+try:
+    from local_settings import *
+except ImportError:
+    pass
+
 # Additional directories which hold static files
 STATICFILES_DIRS.append(
     os.path.join(LOCAL_ROOT, "static"),
@@ -52,8 +59,3 @@ LOCALE_PATHS = (
     os.path.join(LOCAL_ROOT, 'locale'),
     ) + LOCALE_PATHS
 
-# Load more settings from a file called local_settings.py if it exists
-try:
-    from local_settings import *
-except ImportError:
-    pass
