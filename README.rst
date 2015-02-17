@@ -34,6 +34,16 @@ to:
 
     WSGIScriptAlias / /path/to/my_geonode/my_geonode/wsgi.py
 
+Add the "Directory" directive for your folder like the following example:
+
+    <Directory "/home/vagrant/my_geonode/my_geonode/">
+       Order allow,deny
+       Options Indexes FollowSymLinks
+       Allow from all
+       Require all granted
+       IndexOptions FancyIndexing
+    </Directory>
+
 Restart apache::
 
     $ sudo service apache2 restart
