@@ -33,6 +33,10 @@ Edit the file /etc/apache2/sites-available/geonode and change the following dire
 to:
 
     WSGIScriptAlias / /path/to/my_geonode/my_geonode/wsgi.py
+    
+To avoid having to grant apache permissions (i.e. www-data user and group) to your home dir where you likely setup the geonode-project; you may want to instead copy the wsgi.py file next to geonode.wsgi and replace the file name instead of the entire path.
+
+    $ cp /path/to/my_geonode/my_geonode/wsgi.py /var/www/geonode/wsgi/wsgi.py
 
 Restart apache::
 
@@ -44,4 +48,21 @@ In the my_geonode folder run::
 
     $ python manage.py collectstatic
 
+Github Considerations
+------------------------
 
+While it is helpful to recommit your django project wrapper back to a distributed version control repository. 
+* It is also important to remember that production instances will store security information in the local_settings.py
+* Admin/Devs should always remember to exclude this file in the .gitignore file in the same folder as the .git::
+
+    $ nano .gitignore
+    
+    /{project}/local_settings.py
+
+save, make sure the file is also removed from git cache::
+    
+    $ git rm -f --cache /{{project}}/local_settings.py
+    
+    $ git status
+    
+confirm the file is no longer staged for the next commit or that if it is as "removed"
