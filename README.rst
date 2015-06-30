@@ -16,7 +16,7 @@ Install geonode with::
 
 Create a new template based on the geonode example project.::
     
-    $ django-admin startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/master.zip -epy,rst 
+    $ django-admin startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/2.0.zip -epy,rst 
     $ sudo pip install -e my_geonode
 
 .. note:: You should NOT use the name geonode for your project as it will conflict with the default geonode package name.
