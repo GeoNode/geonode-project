@@ -32,10 +32,17 @@ services:
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
       - ALLOWED_HOSTS=['django',]
       - C_FORCE_ROOT=1
-
   nginx:
     image: terranodo/nginx
     links:
       - django
     ports:
       - "80:80"
+  geoserver:
+    image: waybarrios/geoserver
+    links:
+      - postgres
+    ports:
+      - "8080:8080"
+    volumes:
+      - /srv/docker/geoserver/geoserver:/geoserver_data
