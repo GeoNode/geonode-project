@@ -45,7 +45,7 @@ services:
     ports:
       - "8080"
  
-   nginx:
+  nginx:
     build: docker/nginx
     links:
       - django
