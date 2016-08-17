@@ -51,4 +51,4 @@ services:
       - django
       - geoserver
     ports:
-       "80:80"
+      - "80:80"
