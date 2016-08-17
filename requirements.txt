@@ -5,3 +5,7 @@
 # B option: Editable package from a github repo with commit hash.
 git+git://github.com/GeoNode/geonode.git@290afca3654cee0b65a1d9b8f244ab22a7d82704#egg=geonode
 dj-database-url==0.4.1
+
+# Specific versions for GeoNode deployment (geonode's own setup.py does not specify versions)
+# The commented name next to the package
+# is the Ubuntu 14.04 package that provides it.
