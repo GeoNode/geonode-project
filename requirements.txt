@@ -1,0 +1,7 @@
+# Specify known versions for predictable builds.
+# setup.py has general requirements (bigger than, less than or no specific version)
+# This file contains either commit hashes or ==.
+# Preferred option: packages released on pypi.
+# B option: Editable package from a github repo with commit hash.
+git+git://github.com/GeoNode/geonode.git@290afca3654cee0b65a1d9b8f244ab22a7d82704#egg=geonode
+dj-database-url==0.4.1
