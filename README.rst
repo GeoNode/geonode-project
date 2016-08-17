@@ -1,28 +1,46 @@
 {{ project_name|title }}
 ========================
 
-You should write some docs, it's good for the soul.
+GeoNode project. Generates a django project with GeoNode support.
 
-Installation
-------------
+Create a custom project
+-----------------------
 
-With GeoNode's virtualenv activated in development or production mode, do the following::
+Step 1. Install Docker (for Linux, Mac or Windows).
+Step 2. Run the following command in a terminal. Remember to replace the name of the project from `<MYGEONODE>` to whatever you want, for example `awesomegeonode`.::
+
+    docker run -v `pwd`:/usr/src/app terranodo/django django-admin.py startproject <MYGEONODE> --template=https://github.com/waybarrios/geonode-project/archive/docker.zip -epy,rst,yml
+    cd <MYGEONODE>
+
+If you experience a permissions problem, make sure that the files belong to your user and not the root user.
+
+Start your server
+----------------
+
+Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
+
+    docker-compose up
+
+Create the tables in your postgres database::
+
+    docker-compose run django python manage.py migrate
+
+Set up a superuser so you can access the admin area::
+
+    docker-compose run django python manage.py createsuperuser
+
+Access the site on http://localhost/
 
 
-    $ git clone git://github.com/ingenieroariel/geonode-project.git
-    $ django-admin.py startproject --template=geonode-project -epy,rst myprettygeonode
-
-Usage
+Optional: Track your changes
 -----
 
-    $ pip install -e myprettygeonode
-    $ cd myprettygeonode
-    $ python manage.py runserver
+Step 1. Install Git (for Linux, Mac or Windows).
 
-To install on a virtual environment do::
+Step 2. Init git locally and do the first commit:
 
-    $ pip install -e myprettygeonode
+    git init
+    git add *
+    git commit -m "Initial Commit"
 
-Replace all uses of ``geonode.settings`` for ``myprettygeonode.settings``.
-
-In production, you can modify the 'geonode' binary tool and geonode.wsgi file to point to this one.
+Step 3. Set up a free account on github or bitbucket and make a copy of the repo there.
