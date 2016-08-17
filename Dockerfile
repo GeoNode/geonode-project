@@ -1,3 +1,2 @@
-FROM terranodo/django:onbuild
+FROM terranodo/django:geonode
 MAINTAINER Ariel Núñez<ariel@terranodo.io>
-
