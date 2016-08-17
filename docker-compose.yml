@@ -19,7 +19,7 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-      - DJANGO_SETTINGS_MODULE={{project_name}}
+      - DJANGO_SETTINGS_MODULE={{project_name}}.settings
       - GEOSERVER_BASE_URL="http://geoserver:8080/geoserver/"
       - ALLOWED_HOSTS=['django',]
 
@@ -34,7 +34,7 @@ services:
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
       - GEOSERVER_BASE_URL="http://geoserver:8080/geoserver/"
-      - DJANGO_SETTINGS_MODULE={{project_name}}
+      - DJANGO_SETTINGS_MODULE={{project_name}}.settings
       - ALLOWED_HOSTS=['django',]
       - C_FORCE_ROOT=1
 
