@@ -9,7 +9,7 @@ Create a custom project
 Step 1. Install Docker (for Linux, Mac or Windows).
 Step 2. Run the following command in a terminal. Remember to replace the name of the project from `{{project_name}}` to whatever you want, for example `awesomegeonode`.::
 
-    docker run -v `pwd`:/usr/src/app terranodo/django django-admin.py startproject {{project_name}} --template=https://github.com/piensa/geonode-project/archive/docker.zip -epy,rst,yml
+    docker run -v `pwd`:/usr/src/app terranodo/django django-admin.py startproject {{project_name}} --template=https://github.com/GeoNode/geonode-project/archive/docker.zip -epy,rst,yml
     cd {{project_name}}
 
 If you experience a permissions problem, make sure that the files belong to your user and not the root user.
