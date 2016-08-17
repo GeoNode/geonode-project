@@ -21,23 +21,30 @@
 # Django settings for the GeoNode project.
 import os
 from kombu import Queue
-import geonode
+from geonode import __file__ as geonode_path
 from geonode.celery_app import app  # flake8: noqa
+import dj_database_url
+
+def str2bool(v):
+        return v.lower() in ("yes", "true", "t", "1")
+
 
 #
 # General Django development settings
 #
-
 # GeoNode Version
+
 VERSION = geonode.get_version()
 
 # Defines the directory that contains the settings file as the PROJECT_ROOT
 # It is used for relative settings elsewhere.
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+GEONODE_ROOT = os.path.abspath(os.path.dirname(geonode_path))
 
 # Setting debug to true makes Django serve static media and
 # present pretty error pages.
-DEBUG = TEMPLATE_DEBUG = True
+DEBUG = str2bool(os.getenv('DEBUG', 'False'))
+TEMPLATE_DEBUG = str2bool(os.getenv('TEMPLATE_DEBUG', 'False'))
 
 # Set to True to load non-minified versions of (static) client dependencies
 # Requires to set-up Node and tools that are required for static development
@@ -48,35 +55,35 @@ DEBUG_STATIC = False
 # geonode to be listening for GeoServer auth requests.
 os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 
-# Defines settings for development
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(PROJECT_ROOT, 'development.db'),
-    },
-    # vector datastore for uploads
-    # 'datastore' : {
-    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    #    'NAME': '',
-    #    'USER' : '',
-    #    'PASSWORD' : '',
-    #    'HOST' : '',
-    #    'PORT' : '',
-    # }
-}
+SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
+
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///development.db')
+DATABASES = {'default':
+              dj_database_url.parse(DATABASE_URL, conn_max_age=600),
+            }
+
+MANAGERS = ADMINS = os.getenv('ADMINS', [])
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = os.getenv('TIME_ZONE', "America/Chicago")
+
+SITE_ID = int(os.getenv('SITE_ID', '1'))
+
+# TODO: env var - default True
+USE_I18N = True
+# TODO: env var - default True
+USE_L10N = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en'
-
-LANGUAGES = (
+LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en-us")
+# Underscore at the beginning added to represent a private variable.
+# should not be used in the application.
+_DEFAULT_LANGUAGES = (
     ('en', 'English'),
     ('es', 'Español'),
     ('it', 'Italiano'),
@@ -108,6 +115,8 @@ LANGUAGES = (
     ('ta', 'Tamil'),
     ('tl', 'Tagalog'),
 )
+
+LANGUAGES = os.getenv('LANGUAGES', _DEFAULT_LANGUAGES)
 
 EXTRA_LANG_INFO = {
     'am': {
@@ -193,10 +202,7 @@ LOCALE_PATHS = (
 SECRET_KEY = 'myv-y4#7j-d*p-__@j#*3z@!y24fz8%^z2v6atuy4bo9vqr1_a'
 
 # Location of url mappings
-ROOT_URLCONF = 'geonode.urls'
-
-# Site id in the Django sites framework
-SITE_ID = 1
+ROOT_URLCONF = '{{ project_name }}.urls'
 
 # Login and logout urls override
 LOGIN_URL = '/account/login/'
@@ -558,10 +564,10 @@ PYCSW = {
         #    'federatedcatalogues': 'http://catalog.data.gov/csw'
         #},
         'metadata:main': {
-            'identification_title': 'GeoNode Catalogue',
+            'identification_title': '{{ project_name }} Catalogue',
             'identification_abstract': 'GeoNode is an open source platform that facilitates the creation, sharing, ' \
             'and collaborative use of geospatial data',
-            'identification_keywords': 'sdi,catalogue,discovery,metadata,GeoNode',
+            'identification_keywords': 'sdi,catalogue,discovery,metadata,GeoNode, {{ project_name }}',
             'identification_keywords_type': 'theme',
             'identification_fees': 'None',
             'identification_accessconstraints': 'None',
@@ -901,7 +907,7 @@ if S3_MEDIA_ENABLED:
 import djcelery
 djcelery.setup_loader()
 
-# Load additonal basemaps, see geonode/contrib/api_basemap/README.md 
+# Load additonal basemaps, see geonode/contrib/api_basemap/README.md
 try:
     from geonode.contrib.api_basemaps import *
 except ImportError:
