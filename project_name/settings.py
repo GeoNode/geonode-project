@@ -22,6 +22,7 @@
 import os
 from kombu import Queue
 from geonode import __file__ as geonode_path
+from geonode import get_version
 from geonode.celery_app import app  # flake8: noqa
 import djcelery
 import dj_database_url
@@ -35,7 +36,7 @@ def str2bool(v):
 #
 # GeoNode Version
 
-VERSION = geonode.get_version()
+VERSION = get_version()
 
 # Defines the directory that contains the settings file as the PROJECT_ROOT
 # It is used for relative settings elsewhere.
