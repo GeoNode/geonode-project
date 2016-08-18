@@ -26,4 +26,4 @@ test:
 
 reset: down up wait sync
 
-hardreset: build reset
+hardreset: pull build reset
