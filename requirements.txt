@@ -2,8 +2,8 @@
 # setup.py has general requirements (bigger than, less than or no specific version)
 # This file contains either commit hashes or ==.
 # Preferred option: packages released on pypi.
-# B option: Editable package from a github repo with commit hash.
-git+git://github.com/piensa/geonode.git@docker#egg=geonode
+# B option: Editable package from a github repo with commit hash, but avoiding a slow git clone.
+https://codeload.github.com/GeoNode/geonode/zip/docker
 
 # Specific versions for GeoNode deployment (geonode's own setup.py does not specify versions)
 amqp==1.4.9
