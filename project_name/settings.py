@@ -173,6 +173,7 @@ STATIC_URL = os.getenv('STATIC_URL',"/static/")
 # Additional directories which hold static files
 _DEFAULT_STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, "static"),
+    os.path.join(GEONODE_ROOT, "static"),
 ]
 
 STATICFILES_DIRS = os.getenv('STATICFILES_DIRS',_DEFAULT_STATICFILES_DIRS)
@@ -198,12 +199,14 @@ TEMPLATE_LOADERS = os.getenv('TEMPLATE_LOADERS',_DEFAULT_TEMPLATE_LOADERS)
 
 _DEFAULT_TEMPLATE_DIRS = (
     os.path.join(PROJECT_ROOT, "templates"),
+    os.path.join(GEONODE_ROOT, "templates"),
 )
 TEMPLATE_DIRS = os.getenv('TEMPLATE_DIRS',_DEFAULT_TEMPLATE_DIRS)
 
 # Location of translation files
 _DEFAULT_LOCALE_PATHS = (
     os.path.join(PROJECT_ROOT, "locale"),
+    os.path.join(GEONODE_ROOT, "locale"),
 )
 LOCALE_PATHS = os.getenv('LOCALE_PATHS',_DEFAULT_LOCALE_PATHS)
 
