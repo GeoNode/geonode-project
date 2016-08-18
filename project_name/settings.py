@@ -23,6 +23,7 @@ import os
 from kombu import Queue
 from geonode import __file__ as geonode_path
 from geonode.celery_app import app  # flake8: noqa
+import djcelery
 import dj_database_url
 
 def str2bool(v):
@@ -974,10 +975,11 @@ if S3_MEDIA_ENABLED:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
     MEDIA_URL = "https://%s/%s/" % (AWS_S3_BUCKET_DOMAIN, MEDIAFILES_LOCATION)
 
-import djcelery
 djcelery.setup_loader()
 
 # Load additonal basemaps, see geonode/contrib/api_basemap/README.md
+# TODO: Before the 2.5 release, let's change the line below. Apparently it is
+# doing a circular import, we should not need to do a import * from here.
 try:
     from geonode.contrib.api_basemaps import *
 except ImportError:
