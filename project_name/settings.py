@@ -662,9 +662,6 @@ _DEFAULT_GEOSERVER_CREDENTIALS = "geoserver_admin", SECRET_KEY
 GEOSERVER_CREDENTIALS = os.getenv('GEOSERVER_CREDENTIALS', ("geoserver_admin", SECRET_KEY))
 
 
-_DEFAULT_AUTHENTICATION_BACKENDS = ('geonode.core.auth.GranularBackend',)
-AUTHENTICATION_BACKENDS = os.getenv('AUTHENTICATION_BACKENDS',_DEFAULT_AUTHENTICATION_BACKENDS)
-
 # Where should newly created maps be focused?
 DEFAULT_MAP_CENTER = (0, 0)
 
