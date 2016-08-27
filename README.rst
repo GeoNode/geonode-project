@@ -32,7 +32,7 @@ Set up a superuser so you can access the admin area::
 Access the site on http://localhost/
 
 
-Optional: Track your changes
+Recommended: Track your changes
 -----
 
 Step 1. Install Git (for Linux, Mac or Windows).
