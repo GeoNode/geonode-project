@@ -23,6 +23,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-       'geonode>2.4', # Compatible with 2.5 and higher
+       'geonode>=2.5',
     ],
 )
