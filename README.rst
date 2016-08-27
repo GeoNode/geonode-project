@@ -17,7 +17,7 @@ If you experience a permissions problem, make sure that the files belong to your
 Start your server
 ----------------
 
-Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
+You need Docker 1.12 or higher, get the latest stable official release for your platform. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
 
     docker-compose up
 
