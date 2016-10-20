@@ -22,17 +22,17 @@ Follow the snippets below and use the template tag `overextends` to extend an ex
 .. code-block:: django
  
  	{% comment %}geonode/base/templates/base/resourcebase_info_panel.html{% endcomment %}
-	{% block content %}
-	<div>Hello</div>
+	  {% block content %}
+	  <div>Hello</div>
 	{% endblock %}
 
 .. code-block:: django
 
-    {% comment %}project_name/templates/base/resourcebase_info_panel.html{% endcomment %}
-    {% overextends "base/resourcebase_info_panel.html" %}
+    	{% comment %}project_name/templates/base/resourcebase_info_panel.html{% endcomment %}
+    	{% overextends "base/resourcebase_info_panel.html" %}
 	{% block content %}
-	{{ block.super }}
-	<div>GeoNode developers</div>
+	  {{ block.super }}
+	  <div>GeoNode developers</div>
 	{% endblock %}
 
 Start your server
