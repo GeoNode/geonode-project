@@ -14,6 +14,27 @@ Step 2. Run the following command in a terminal. Remember to replace the name of
 
 If you experience a permissions problem, make sure that the files belong to your user and not the root user.
 
+Template inheritance
+^^^^^^^^^^^^^^^^^^^^
+
+Follow the snippets below and use the template tag `overextends` to extend an existing template from the core:
+
+.. code-block:: django
+ 
+ 	{% comment %}geonode/base/templates/base/resourcebase_info_panel.html{% endcomment %}
+	{% block content %}
+	<div>Hello</div>
+	{% endblock %}
+
+.. code-block:: django
+
+    {% comment %}project_name/templates/base/resourcebase_info_panel.html{% endcomment %}
+    {% overextends "base/resourcebase_info_panel.html" %}
+	{% block content %}
+	{{ block.super }}
+	<div>GeoNode developers</div>
+	{% endblock %}
+
 Start your server
 ----------------
 
