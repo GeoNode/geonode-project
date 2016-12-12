@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block extra_head %}
+      <link href="{{ STATIC_URL }}css/site_base.css" rel="stylesheet"/>
+{% endblock %}
+{% block extra_tab %}
+{% comment %}
+Add Tab for Third Party Apps
+<li>
+ <a href="{{ PROJECT_ROOT }}app">App</a>
+</li>
+{% endcomment %}
+{% endblock %}
