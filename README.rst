@@ -1,7 +1,7 @@
 {{ project_name|title }}
 ========================
 
-GeoNode project. Generates a django project with GeoNode support.
+GeoNode template project. Generates a django project with GeoNode support.
 
 Create a custom project
 -----------------------
