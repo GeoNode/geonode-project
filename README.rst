@@ -24,8 +24,8 @@ Using a Virtualenvironment
 
 To setup your project using a local Virtualenvironment, follow these instructions:
 
-1. Setup your virtualenvironment `mkvirtualenv my_geonode`
-2. Install django into your virtualenviornment `pip install Django==1.8.7`
+1. Setup your virtualenvironment ```mkvirtualenv my_geonode```
+2. Install django into your virtualenviornment ```pip install Django==1.8.7```
 3. Create your project using the template project::
 
     django-admin.py startproject --template=https://github.com/GeoNode/geonode-proejct/archive/master.zip -epy,rst,yml my_geonode
