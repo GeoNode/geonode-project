@@ -32,27 +32,6 @@ To setup your project using a local Virtualenvironment, follow these instruction
 
     django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/master.zip -epy,rst,yml my_geonode
 
-Template inheritance
-^^^^^^^^^^^^^^^^^^^^
-
-Follow the snippets below and use the template tag ``overextends`` to extend an existing template from the core:
-
-.. code-block:: django
- 
- 	{% comment %}geonode/base/templates/base/resourcebase_info_panel.html{% endcomment %}
-	{% block content %}
-	  <div>Hello</div>
-	{% endblock %}
-
-.. code-block:: django
-
-   	{% comment %}project_name/templates/base/resourcebase_info_panel.html{% endcomment %}
-   	{% comment %}{% overextends "base/resourcebase_info_panel.html" %}{% endcomment %}
-	{% block content %}
-	  {{ block.super }}
-	  <div>GeoNode developers</div>
-	{% endblock %}
-
 Start your server
 ----------------
 
