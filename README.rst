@@ -46,8 +46,8 @@ Follow the snippets below and use the template tag ``overextends`` to extend an 
 
 .. code-block:: django
 
-    	{% comment %}project_name/templates/base/resourcebase_info_panel.html{% endcomment %}
-    	{% overextends "base/resourcebase_info_panel.html" %}
+   	{% comment %}project_name/templates/base/resourcebase_info_panel.html{% endcomment %}
+   	{% comment %}{% overextends "base/resourcebase_info_panel.html" %}{% endcomment %}
 	{% block content %}
 	  {{ block.super }}
 	  <div>GeoNode developers</div>
