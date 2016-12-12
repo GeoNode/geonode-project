@@ -9,8 +9,10 @@ Create a custom project
 Using Docker
 ++++++++++++
 
-Step 1. Install Docker (for Linux, Mac or Windows).
-Step 2. Run the following command in a terminal. Remember to replace the name of the project from ``{{project_name}}`` to whatever you want, for example ``awesomegeonode``.::
+To setup your project using Docker, follow these instructions:
+
+1. Install Docker (for Linux, Mac or Windows).
+2. Run the following command in a terminal. Remember to replace the name of the project from ``{{project_name}}`` to whatever you want, for example ``awesomegeonode``.::
 
     docker run -v `pwd`:/usr/src/app terranodo/django:geonode django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/docker.zip -epy,rst,yml {{project_name}}
     cd {{project_name}}
@@ -20,9 +22,11 @@ If you experience a permissions problem, make sure that the files belong to your
 Using a Virtualenvironment
 ++++++++++++++++++++++++++
 
-Step 1. Setup your virtualenvironment `mkvirtualenv my_geonode`
-Step 2. Install django into your virtualenviornment `pip install Django==1.8.7`
-Step 3. Create your project using the template project::
+To setup your project using a local Virtualenvironment, follow these instructions:
+
+1. Setup your virtualenvironment `mkvirtualenv my_geonode`
+2. Install django into your virtualenviornment `pip install Django==1.8.7`
+3. Create your project using the template project::
 
     django-admin.py startproject --template=https://github.com/GeoNode/geonode-proejct/archive/master.zip -epy,rst,yml my_geonode
 
