@@ -300,7 +300,7 @@ _DEFAULT_INSTALLED_APPS = (
     'geoexplorer',
     'leaflet',
     'django_extensions',
-    'overextends',
+    #'overextends',
     # 'haystack',
     'autocomplete_light',
     'mptt',
