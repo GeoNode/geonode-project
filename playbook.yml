@@ -1,0 +1,9 @@
+- hosts: production
+  remote_user: user
+  vars:
+    app_name: {{ project_name }}
+    github_user: geonode
+    server_name: 0.0.0.0
+    deploy_user: user
+  roles:
+     - { role: geonode.geonode }
