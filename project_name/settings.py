@@ -22,8 +22,8 @@
 import os
 from kombu import Queue
 from geonode import __file__ as geonode_path
-from geonode import get_version
-from geonode.celery_app import app  # flake8: noqa
+from {{ project_name }} import get_version
+from {{ project_name }}.celeryapp import app  # flake8: noqa
 import djcelery
 import dj_database_url
 
@@ -46,7 +46,6 @@ GEONODE_ROOT = os.path.abspath(os.path.dirname(geonode_path))
 # Setting debug to true makes Django serve static media and
 # present pretty error pages.
 DEBUG = str2bool(os.getenv('DEBUG', 'True'))
-TEMPLATE_DEBUG = str2bool(os.getenv('TEMPLATE_DEBUG', 'False'))
 
 # Set to True to load non-minified versions of (static) client dependencies
 # Requires to set-up Node and tools that are required for static development
@@ -59,10 +58,17 @@ os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 
 SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
 
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///development.db')
-DATABASES = {'default':
-              dj_database_url.parse(DATABASE_URL, conn_max_age=600),
-            }
+DATABASE_URL = os.getenv(
+    'DATABASE_URL',
+    'sqlite:///{path}'.format(
+        path=os.path.join(PROJECT_ROOT, 'development.db')
+    )
+)
+
+# Defines settings for development
+DATABASES = {
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+}
 
 MANAGERS = ADMINS = os.getenv('ADMINS', [])
 
@@ -145,7 +151,7 @@ EXTRA_LANG_INFO = {
         },
 }
 
-AUTH_USER_MODEL = os.getenv('AUTH_USER_MODEL','people.Profile')
+AUTH_USER_MODEL = os.getenv('AUTH_USER_MODEL', 'people.Profile')
 
 MODELTRANSLATION_LANGUAGES = ['en', ]
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
@@ -159,16 +165,16 @@ MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(PROJECT_ROOT, "uploaded"))
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
-MEDIA_URL = os.getenv('MEDIA_URL',"/uploaded/")
-LOCAL_MEDIA_URL = os.getenv('LOCAL_MEDIA_URL',"/uploaded/")
+MEDIA_URL = os.getenv('MEDIA_URL', "/uploaded/")
+LOCAL_MEDIA_URL = os.getenv('LOCAL_MEDIA_URL', "/uploaded/")
 
 # Absolute path to the directory that holds static files like app media.
 # Example: "/home/media/media.lawrence.com/apps/"
-STATIC_ROOT = os.getenv('STATIC_ROOT',os.path.join(PROJECT_ROOT, "static_root"))
+STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(PROJECT_ROOT, "static_root"))
 
 # URL that handles the static files like app media.
 # Example: "http://media.lawrence.com"
-STATIC_URL = os.getenv('STATIC_URL',"/static/")
+STATIC_URL = os.getenv('STATIC_URL', "/static/")
 
 # Additional directories which hold static files
 _DEFAULT_STATICFILES_DIRS = [
@@ -176,7 +182,7 @@ _DEFAULT_STATICFILES_DIRS = [
     os.path.join(GEONODE_ROOT, "static"),
 ]
 
-STATICFILES_DIRS = os.getenv('STATICFILES_DIRS',_DEFAULT_STATICFILES_DIRS)
+STATICFILES_DIRS = os.getenv('STATICFILES_DIRS', _DEFAULT_STATICFILES_DIRS)
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -187,22 +193,6 @@ _DEFAULT_STATICFILES_FINDERS = (
 )
 STATICFILES_FINDERS = os.getenv('STATICFILES_FINDERS',_DEFAULT_STATICFILES_FINDERS)
 
-# Note that Django automatically includes the "templates" dir in all the
-# INSTALLED_APPS, se there is no need to add maps/templates or admin/templates
-
-_DEFAULT_TEMPLATE_LOADERS = [
-    "django.template.loaders.filesystem.Loader",
-    "django.template.loaders.app_directories.Loader",
-]
-
-TEMPLATE_LOADERS = os.getenv('TEMPLATE_LOADERS',_DEFAULT_TEMPLATE_LOADERS)
-
-_DEFAULT_TEMPLATE_DIRS = (
-    os.path.join(PROJECT_ROOT, "templates"),
-    os.path.join(GEONODE_ROOT, "templates"),
-)
-TEMPLATE_DIRS = os.getenv('TEMPLATE_DIRS',_DEFAULT_TEMPLATE_DIRS)
-
 # Location of translation files
 _DEFAULT_LOCALE_PATHS = (
     os.path.join(PROJECT_ROOT, "locale"),
@@ -211,19 +201,20 @@ _DEFAULT_LOCALE_PATHS = (
 LOCALE_PATHS = os.getenv('LOCALE_PATHS',_DEFAULT_LOCALE_PATHS)
 
 # Location of url mappings
-ROOT_URLCONF = os.getenv('ROOT_URLCONF','{{ project_name }}.urls')
+ROOT_URLCONF = os.getenv('ROOT_URLCONF', '{{ project_name }}.urls')
 
 # Login and logout urls override
-LOGIN_URL = os.getenv('LOGIN_URL','/account/login/')
-LOGOUT_URL = os.getenv('LOGOUT_URL','/account/logout/')
+LOGIN_URL = os.getenv('LOGIN_URL', '/account/login/')
+LOGOUT_URL = os.getenv('LOGOUT_URL', '/account/logout/')
 
 # Documents application
 _DEFAULT_ALLOWED_DOCUMENT_TYPES = [
-    'doc', 'docx', 'gif', 'jpg', 'jpeg', 'ods', 'odt', 'odp', 'pdf', 'png', 'ppt',
-    'pptx', 'rar', 'sld', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'gz'
+    'doc', 'docx', 'gif', 'jpg', 'jpeg', 'ods', 'odt', 'odp', 'pdf', 'png',
+    'ppt', 'pptx', 'rar', 'sld', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml',
+    'zip', 'gz', 'qml'
 ]
-ALLOWED_DOCUMENT_TYPES = os.getenv('ALLOWED_DOCUMENT_TYPES',_DEFAULT_ALLOWED_DOCUMENT_TYPES)
-MAX_DOCUMENT_SIZE = int(os.getenv('MAX_DOCUMENT_SIZE ','2'))  # MB
+ALLOWED_DOCUMENT_TYPES = os.getenv('ALLOWED_DOCUMENT_TYPES', _DEFAULT_ALLOWED_DOCUMENT_TYPES)
+MAX_DOCUMENT_SIZE = int(os.getenv('MAX_DOCUMENT_SIZE ', '2'))  # MB
 
 # DOCUMENT_TYPE_MAP and DOCUMENT_MIMETYPE_MAP update enumerations in
 # documents/enumerations.py and should only
@@ -300,11 +291,12 @@ _DEFAULT_INSTALLED_APPS = (
     'geoexplorer',
     'leaflet',
     'django_extensions',
-    #'overextends',
+    # 'geonode_client',
+    # 'overextends',
     # 'haystack',
     'autocomplete_light',
     'mptt',
-    #'modeltranslation',
+    # 'modeltranslation',
     'djcelery',
     'storages',
 
@@ -325,6 +317,7 @@ _DEFAULT_INSTALLED_APPS = (
     'tastypie',
     'polymorphic',
     'guardian',
+    'oauth2_provider',
 
 ) + GEONODE_APPS
 
@@ -382,28 +375,40 @@ LOGGING = os.getenv('LOGGING', _DEFAULT_LOGGING)
 # Customizations to built in Django settings required by GeoNode
 #
 
-
-_DEFAULT_TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    "django.core.context_processors.tz",
-    'django.core.context_processors.media',
-    "django.core.context_processors.static",
-    'django.core.context_processors.request',
-    'django.contrib.messages.context_processors.messages',
-    'account.context_processors.account',
-    # The context processor below adds things like SITEURL
-    # and GEOSERVER_BASE_URL to all pages that use a RequestContext
-    'geonode.context_processors.resource_urls',
-    'geonode.geoserver.context_processors.geoserver_urls',
-)
-TEMPLATE_CONTEXT_PROCESSORS = os.getenv('TEMPLATE_CONTEXT_PROCESSORS',_DEFAULT_TEMPLATE_CONTEXT_PROCESSORS)
+# Django automatically includes the "templates" dir in all the INSTALLED_APPS.
+TEMPLATES = [
+    {
+        'NAME': 'GeoNode Project Templates',
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(PROJECT_ROOT, "templates"),
+            os.path.join(GEONODE_ROOT, "templates")
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.core.context_processors.debug',
+                'django.core.context_processors.i18n',
+                'django.core.context_processors.tz',
+                'django.core.context_processors.media',
+                'django.core.context_processors.static',
+                'django.core.context_processors.request',
+                'django.contrib.messages.context_processors.messages',
+                'account.context_processors.account',
+                'geonode.context_processors.resource_urls',
+                'geonode.geoserver.context_processors.geoserver_urls',
+            ],
+            'debug': DEBUG,
+        },
+    }
+]
 
 _DEFAULT_MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+
     # The setting below makes it possible to serve different languages per
     # user depending on things like headers in HTTP requests.
     'django.middleware.locale.LocaleMiddleware',
@@ -411,11 +416,19 @@ _DEFAULT_MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
     # This middleware allows to print private layers for the users that have
     # the permissions to view them.
-    # It sets temporary the involved layers as public before restoring the permissions.
-    # Beware that for few seconds the involved layers are public there could be risks.
+    # It sets temporary the involved layers as public before restoring the
+    # permissions.
+    # Beware that for few seconds the involved layers are public there could be
+    # risks.
     # 'geonode.middleware.PrintProxyMiddleware',
+
+    # If you use SessionAuthenticationMiddleware, be sure it appears before OAuth2TokenMiddleware.
+    # SessionAuthenticationMiddleware is NOT required for using django-oauth-toolkit.
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
 )
 MIDDLEWARE_CLASSES = os.getenv('MIDDLEWARE_CLASSES',_DEFAULT_MIDDLEWARE_CLASSES)
 
@@ -428,6 +441,17 @@ _DEFAULT_AUTHENTICATION_BACKENDS = (
     'guardian.backends.ObjectPermissionBackend',
 )
 AUTHENTICATION_BACKENDS = os.getenv('AUTHENTICATION_BACKENDS', _DEFAULT_AUTHENTICATION_BACKENDS)
+
+OAUTH2_PROVIDER = {
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+        'groups': 'Access to your groups'
+    },
+
+    'CLIENT_ID_GENERATOR_CLASS': 'oauth2_provider.generators.ClientIdGenerator',
+}
+
 ANONYMOUS_USER_ID = os.getenv('ANONYMOUS_USER_ID','-1')
 GUARDIAN_GET_INIT_ANONYMOUS_USER =os.getenv('GUARDIAN_GET_INIT_ANONYMOUS_USER','geonode.people.models.get_anonymous_user_instance')
 
@@ -518,6 +542,7 @@ GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY',"ABQIAAAAkofooZxTfcCv9Wi3zzGTVxTnme5
 #
 
 SITEURL = os.getenv('SITEURL',"http://localhost:8000/")
+SITENAME = '{{ project_name }}'
 
 USE_QUEUE = str2bool(os.getenv('USE_QUEUE', 'False'))
 
@@ -541,6 +566,8 @@ _DEFAULT_OGC_SERVER = {
     'default': {
         'BACKEND': 'geonode.geoserver',
         'LOCATION': 'http://localhost:8080/geoserver/',
+        'LOGIN_ENDPOINT': 'j_spring_oauth2_geonode_login',
+        'LOGOUT_ENDPOINT': 'j_spring_oauth2_geonode_logout',
         # PUBLIC_LOCATION needs to be kept like this because in dev mode
         # the proxy won't work and the integration tests will fail
         # the entire block has to be overridden in the local_settings
@@ -693,6 +720,7 @@ _DEFAULT_MAP_BASELAYERS = [{
     "source": {"ptype": "gxp_olsource"},
     "type": "OpenLayers.Layer",
     "args": ["No background"],
+    "name": "background",
     "visibility": False,
     "fixed": True,
     "group":"background"
@@ -910,12 +938,15 @@ LAYER_PREVIEW_LIBRARY = 'geoext'
 
 SERVICE_UPDATE_INTERVAL = 0
 
+
 SEARCH_FILTERS = {
     'TEXT_ENABLED': True,
     'TYPE_ENABLED': True,
     'CATEGORIES_ENABLED': True,
     'OWNERS_ENABLED': True,
     'KEYWORDS_ENABLED': True,
+    'H_KEYWORDS_ENABLED': True,
+    'T_KEYWORDS_ENABLED': True,
     'DATE_ENABLED': True,
     'REGION_ENABLED': True,
     'EXTENT_ENABLED': True,
@@ -1038,3 +1069,10 @@ if 'geonode.geoserver' in INSTALLED_APPS:
     DB_DATASTORE = str2bool(os.getenv('DB_DATASTORE', 'True'))
 
     ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ['localhost', ])
+
+
+# Keywords thesauri
+# e.g. THESAURI = [{'name':'inspire_themes', 'required':True, 'filter':True}, {'name':'inspire_concepts', 'filter':True}, ]
+# Required: (boolean, optional, default false) mandatory while editing metadata (not implemented yet)
+# Filter: (boolean, optional, default false) a filter option on that thesaurus will appear in the main search page
+THESAURI = []
