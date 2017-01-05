@@ -1076,3 +1076,13 @@ if 'geonode.geoserver' in INSTALLED_APPS:
 # Required: (boolean, optional, default false) mandatory while editing metadata (not implemented yet)
 # Filter: (boolean, optional, default false) a filter option on that thesaurus will appear in the main search page
 THESAURI = []
+
+# There are 3 ways to override GeoNode settings:
+# 1. Using environment variables, if your changes to GeoNode are minimal.
+# 2. Creating a downstream project, if you are doing a lot of customization.
+# 3. Override settings in a local_settings.py file, legacy.
+# Load more settings from a file called local_settings.py if it exists
+try:
+    from local_settings import *  # noqa
+except ImportError:
+    pass
