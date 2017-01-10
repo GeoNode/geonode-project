@@ -56,6 +56,19 @@ DEBUG_STATIC = str2bool(os.getenv('DEBUG_STATIC', 'False'))
 # geonode to be listening for GeoServer auth requests.
 os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ['localhost', ])
+
+# AUTH_IP_WHITELIST property limits access to users/groups REST endpoints
+# to only whitelisted IP addresses.
+#
+# Empty list means 'allow all'
+#
+# If you need to limit 'api' REST calls to only some specific IPs
+# fill the list like below:
+#
+# AUTH_IP_WHITELIST = ['192.168.1.158', '192.168.1.159']
+AUTH_IP_WHITELIST = []
+
 SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
 
 DATABASE_URL = os.getenv(
@@ -291,7 +304,7 @@ _DEFAULT_INSTALLED_APPS = (
     'geoexplorer',
     'leaflet',
     'django_extensions',
-    # 'geonode_client',
+    # 'geonode-client',
     # 'overextends',
     # 'haystack',
     'autocomplete_light',
@@ -798,7 +811,7 @@ LOCKDOWN_GEONODE = str2bool(os.getenv('LOCKDOWN_GEONODE', 'False'))
 
 # Add additional paths (as regular expressions) that don't require
 # authentication.
-AUTH_EXEMPT_URLS = ()
+AUTH_EXEMPT_URLS = ('/api/o/*', '/api/roles', '/api/adminRole', '/api/users',)
 
 # A tuple of hosts the proxy can send requests to.
 PROXY_ALLOWED_HOSTS = ()

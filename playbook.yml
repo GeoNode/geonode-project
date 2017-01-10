@@ -1,9 +1,16 @@
-- hosts: production
-  remote_user: user
+- name: Provision a GeoNode into Production
+  hosts: production
+  remote_user: ubuntu
   vars:
     app_name: {{ project_name }}
     github_user: geonode
     server_name: 0.0.0.0
-    deploy_user: user
+    deploy_user: ubuntu
+    code_repository: https://github.com/-----/{{ project_name }}.git" # e.g., "https://github.com/GeoNode/{{ project_name }}.git"
+    branch_name: master
+    virtualenv_dir: "/home/ubuntu/.venvs"
+    site_url: "http://localhost:8000/" # The public url of the GeoNode instance
+    geoserver_url: "http://build.geonode.org/geoserver/latest/geoserver-2.9.x-oauth2.war"
+    # geoserver_url should match what is found in dev_config.yml
   roles:
-     - { role: geonode.geonode }
+     - { role: GeoNode.geonode }
