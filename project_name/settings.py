@@ -45,12 +45,6 @@ STATICFILES_DIRS.append(
     os.path.join(LOCAL_ROOT, "static"),
 )
 
-# Note that Django automatically includes the "templates" dir in all the
-# INSTALLED_APPS, se there is no need to add maps/templates or admin/templates
-TEMPLATE_DIRS = (
-    os.path.join(LOCAL_ROOT, "templates"),
-) + TEMPLATE_DIRS
-
 # Location of url mappings
 ROOT_URLCONF = '{{ project_name }}.urls'
 
