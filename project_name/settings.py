@@ -59,3 +59,4 @@ LOCALE_PATHS = (
     os.path.join(LOCAL_ROOT, 'locale'),
     ) + LOCALE_PATHS
 
+INSTALLED_APPS = INSTALLED_APPS + ('{{ project_name }}',)
