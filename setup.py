@@ -23,6 +23,6 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'django-tastypie==0.11.0',
+        'django-tastypie==0.13.0',
     ]
 )
