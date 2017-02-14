@@ -1,2 +1,2 @@
 five==0.4.0
-geonode==2.5.12
+geonode==2.5.15
