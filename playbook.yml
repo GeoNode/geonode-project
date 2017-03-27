@@ -10,7 +10,31 @@
     branch_name: master
     virtualenv_dir: "/home/ubuntu/.venvs"
     site_url: "http://localhost:8000/" # The public url of the GeoNode instance
-    geoserver_url: "http://build.geonode.org/geoserver/latest/geoserver-2.9.x-oauth2.war"
-    # geoserver_url should match what is found in dev_config.yml
+    geoserver_url: "http://build.geonode.org/geoserver/latest/geoserver-2.9.x-oauth2.war" # geoserver_url should match what is found in dev_config.yml
+  gather_facts: False
+  pre_tasks:
+    - name: Install python for Ansible
+      become: yes
+      become_user: root
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    - name: 'Reconfigue Locales'
+      become: yes
+      become_user: root
+      shell: "{{ item }}"
+      with_items:
+        - "export LANGUAGE=en_US.UTF-8"
+        - "export LANG=en_US.UTF-8"
+        - "export LC_ALL=en_US.UTF-8"
+        - "locale-gen --purge en_US.UTF-8"
+        - "echo 'LANG=en_US.UTF-8\nLANGUAGE=en_US:en\n' > /etc/default/locale"
+    - name: "Install cul, vim, and unzip"
+      become: yes
+      become_user: root
+      apt: name="{{ item }}" state=latest
+      with_items:
+        - curl
+        - vim
+        - unzip
+    - setup: # aka gather_facts
   roles:
      - { role: GeoNode.geonode }
