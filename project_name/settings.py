@@ -748,7 +748,7 @@ _DEFAULT_MAP_BASELAYERS = [{
 
 MAP_BASELAYERS = os.getenv('MAP_BASELAYERS',_DEFAULT_MAP_BASELAYERS)
 
-SOCIAL_BUTTONS = str2bool(os.getenv('SOCIAL_BUTTONS', 'True'))
+DISPLAY_SOCIAL = str2bool(os.getenv('DISPLAY_SOCIAL', 'True'))
 
 _DEFAULT_SOCIAL_ORIGINS = [{
     "label":"Email",
