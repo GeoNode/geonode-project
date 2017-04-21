@@ -8,7 +8,7 @@ Installation
 
 Install geonode with::
 
-    $ sudo add-apt-repository ppa:geonode/release
+    $ sudo add-apt-repository ppa:geonode/stable
 
     $ sudo apt-get update
 
@@ -16,7 +16,7 @@ Install geonode with::
 
 Create a new template based on the geonode example project.::
     
-    $ django-admin startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/2.4.zip -epy,rst 
+    $ django-admin startproject my_geonode --template=https://github.com/GeoNode/geonode-project/archive/2.6.zip -epy,rst 
     $ sudo pip install -e my_geonode
 
 .. note:: You should NOT use the name geonode for your project as it will conflict with the default geonode package name.
