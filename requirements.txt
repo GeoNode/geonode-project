@@ -1,2 +1,7 @@
+Django==1.8.7
 five==0.4.0
-geonode==2.6
+six==1.10.0
+# we can't use django-user-account until upstream merge changes for geonode.
+# this is temporary solution
+https://github.com/cezio/django-user-accounts/archive/252_255_mixed.zip#egg=django-user-accounts-2.0.2
+-e git://github.com/GeoNode/geonode.git#egg=geonode
