@@ -16,7 +16,7 @@ To setup your project using Docker, follow these instructions:
 1. Install Docker (for Linux, Mac or Windows).
 2. Run the following command in a terminal.::
 
-    docker run -v `pwd`:/usr/src/app GeoNode/django:geonode django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/docker.zip -epy,rst,yml my_geonode
+    docker run -v `pwd`:/usr/src/app GeoNode/django:geonode django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/docker.zip -e py,rst,json,yml my_geonode
     cd my_geonode
 
 If you experience a permissions problem, make sure that the files belong to your user and not the root user.
@@ -30,7 +30,7 @@ To setup your project using a local python virtual environment, follow these ins
 2. Install django into your virtualenviornment ``pip install Django==1.8.7``
 3. Create your project using the template project::
 
-    django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/master.zip -epy,rst,yml my_geonode
+    django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/master.zip -e py,rst,json,yml my_geonode
 
 Start your server
 ----------------
