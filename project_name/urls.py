@@ -137,11 +137,11 @@ if 'geonode.geoserver' in settings.INSTALLED_APPS:
                             (r'^gs/', include('geonode.geoserver.urls')),
                             )
 
-if 'notification' in settings.INSTALLED_APPS:
+if settings.NOTIFICATIONS_MODULE in settings.INSTALLED_APPS:
+    notifications_urls = '{}.urls'.format(settings.NOTIFICATIONS_MODULE)
     urlpatterns += patterns('',
-                            (r'^notifications/', include('notification.urls')),
+                            (r'^notifications/', include(notifications_urls)),
                             )
-
 # Set up proxy
 urlpatterns += geonode.proxy.urls.urlpatterns
 
