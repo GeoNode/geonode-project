@@ -1,1 +1,3 @@
+git+git://github.com/geopython/OWSLib@master#egg=OWSLib-0.14-dev
+git+git://github.com/cezio/django-user-accounts@252_255_mixed
 -e git://github.com/GeoNode/geonode.git@master#egg=geonode
