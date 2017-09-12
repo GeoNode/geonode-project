@@ -1,6 +1,1 @@
-Django==1.8.7
-five==0.4.0
-six==1.10.0
-git+git://github.com/geopython/OWSLib@master#egg=OWSLib-0.14-dev
-git+git://github.com/cezio/django-user-accounts@252_255_mixed
 -e git://github.com/GeoNode/geonode.git@master#egg=geonode

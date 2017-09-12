@@ -21,20 +21,10 @@
 # Django settings for the GeoNode project.
 import os
 from {{ project_name}}.settings import *
-import dj_database_url
 
 #
 # General Django development settings
 #
-
-# per-deployment settings should go here
-SITEURL = os.getenv('SITEURL',"http://localhost:8000/")
-SITENAME = '{{ project_name }}'
-
-# SECRET_KEY = '************************'
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
-
 POSTGIS_VERSION = (2, 0, 7)
 
 DATABASES = {

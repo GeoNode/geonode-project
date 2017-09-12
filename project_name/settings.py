@@ -24,8 +24,15 @@ from geonode.settings import *
 #
 # General Django development settings
 #
-
 PROJECT_NAME = '{{ project_name }}'
+
+# per-deployment settings should go here
+SITEURL = os.getenv('SITEURL',"http://localhost:8000/")
+SITENAME = '{{ project_name }}'
+
+# SECRET_KEY = '************************'
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
 
 # Defines the directory that contains the settings file as the LOCAL_ROOT
 # It is used for relative settings elsewhere.
