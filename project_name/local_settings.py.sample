@@ -224,9 +224,6 @@ LAYER_PREVIEW_LIBRARY = 'geoext'
 #    'RESET_VIEW': False
 #}
 
-ALLOWED_HOSTS = ['localhost', 'django'] if os.getenv('ALLOWED_HOSTS') is None \
-    else re.split(r' *[,|:|;] *', os.getenv('ALLOWED_HOSTS'))
-
 PROXY_ALLOWED_HOSTS += ('nominatim.openstreetmap.org',)
 
 # AUTH_IP_WHITELIST property limits access to users/groups REST endpoints
