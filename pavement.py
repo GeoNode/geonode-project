@@ -18,27 +18,27 @@
 #
 #########################################################################
 
+import fileinput
+import glob
 import os
 import re
 import shutil
+import subprocess
+import signal
 import sys
 import time
 import urllib
 import urllib2
 import zipfile
-import glob
-import fileinput
-import yaml
-
-from setuptools.command import easy_install
 from urlparse import urlparse
 
-from paver.easy import task, options, cmdopts, needs
-from paver.easy import path, sh, info, call_task
-from paver.easy import BuildFailure
+import yaml
+from paver.easy import (BuildFailure, call_task, cmdopts, info, needs, options,
+                        path, sh, task)
+from setuptools.command import easy_install
 
 try:
-    from {{ project_name }}.settings import GEONODE_APPS
+    from {{ project_name }}.settings import GEONODE_APPS, OGC_SERVER, INSTALLED_APPS
 except:
     # probably trying to run install_win_deps.
     pass
@@ -89,11 +89,23 @@ def setup_geoserver(options):
 
     geoserver_dir = path('geoserver')
 
-    geoserver_bin = download_dir / os.path.basename(dev_config['GEOSERVER_URL'])
-    jetty_runner = download_dir / os.path.basename(dev_config['JETTY_RUNNER_URL'])
+    geoserver_bin = download_dir / \
+        os.path.basename(dev_config['GEOSERVER_URL'])
+    jetty_runner = download_dir / \
+        os.path.basename(dev_config['JETTY_RUNNER_URL'])
 
-    grab(options.get('geoserver', dev_config['GEOSERVER_URL']), geoserver_bin, "geoserver binary")
-    grab(options.get('jetty', dev_config['JETTY_RUNNER_URL']), jetty_runner, "jetty runner")
+    grab(
+        options.get(
+            'geoserver',
+            dev_config['GEOSERVER_URL']),
+        geoserver_bin,
+        "geoserver binary")
+    grab(
+        options.get(
+            'jetty',
+            dev_config['JETTY_RUNNER_URL']),
+        jetty_runner,
+        "jetty runner")
 
     if not geoserver_dir.exists():
         geoserver_dir.makedirs()
@@ -117,13 +129,55 @@ def _install_data_dir():
     original_data_dir = path('geoserver/geoserver/data')
     justcopy(original_data_dir, target_data_dir)
 
-    config = path('geoserver/data/security/auth/geonodeAuthProvider/config.xml')
-    with open(config) as f:
-        xml = f.read()
-        m = re.search('baseUrl>([^<]+)', xml)
-        xml = xml[:m.start(1)] + "http://localhost:8000/" + xml[m.end(1):]
-        with open(config, 'w') as f:
-            f.write(xml)
+    try:
+        config = path(
+            'geoserver/data/global.xml')
+        with open(config) as f:
+            xml = f.read()
+            m = re.search('proxyBaseUrl>([^<]+)', xml)
+            xml = xml[:m.start(1)] + \
+                "http://localhost:8080/geoserver" + xml[m.end(1):]
+            with open(config, 'w') as f:
+                f.write(xml)
+    except Exception as e:
+        print(e)
+
+    try:
+        config = path(
+            'geoserver/data/security/filter/geonode-oauth2/config.xml')
+        with open(config) as f:
+            xml = f.read()
+            m = re.search('accessTokenUri>([^<]+)', xml)
+            xml = xml[:m.start(1)] + \
+                "http://localhost:8000/o/token/" + xml[m.end(1):]
+            m = re.search('userAuthorizationUri>([^<]+)', xml)
+            xml = xml[:m.start(
+                1)] + "http://localhost:8000/o/authorize/" + xml[m.end(1):]
+            m = re.search('redirectUri>([^<]+)', xml)
+            xml = xml[:m.start(
+                1)] + "http://localhost:8080/geoserver/index.html" + xml[m.end(1):]
+            m = re.search('checkTokenEndpointUrl>([^<]+)', xml)
+            xml = xml[:m.start(
+                1)] + "http://localhost:8000/api/o/v4/tokeninfo/" + xml[m.end(1):]
+            m = re.search('logoutUri>([^<]+)', xml)
+            xml = xml[:m.start(
+                1)] + "http://localhost:8000/account/logout/" + xml[m.end(1):]
+            with open(config, 'w') as f:
+                f.write(xml)
+    except Exception as e:
+        print(e)
+
+    try:
+        config = path(
+            'geoserver/data/security/role/geonode REST role service/config.xml')
+        with open(config) as f:
+            xml = f.read()
+            m = re.search('baseUrl>([^<]+)', xml)
+            xml = xml[:m.start(1)] + "http://localhost:8000" + xml[m.end(1):]
+            with open(config, 'w') as f:
+                f.write(xml)
+    except Exception as e:
+        print(e)
 
 
 @task
@@ -139,6 +193,7 @@ def static(options):
 def setup(options):
     """Get dependencies and prepare a GeoNode development environment."""
 
+    updategeoip(options)
     info(('GeoNode development environment successfully set up.'
           'If you have not set up an administrative account,'
           ' please do so now. Use "paver start" to start up the server.'))
@@ -178,7 +233,7 @@ def win_install_deps(options):
         grab_winfiles(url, tempfile, package)
         try:
             easy_install.main([tempfile])
-        except Exception, e:
+        except Exception as e:
             failed = True
             print "install failed with error: ", e
         os.remove(tempfile)
@@ -210,6 +265,21 @@ def upgradedb(options):
 
 
 @task
+def updategeoip(options):
+    """
+    Update geoip db
+    """
+    settings = options.get('settings', '')
+    if settings:
+        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
+
+    sh("%s python manage.py updategeoip -o" % settings)
+
+
+@task
+@cmdopts([
+    ('settings', 's', 'Specify custom DJANGO_SETTINGS_MODULE')
+])
 def sync(options):
     """
     Run the migrate and migrate management commands to create and migrate a DB
@@ -322,14 +392,37 @@ def stop_geoserver():
     """
     kill('java', 'geoserver')
 
+    # Kill process.
+    try:
+        # proc = subprocess.Popen("ps -ef | grep -i -e '[j]ava\|geoserver' | awk '{print $2}'",
+        proc = subprocess.Popen("ps -ef | grep -i -e 'geoserver' | awk '{print $2}'",
+                                shell=True,
+                                stdout=subprocess.PIPE)
+        for pid in proc.stdout:
+            info('Stopping geoserver (process number %s)' % int(pid))
+            os.kill(int(pid), signal.SIGKILL)
+            os.kill(int(pid), 9)
+            sh('sleep 30')
+            # Check if the process that we killed is alive.
+            try:
+               os.kill(int(pid), 0)
+               # raise Exception("""wasn't able to kill the process\nHINT:use signal.SIGKILL or signal.SIGABORT""")
+            except OSError as ex:
+               continue
+    except Exception as e:
+        info(e)
 
 @task
+@task
+@needs([
+    'stop_geoserver'
+])
 def stop():
     """
     Stop GeoNode
     """
-    # windows needs to stop the geoserver first b/c we can't tell which python is running, so we kill everything
-    stop_geoserver()
+    # windows needs to stop the geoserver first b/c we can't tell which python
+    # is running, so we kill everything
     info("Stopping GeoNode ...")
     stop_django()
 
@@ -347,6 +440,17 @@ def start_django():
     sh('python manage.py runserver %s %s' % (bind, foreground))
 
 
+def start_messaging():
+    """
+    Start the GeoNode messaging server
+    """
+    settings = options.get('settings', '')
+    if settings:
+        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
+    foreground = '' if options.get('foreground', False) else '&'
+    sh('%s python manage.py runmessaging %s' % (settings, foreground))
+
+
 @cmdopts([
     ('java_path=', 'j', 'Full path to java install for Windows')
 ])
@@ -356,7 +460,6 @@ def start_geoserver(options):
     Start GeoServer with GeoNode extensions
     """
 
-    from {{ project_name }}.settings import OGC_SERVER
     GEOSERVER_BASE_URL = OGC_SERVER['default']['LOCATION']
     url = GEOSERVER_BASE_URL
 
@@ -368,60 +471,83 @@ def start_geoserver(options):
         sys.exit(1)
 
     download_dir = path('downloaded').abspath()
-    jetty_runner = download_dir / os.path.basename(dev_config['JETTY_RUNNER_URL'])
+    jetty_runner = download_dir / \
+        os.path.basename(dev_config['JETTY_RUNNER_URL'])
     data_dir = path('geoserver/data').abspath()
+    geofence_dir = path('geoserver/data/geofence').abspath()
     web_app = path('geoserver/geoserver').abspath()
     log_file = path('geoserver/jetty.log').abspath()
-    config = path('jetty-runner.xml').abspath()
+    config = path('scripts/misc/jetty-runner.xml').abspath()
     jetty_port = urlparse(GEOSERVER_BASE_URL).port
-    # @todo - we should not have set workdir to the datadir but a bug in geoserver
-    # prevents geonode security from initializing correctly otherwise
-    with pushd(data_dir):
-        javapath = "java"
-        loggernullpath = os.devnull
 
-        # checking if our loggernullpath exists and if not, reset it to something manageable
-        if loggernullpath == "nul":
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_free = True
+    try:
+        s.bind(("127.0.0.1", jetty_port))
+    except socket.error as e:
+        socket_free = False
+        if e.errno == 98:
+            info('Port %s is already in use' % jetty_port)
+        else:
+            info('Something else raised the socket.error exception while checking port %s' % jetty_port)
+            print(e)
+    finally:
+        s.close()
+
+    if socket_free:
+        # @todo - we should not have set workdir to the datadir but a bug in geoserver
+        # prevents geonode security from initializing correctly otherwise
+        with pushd(data_dir):
+            javapath = "java"
+            loggernullpath = os.devnull
+
+            # checking if our loggernullpath exists and if not, reset it to
+            # something manageable
+            if loggernullpath == "nul":
+                try:
+                    open("../../downloaded/null.txt", 'w+').close()
+                except IOError as e:
+                    print "Chances are that you have Geoserver currently running.  You \
+                            can either stop all servers with paver stop or start only \
+                            the django application with paver start_django."
+                    sys.exit(1)
+                loggernullpath = "../../downloaded/null.txt"
+
             try:
-                open("../../downloaded/null.txt", 'w+').close()
-            except IOError, e:
-                print "Chances are that you have Geoserver currently running.  You \
-                        can either stop all servers with paver stop or start only \
-                        the django application with paver start_django."
-                sys.exit(1)
-            loggernullpath = "../../downloaded/null.txt"
+                sh(('java -version'))
+            except BaseException:
+                print "Java was not found in your path.  Trying some other options: "
+                javapath_opt = None
+                if os.environ.get('JAVA_HOME', None):
+                    print "Using the JAVA_HOME environment variable"
+                    javapath_opt = os.path.join(os.path.abspath(
+                        os.environ['JAVA_HOME']), "bin", "java.exe")
+                elif options.get('java_path'):
+                    javapath_opt = options.get('java_path')
+                else:
+                    print "Paver cannot find java in the Windows Environment.  \
+                    Please provide the --java_path flag with your full path to \
+                    java.exe e.g. --java_path=C:/path/to/java/bin/java.exe"
+                    sys.exit(1)
+                # if there are spaces
+                javapath = 'START /B "" "' + javapath_opt + '"'
 
-        try:
-            sh(('java -version'))
-        except:
-            print "Java was not found in your path.  Trying some other options: "
-            javapath_opt = None
-            if os.environ.get('JAVA_HOME', None):
-                print "Using the JAVA_HOME environment variable"
-                javapath_opt = os.path.join(os.path.abspath(os.environ['JAVA_HOME']), "bin", "java.exe")
-            elif options.get('java_path'):
-                javapath_opt = options.get('java_path')
-            else:
-                print "Paver cannot find java in the Windows Environment.  \
-                Please provide the --java_path flag with your full path to \
-                java.exe e.g. --java_path=C:/path/to/java/bin/java.exe"
-                sys.exit(1)
-            # if there are spaces
-            javapath = 'START /B "" "' + javapath_opt + '"'
+            sh((
+                '%(javapath)s -Xms512m -Xmx1024m -server -XX:+UseConcMarkSweepGC -XX:MaxPermSize=256m'
+                ' -DGEOSERVER_DATA_DIR=%(data_dir)s'
+                ' -Dgeofence.dir=%(geofence_dir)s'
+                # ' -Dgeofence-ovr=geofence-datasource-ovr.properties'
+                # workaround for JAI sealed jar issue and jetty classloader
+                # ' -Dorg.eclipse.jetty.server.webapp.parentLoaderPriority=true'
+                ' -jar %(jetty_runner)s'
+                ' --port %(jetty_port)i'
+                ' --log %(log_file)s'
+                ' %(config)s'
+                ' > %(loggernullpath)s &' % locals()
+            ))
 
-        sh((
-            '%(javapath)s -Xmx512m -XX:MaxPermSize=256m'
-            ' -DGEOSERVER_DATA_DIR=%(data_dir)s'
-            # workaround for JAI sealed jar issue and jetty classloader
-            ' -Dorg.eclipse.jetty.server.webapp.parentLoaderPriority=true'
-            ' -jar %(jetty_runner)s'
-            ' --port %(jetty_port)i'
-            ' --log %(log_file)s'
-            ' %(config)s'
-            ' > %(loggernullpath)s &' % locals()
-        ))
-
-    info('Starting GeoServer on %s' % url)
+        info('Starting GeoServer on %s' % url)
 
     # wait for GeoServer to start
     started = waitfor(url)
@@ -584,9 +710,9 @@ def deb(options):
 
         sh(('git-dch --spawn-editor=snapshot --git-author --new-version=%s'
             ' --id-length=6 --ignore-branch --release' % (simple_version)))
-        #In case you publish from Ubuntu Xenial (git-dch is removed from upstream)
-        # use the following line instead:
-        #sh(('gbp dch --spawn-editor=snapshot --git-author --new-version=%s'
+        # In case you publish from Ubuntu Xenial (git-dch is removed from upstream)
+        #  use the following line instead:
+        # sh(('gbp dch --spawn-editor=snapshot --git-author --new-version=%s'
         #    ' --id-length=6 --ignore-branch --release' % (simple_version)))
 
         deb_changelog = path('debian') / 'changelog'
@@ -601,13 +727,13 @@ def deb(options):
             sh('debuild -uc -us -A')
         elif key is None and ppa is not None:
                 # A sources package, signed by daemon
-                sh('debuild -S')
+            sh('debuild -S')
         elif key is not None and ppa is None:
-                # A signed installable package
-                sh('debuild -k%s -A' % key)
+            # A signed installable package
+            sh('debuild -k%s -A' % key)
         elif key is not None and ppa is not None:
-                # A signed, source package
-                sh('debuild -k%s -S' % key)
+            # A signed, source package
+            sh('debuild -k%s -S' % key)
 
     if ppa is not None:
         sh('dput ppa:%s geonode_%s_source.changes' % (ppa, simple_version))
@@ -651,7 +777,7 @@ def versions():
     if stage == 'final':
         stage = 'thefinal'
 
-    if stage == 'alpha' and edition == 0:
+    if stage == 'unstable':
         tail = '%s%s' % (branch, timestamp)
     else:
         tail = '%s%s' % (stage, edition)
@@ -684,7 +810,9 @@ def kill(arg1, arg2):
         running = False
         for line in lines:
             # this kills all java.exe and python including self in windows
-            if ('%s' % arg2 in line) or (os.name == 'nt' and '%s' % arg1 in line):
+            if ('%s' %
+                arg2 in line) or (os.name == 'nt' and '%s' %
+                                  arg1 in line):
                 running = True
 
                 # Get pid
