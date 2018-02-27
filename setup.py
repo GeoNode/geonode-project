@@ -43,6 +43,17 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-       'geonode>=2.5',
+	   'Django==1.8.18',
+       'six==1.10.0',
+       'django-cuser==2017.3.16',
+       'django-model-utils==3.0.0',
+       'pyshp==1.2.12',
+       'celery==4.1.0',
+       'Shapely>=1.5.13,<1.6.dev0',
+       'proj==0.1.0',
+       'pyproj==1.9.5.1',
+       'pygdal==2.2.1.3',
+       'inflection==0.3.1'
+       # 'geonode>=2.9'
     ],
 )

@@ -48,6 +48,8 @@ try:
 except ImportError:
     from paver.easy import pushd
 
+from geonode.settings import OGC_SERVER, INSTALLED_APPS
+
 assert sys.version_info >= (2, 6), \
     SystemError("GeoNode Build requires python 2.6 or better")
 
@@ -83,6 +85,10 @@ def grab(src, dest, name):
 ])
 def setup_geoserver(options):
     """Prepare a testing instance of GeoServer."""
+    # only start if using Geoserver backend
+    if 'geonode.geoserver' not in INSTALLED_APPS:
+        return
+
     download_dir = path('downloaded')
     if not download_dir.exists():
         download_dir.makedirs()
@@ -121,10 +127,73 @@ def setup_geoserver(options):
     _install_data_dir()
 
 
+@task
+def setup_qgis_server(options):
+    """Prepare a testing instance of QGIS Server."""
+    # only start if using QGIS Server backend
+    if 'geonode.qgis_server' not in INSTALLED_APPS:
+        return
+
+    # QGIS Server testing instance run on top of docker
+    try:
+        sh('scripts/misc/docker_check.sh')
+    except BaseException:
+        info("You need to have docker and docker-compose installed.")
+        return
+
+    info('Docker and docker-compose were installed.')
+    info('Proceeded to setup QGIS Server.')
+    info('Create QGIS Server related folder.')
+
+    try:
+        os.makedirs('geonode/qgis_layer')
+    except BaseException:
+        pass
+
+    try:
+        os.makedirs('geonode/qgis_tiles')
+    except BaseException:
+        pass
+
+    all_permission = 0o777
+    os.chmod('geonode/qgis_layer', all_permission)
+    stat = os.stat('geonode/qgis_layer')
+    info('Mode : %o' % stat.st_mode)
+    os.chmod('geonode/qgis_tiles', all_permission)
+    stat = os.stat('geonode/qgis_tiles')
+    info('Mode : %o' % stat.st_mode)
+
+    info('QGIS Server related folder successfully setup.')
+
+
+def _robust_rmtree(path, logger=None, max_retries=5):
+    """Try to delete paths robustly .
+    Retries several times (with increasing delays) if an OSError
+    occurs.  If the final attempt fails, the Exception is propagated
+    to the caller. Taken from https://github.com/hashdist/hashdist/pull/116
+    """
+
+    for i in range(max_retries):
+        try:
+            shutil.rmtree(path)
+            return
+        except OSError, e:
+            if logger:
+                info('Unable to remove path: %s' % path)
+                info('Retrying after %d seconds' % i)
+            time.sleep(i)
+
+    # Final attempt, pass any Exceptions up to caller.
+    shutil.rmtree(path)
+
+
 def _install_data_dir():
     target_data_dir = path('geoserver/data')
     if target_data_dir.exists():
-        target_data_dir.rmtree()
+        try:
+            target_data_dir.rmtree()
+        except OSError:
+            _robust_rmtree(target_data_dir, logger=True)
 
     original_data_dir = path('geoserver/geoserver/data')
     justcopy(original_data_dir, target_data_dir)
@@ -189,6 +258,7 @@ def static(options):
 @task
 @needs([
     'setup_geoserver',
+    'setup_qgis_server',
 ])
 def setup(options):
     """Get dependencies and prepare a GeoNode development environment."""
@@ -284,18 +354,20 @@ def sync(options):
     """
     Run the migrate and migrate management commands to create and migrate a DB
     """
-    for app in dev_config['MIGRATE_APPS']:
-        try:
-            sh("python manage.py migrate {app} --noinput".format(app=app))
-        except:
-            pass
-    try:
-        sh("python manage.py migrate --noinput")
-    except:
-        pass
-    sh("python manage.py loaddata fixtures/sample_admin.json")
-    sh("python manage.py loaddata fixtures/default_oauth_apps.json")
-    sh("python manage.py loaddata fixtures/initial_data.json")
+    # for app in dev_config['MIGRATE_APPS']:
+    #     try:
+    #         sh("python manage.py migrate {app} --noinput".format(app=app))
+    #     except:
+    #         pass
+    settings = options.get('settings', '')
+    if settings:
+        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
+
+    sh("%s python manage.py makemigrations --noinput" % settings)
+    sh("%s python manage.py migrate --noinput" % settings)
+    sh("%s python manage.py loaddata fixtures/sample_admin.json" % settings)
+    sh("%s python manage.py loaddata fixtures/default_oauth_apps.json" % settings)
+    sh("%s python manage.py loaddata fixtures/initial_data.json" % settings)
 
 
 @task
@@ -363,17 +435,20 @@ def package(options):
 
 @task
 @needs(['start_geoserver',
-        'sync',
+        'start_qgis_server',
         'start_django'])
 @cmdopts([
     ('bind=', 'b', 'Bind server to provided IP address and port number.'),
     ('java_path=', 'j', 'Full path to java install for Windows'),
-    ('foreground', 'f', 'Do not run in background but in foreground')
+    ('foreground', 'f', 'Do not run in background but in foreground'),
+    ('settings', 's', 'Specify custom DJANGO_SETTINGS_MODULE')
 ], share_with=['start_django', 'start_geoserver'])
 def start():
     """
     Start GeoNode (Django, GeoServer & Client)
     """
+    call_task('start_messaging')
+
     info("GeoNode is now available.")
 
 
@@ -383,6 +458,7 @@ def stop_django():
     Stop the GeoNode Django application
     """
     kill('python', 'runserver')
+    kill('python', 'runmessaging')
 
 
 @task
@@ -390,6 +466,9 @@ def stop_geoserver():
     """
     Stop GeoServer
     """
+    # only start if using Geoserver backend
+    if 'geonode.geoserver' not in INSTALLED_APPS:
+        return
     kill('java', 'geoserver')
 
     # Kill process.
@@ -412,10 +491,32 @@ def stop_geoserver():
     except Exception as e:
         info(e)
 
+
 @task
+@cmdopts([
+    ('qgis_server_port=', 'p', 'The port of the QGIS Server instance.')
+])
+def stop_qgis_server():
+    """
+    Stop QGIS Server Backend.
+    """
+    # only start if using QGIS Server backend
+    if 'geonode.qgis_server' not in INSTALLED_APPS:
+        return
+    port = options.get('qgis_server_port', '9000')
+
+    sh(
+        'docker-compose -f docker-compose-qgis-server.yml down',
+        env={
+            'GEONODE_PROJECT_PATH': os.getcwd(),
+            'QGIS_SERVER_PORT': port
+        })
+
+
 @task
 @needs([
-    'stop_geoserver'
+    'stop_geoserver',
+    'stop_qgis_server'
 ])
 def stop():
     """
@@ -433,11 +534,14 @@ def stop():
 @task
 def start_django():
     """
-    Start the WCMC GeoNode Django application
+    Start the GeoNode Django application
     """
-    bind = options.get('bind', '')
+    settings = options.get('settings', '')
+    if settings:
+        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
+    bind = options.get('bind', '0.0.0.0:8000')
     foreground = '' if options.get('foreground', False) else '&'
-    sh('python manage.py runserver %s %s' % (bind, foreground))
+    sh('%s python manage.py runserver %s %s' % (settings, bind, foreground))
 
 
 def start_messaging():
@@ -459,6 +563,9 @@ def start_geoserver(options):
     """
     Start GeoServer with GeoNode extensions
     """
+    # only start if using Geoserver backend
+    if 'geonode.geoserver' not in INSTALLED_APPS:
+        return
 
     GEOSERVER_BASE_URL = OGC_SERVER['default']['LOCATION']
     url = GEOSERVER_BASE_URL
@@ -562,12 +669,61 @@ def start_geoserver(options):
 
 
 @task
+@cmdopts([
+    ('qgis_server_port=', 'p', 'The port of the QGIS Server instance.')
+])
+def start_qgis_server():
+    """Start QGIS Server instance with GeoNode related plugins."""
+    # only start if using QGIS Serrver backend
+    if 'geonode.qgis_server' not in INSTALLED_APPS:
+        return
+    info('Starting up QGIS Server...')
+
+    port = options.get('qgis_server_port', '9000')
+
+    sh(
+        'docker-compose -f docker-compose-qgis-server.yml up -d qgis-server',
+        env={
+            'GEONODE_PROJECT_PATH': os.getcwd(),
+            'QGIS_SERVER_PORT': port
+        })
+    info('QGIS Server is up.')
+
+
+@task
 def test(options):
     """
     Run GeoNode's Unit Test Suite
     """
     sh("%s manage.py test %s.tests --noinput" % (options.get('prefix'),
                                                  '.tests '.join(GEONODE_APPS)))
+
+
+@task
+@cmdopts([
+    ('local=', 'l', 'Set to True if running bdd tests locally')
+])
+def test_bdd():
+    """
+    Run GeoNode's BDD Test Suite
+    """
+    call_task('stop_geoserver')
+    sh('sleep 30')
+    local = str2bool(options.get('local', 'false'))
+    if local:
+        call_task('reset_hard')
+        call_task('setup')
+    call_task('sync')
+    # Start GeoServer
+    call_task('start_geoserver')
+    sh('sleep 30')
+    info("GeoNode is now available, running the bdd tests now.")
+
+    sh('py.test')
+
+    if local:
+        call_task('stop_geoserver')
+        call_task('reset_hard')
 
 
 @task
@@ -578,28 +734,52 @@ def test_javascript(options):
 
 @task
 @cmdopts([
-    ('name=', 'n', 'Run specific tests.')
-    ])
+    ('name=', 'n', 'Run specific tests.'),
+    ('settings', 's', 'Specify custom DJANGO_SETTINGS_MODULE')
+])
 def test_integration(options):
     """
     Run GeoNode's Integration test suite against the external apps
     """
+    call_task('stop_geoserver')
     _reset()
     # Start GeoServer
     call_task('start_geoserver')
     info("GeoNode is now available, running the tests now.")
 
     name = options.get('name', 'geonode.tests.integration')
+    settings = options.get('settings', '')
+    if not settings and name == 'geonode.upload.tests.integration':
+        settings = 'geonode.upload.tests.test_settings'
 
     success = False
     try:
         if name == 'geonode.tests.csw':
-            call_task('start')
+            call_task('sync', options={'settings': settings})
+            call_task('start', options={'settings': settings})
             sh('sleep 30')
-            call_task('setup_data')
-        sh(('python manage.py test %s'
-           ' --noinput --liveserver=localhost:8000' % name))
-    except BuildFailure, e:
+            call_task('setup_data', options={'settings': settings})
+
+        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings if settings else ''
+
+        if name == 'geonode.upload.tests.integration':
+            sh("%s python manage.py makemigrations --noinput" % settings)
+            sh("%s python manage.py migrate --noinput" % settings)
+            sh("%s python manage.py loaddata sample_admin.json" % settings)
+            sh("%s python manage.py loaddata geonode/base/fixtures/default_oauth_apps.json" % settings)
+            sh("%s python manage.py loaddata geonode/base/fixtures/initial_data.json" % settings)
+            call_task('start_geoserver')
+            bind = options.get('bind', '0.0.0.0:8000')
+            foreground = '' if options.get('foreground', False) else '&'
+            sh('%s python manage.py runmessaging %s' % (settings, foreground))
+            sh('%s python manage.py runserver %s %s' % (settings, bind, foreground))
+            sh('sleep 30')
+            settings = 'REUSE_DB=1 %s' % settings
+
+        sh(('%s python manage.py test %s'
+            ' --noinput --liveserver=0.0.0.0:8000' % (settings, name)))
+
+    except BuildFailure as e:
         info('Tests failed! %s' % str(e))
     else:
         success = True
@@ -607,6 +787,7 @@ def test_integration(options):
         # don't use call task here - it won't run since it already has
         stop()
 
+    call_task('stop_geoserver')
     _reset()
     if not success:
         sys.exit(1)
@@ -614,20 +795,30 @@ def test_integration(options):
 
 @task
 @cmdopts([
-    ('coverage', 'c', 'use this flag to generate coverage during test runs')
+    ('coverage', 'c', 'use this flag to generate coverage during test runs'),
+    ('local=', 'l', 'Set to True if running bdd tests locally')
 ])
 def run_tests(options):
     """
     Executes the entire test suite.
     """
-    if options.coverage:
+    if options.get('coverage'):
         prefix = 'coverage run --branch --source=geonode'
     else:
         prefix = 'python'
+    local = options.get('local', 'false')  # travis uses default to false
     sh('%s manage.py test geonode.tests.smoke' % prefix)
     call_task('test', options={'prefix': prefix})
     call_task('test_integration')
     call_task('test_integration', options={'name': 'geonode.tests.csw'})
+
+    # only start if using Geoserver backend
+    if 'geonode.geoserver' in INSTALLED_APPS:
+        call_task('test_integration',
+                  options={'name': 'geonode.upload.tests.integration',
+                           'settings': 'geonode.upload.tests.test_settings'})
+
+    call_task('test_bdd', options={'local': local})
     sh('flake8 geonode')
 
 
@@ -641,6 +832,11 @@ def reset():
 
 
 def _reset():
+    from geonode import settings
+    sh("rm -rf {path}".format(
+        path=os.path.join(settings.PROJECT_ROOT, 'development.db')
+        )
+    )
     sh("rm -rf {{ project_name }}/development.db")
     sh("rm -rf {{ project_name }}/uploaded/*")
     _install_data_dir()
@@ -657,6 +853,7 @@ def reset_hard():
 @task
 @cmdopts([
     ('type=', 't', 'Import specific data type ("vector", "raster", "time")'),
+    ('settings', 's', 'Specify custom DJANGO_SETTINGS_MODULE')
 ])
 def setup_data():
     """
@@ -671,7 +868,11 @@ def setup_data():
     if ctype in ['vector', 'raster', 'time']:
         data_dir = os.path.join(gisdata.GOOD_DATA, ctype)
 
-    sh("python manage.py importlayers %s -v2" % data_dir)
+    settings = options.get('settings', '')
+    if settings:
+        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
+
+    sh("%s python manage.py importlayers %s -v2" % (settings, data_dir))
 
 
 @needs(['package'])
@@ -701,6 +902,7 @@ def deb(options):
 
     # Workaround for git-dch bug
     # http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=594580
+    sh('rm -rf %s/.git' % (os.path.realpath('package')))
     sh('ln -s %s %s' % (os.path.realpath('.git'), os.path.realpath('package')))
 
     with pushd('package'):
@@ -708,16 +910,22 @@ def deb(options):
         # Install requirements
         # sh('sudo apt-get -y install debhelper devscripts git-buildpackage')
 
-        sh(('git-dch --spawn-editor=snapshot --git-author --new-version=%s'
-            ' --id-length=6 --ignore-branch --release' % (simple_version)))
+        # sh(('git-dch --spawn-editor=snapshot --git-author --new-version=%s'
+        #     ' --id-length=6 --ignore-branch --release' % (simple_version)))
         # In case you publish from Ubuntu Xenial (git-dch is removed from upstream)
         #  use the following line instead:
         # sh(('gbp dch --spawn-editor=snapshot --git-author --new-version=%s'
         #    ' --id-length=6 --ignore-branch --release' % (simple_version)))
+        distribution = "xenial"
+        sh(('gbp dch --distribution=%s --force-distribution --spawn-editor=snapshot --git-author --new-version=%s'
+           ' --id-length=6 --ignore-branch --release' % (distribution, simple_version)))
 
         deb_changelog = path('debian') / 'changelog'
-        for line in fileinput.input([deb_changelog], inplace=True):
-            print line.replace("urgency=medium", "urgency=high"),
+        for idx, line in enumerate(fileinput.input([deb_changelog], inplace=True)):
+            if idx == 0:
+                print "geonode (%s) %s; urgency=high"  % (simple_version, distribution),
+            else:
+                print line.replace("urgency=medium", "urgency=high"),
 
         # Revert workaround for git-dhc bug
         sh('rm -rf .git')
@@ -749,17 +957,18 @@ def publish():
 
     call_task('deb', options={
         'key': key,
-        'ppa': 'geonode/testing',
+        # 'ppa': 'geonode/testing',
+        'ppa': 'geonode/unstable',
     })
 
     version, simple_version = versions()
     sh('git add package/debian/changelog')
     sh('git commit -m "Updated changelog for version %s"' % version)
-    sh('git tag %s' % version)
+    sh('git tag -f %s' % version)
     sh('git push origin %s' % version)
-    sh('git tag debian/%s' % simple_version)
+    sh('git tag -f debian/%s' % simple_version)
     sh('git push origin debian/%s' % simple_version)
-    sh('git push origin master')
+    # sh('git push origin master')
     sh('python setup.py sdist upload -r pypi')
 
 
@@ -851,11 +1060,30 @@ def waitfor(url, timeout=300):
     return started
 
 
+def _copytree(src, dst, symlinks=False, ignore=None):
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            shutil.copytree(s, d, symlinks, ignore)
+        elif os.path.isfile(s):
+            shutil.copy2(s, d)
+
+
 def justcopy(origin, target):
     if os.path.isdir(origin):
         shutil.rmtree(target, ignore_errors=True)
-        shutil.copytree(origin, target)
+        _copytree(origin, target)
     elif os.path.isfile(origin):
         if not os.path.exists(target):
             os.makedirs(target)
         shutil.copy(origin, target)
+
+
+def str2bool(v):
+    if v and len(v) > 0:
+        return v.lower() in ("yes", "true", "t", "1")
+    else:
+        return False
