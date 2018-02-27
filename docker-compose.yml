@@ -1,54 +1,216 @@
 version: '2'
 services:
 
-  postgres:
-    image: postgres
+  db:
+    image: geonode/postgis:9.6
+    restart: unless-stopped
+    container_name: db4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    # tty: true
+    labels:
+      org.geonode.component: db
+      org.geonode.instance.name: geonode
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - dbbackups:/pg_backups
+    environment:
+      GEONODE_DATABASE: geonode
+      GEONODE_DATABASE_PASSWORD: geonode
+      GEONODE_GEODATABASE: geonode_data
+      GEONODE_GEODATABASE_PASSWORD: geonode_data
 
-  elasticsearch:
-   image: elasticsearch
+#   elasticsearch:
+#     image: elasticsearch
+#     restart: unless-stopped
+#     container_name: elasticsearch4${COMPOSE_PROJECT_NAME}
+#     stdin_open: true
+#     # tty: true
+#     labels:
+#         org.geonode.component: elasticsearch
+#         org.geonode.instance.name: geonode
 
   rabbitmq:
-     image: rabbitmq
-
-  django:
-    build: .
-    links:
-      - postgres
-      - elasticsearch
-      - rabbitmq
-    environment:
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
-      - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-      - DJANGO_SETTINGS_MODULE={{project_name}}.settings
-      - GEOSERVER_BASE_URL="http://geoserver:8080/geoserver/"
-      - ALLOWED_HOSTS=['django',]
+    image: rabbitmq
+    restart: unless-stopped
+    container_name: rabbitmq4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    tty: true
+    labels:
+        org.geonode.component: rabbitmq
+        org.geonode.instance.name: geonode
 
   celery:
+    restart: unless-stopped
     build: .
-    links:
+    container_name: celery4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    # tty: true
+    labels:
+        org.geonode.component: celery
+        org.geonode.instance.name: geonode
+    depends_on:
+      - db
+      # - elasticsearch
       - rabbitmq
-      - postgres
-      - elasticsearch
-    command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
+    # command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - statics:/mnt/volumes/statics
+      - geoserver-data-dir:/geoserver_data/data
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/postgres
-      - BROKER_URL=amqp://guest:guest@rabbitmq:5672/
-      - GEOSERVER_BASE_URL="http://geoserver:8080/geoserver/"
-      - DJANGO_SETTINGS_MODULE={{project_name}}.settings
-      - ALLOWED_HOSTS=['django',]
-      - C_FORCE_ROOT=1
+       DJANGO_SETTINGS_MODULE: {{project_name}}.settings
+       GEONODE_INSTANCE_NAME: geonode
+       GEONODE_LB_HOST_IP:
+       GEONODE_LB_PORT:
+       DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+       DEFAULT_BACKEND_DATASTORE: datastore
+       GEONODE_DATABASE: geonode
+       GEONODE_DATABASE_PASSWORD: geonode
+       GEONODE_GEODATABASE: geonode_data
+       GEONODE_GEODATABASE_PASSWORD: geonode_data
+       ASYNC_SIGNALS: 'False'
+       # BROKER_URL: amqp://guest:guest@rabbitmq:5672
+       # CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=amqp://guest:guest@rabbitmq:5672/ -B -l INFO
+       CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=memory:// -B -l INFO
+       DOCKER_ENV: production
+       IS_CELERY: 'True'
+       C_FORCE_ROOT: 1
+       SITEURL: http://localhost/
+       # replaced with defaults in settings
+       GEOSERVER_PUBLIC_LOCATION: http://localhost/geoserver/
+       GEOSERVER_LOCATION: http://geoserver:8080/geoserver/
+       OGC_REQUEST_TIMEOUT: 300
+       STATIC_ROOT: /mnt/volumes/statics/static/
+       MEDIA_ROOT: /mnt/volumes/statics/uploaded/
+       GEOIP_PATH: /mnt/volumes/statics/geoip.db
+       ALLOWED_HOSTS: "['*']"
+       ADMIN_EMAILS: ''
+       DEFAULT_BACKEND_UPLOADER: geonode.importer
+       TIME_ENABLED: 'True'
+       MOSAIC_ENABLED: 'False'
+       GEOGIG_ENABLED: 'False'
+       # GEOSERVER_ADMIN_PASSWORD: admin
+       # See https://github.com/geosolutions-it/geonode-generic/issues/28
+       # to see why we force API version to 1.24
+       DOCKER_API_VERSION: "1.24"
 
   geoserver:
-    image: waybarrios/geoserver
-    links:
-      - postgres
-    ports:
-      - "8080"
+    image: geonode/geoserver:2.13.x
+    restart: unless-stopped
+    container_name: geoserver4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    # tty: true
+    labels:
+        org.geonode.component: geoserver
+        org.geonode.instance.name: geonode
+    depends_on:
+      - db
+      # - elasticsearch
+      - rabbitmq
+      - data-dir-conf
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - geoserver-data-dir:/geoserver_data/data
+    environment:
+      # GEOSERVER_ADMIN_PASSWORD: admin
+      GEONODE_LB_HOST_IP:
+      GEONODE_LB_PORT:
+      PUBLIC_PORT: 80
+      NGINX_BASE_URL: http://localhost/
 
-  nginx:
-    image: terranodo/nginx:geoserver
-    links:
+  django:
+    restart: unless-stopped
+    build: .
+    container_name: django4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    # tty: true
+    labels:
+      org.geonode.component: django
+      org.geonode.instance.name: geonode
+    depends_on:
+      - db
+      # - elasticsearch
+      - rabbitmq
+      - data-dir-conf
+    # command: paver start_django -b 0.0.0.0:8000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - statics:/mnt/volumes/statics
+      - geoserver-data-dir:/geoserver_data/data
+    environment:
+       DJANGO_SETTINGS_MODULE: {{project_name}}.settings
+       GEONODE_INSTANCE_NAME: geonode
+       GEONODE_LB_HOST_IP:
+       GEONODE_LB_PORT:
+       DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+       DEFAULT_BACKEND_DATASTORE: datastore
+       GEONODE_DATABASE: geonode
+       GEONODE_DATABASE_PASSWORD: geonode
+       GEONODE_GEODATABASE: geonode_data
+       GEONODE_GEODATABASE_PASSWORD: geonode_data
+       ASYNC_SIGNALS: 'False'
+       DOCKER_ENV: production
+       UWSGI_CMD: uwsgi --ini /usr/src/{{project_name}}/uwsgi.ini
+       IS_CELERY: 'False'
+       C_FORCE_ROOT: 1
+       SITEURL: http://localhost/
+       # replaced with defaults in settings
+       GEOSERVER_PUBLIC_LOCATION: http://localhost/geoserver/
+       GEOSERVER_LOCATION: http://geoserver:8080/geoserver/
+       OGC_REQUEST_TIMEOUT: 300
+       STATIC_ROOT: /mnt/volumes/statics/static/
+       MEDIA_ROOT: /mnt/volumes/statics/uploaded/
+       GEOIP_PATH: /mnt/volumes/statics/geoip.db
+       ALLOWED_HOSTS: "['*']"
+       ADMIN_EMAILS: ''
+       DEFAULT_BACKEND_UPLOADER: geonode.importer
+       TIME_ENABLED: 'True'
+       MOSAIC_ENABLED: 'False'
+       GEOGIG_ENABLED: 'False'
+       # GEOSERVER_ADMIN_PASSWORD: admin
+       # See https://github.com/geosolutions-it/geonode-generic/issues/28
+       # to see why we force API version to 1.24
+       DOCKER_API_VERSION: "1.24"
+
+  geonode:
+    image: geonode/nginx:geoserver
+    restart: unless-stopped
+    container_name: nginx4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    # tty: true
+    labels:
+        org.geonode.component: nginx
+        org.geonode.instance.name: geonode
+    depends_on:
       - django
+      - celery
       - geoserver
     ports:
-      - "80:80"
+      - 80:80
+    volumes:
+      - statics:/mnt/volumes/statics
+
+
+  data-dir-conf:
+    image: geonode/geoserver_data:2.13.x
+    restart: on-failure
+    container_name: gsconf4${COMPOSE_PROJECT_NAME}
+    labels:
+        org.geonode.component: conf
+        org.geonode.instance.name: geonode
+    command: /bin/true
+    # command: tail -f /dev/null
+    volumes:
+      - geoserver-data-dir:/geoserver_data/data
+
+
+volumes:
+  geoserver-data-dir:
+#    name: ${COMPOSE_PROJECT_NAME}-gsdatadir
+  dbdata:
+#    name: ${COMPOSE_PROJECT_NAME}-dbdata
+  dbbackups:
+#     driver: ${BACKUPS_VOLUME_DRIVER}
+#    name: ${COMPOSE_PROJECT_NAME}-dbbackups
+  statics:
+#    name: ${COMPOSE_PROJECT_NAME}-statics

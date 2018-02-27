@@ -17,4 +17,14 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
-    return app
+import os
+
+__version__ = (2, 7, 7, 'unstable', 0)
+
+
+default_app_config = "{{project_name}}.apps.AppConfig"
+
+
+def get_version():
+    import {{project_name}}.version
+    return {{project_name}}.version.get_version(__version__)

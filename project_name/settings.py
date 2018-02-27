@@ -19,6 +19,7 @@
 #########################################################################
 
 # Django settings for the GeoNode project.
+import ast
 import os
 import sys
 import re
@@ -30,9 +31,15 @@ from distutils.util import strtobool
 import djcelery
 import dj_database_url
 
-SITENAME = '{{ project_name }}'
+# we need hostname for deployed 
 VERSION = get_version()
 # Defines the directory that contains the settings file as the PROJECT_ROOT
+
+# add trailing slash to site url. geoserver url will be relative to this
+if not SITEURL.endswith('/'):
+    SITEURL = '{}/'.format(SITEURL)
+
+SITENAME = os.getenv("SITENAME", '{{ project_name }}')
 # It is used for relative settings elsewhere.
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 GEONODE_ROOT = os.path.abspath(os.path.dirname(geonode_path))
@@ -59,8 +66,13 @@ if EMAIL_ENABLE:
 # geonode to be listening for GeoServer auth requests.
 os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 
-ALLOWED_HOSTS = ['localhost', 'django'] if os.getenv('ALLOWED_HOSTS') is None \
-    else re.split(r' *[,|:|;] *', os.getenv('ALLOWED_HOSTS'))
+try:
+    # try to parse python notation, default in dockerized env
+    ALLOWED_HOSTS = ast.literal_eval(os.getenv('ALLOWED_HOSTS'))
+except ValueError:
+    # fallback to regular list of values separated with misc chars
+    ALLOWED_HOSTS = ['localhost', 'django', 'geonode'] if os.getenv('ALLOWED_HOSTS') is None \
+        else re.split(r' *[,|:|;] *', os.getenv('ALLOWED_HOSTS'))
 
 # AUTH_IP_WHITELIST property limits access to users/groups REST endpoints
 # to only whitelisted IP addresses.
@@ -87,8 +99,23 @@ SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
 AUTH_IP_WHITELIST = []
 
 MANAGERS = ADMINS = os.getenv('ADMINS', [])
-TIME_ZONE = os.getenv('TIME_ZONE', "America/Chicago")
+
+# Local time zone for this installation. Choices can be found here:
+# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
+# although not all choices may be available on all operating systems.
+# If running in a Windows environment this must be set to the same as your
+# system time zone.
+TIME_ZONE = os.getenv('TIME_ZONE', "UTC")
+
+SITE_ID = int(os.getenv('SITE_ID', '1'))
+
 USE_TZ = True
+USE_I18N = strtobool(os.getenv('USE_I18N', 'True'))
+USE_L10N = strtobool(os.getenv('USE_I18N', 'True'))
+
+# Language code for this installation. All choices can be found here:
+# http://www.i18nguy.com/unicode/language-identifiers.html
+LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
 MANAGERS = ADMINS = os.getenv('ADMINS', [])
 
@@ -233,6 +260,7 @@ ROOT_URLCONF = os.getenv('ROOT_URLCONF', '{{ project_name }}.urls')
 # Login and logout urls override
 LOGIN_URL = os.getenv('LOGIN_URL', '/account/login/')
 LOGOUT_URL = os.getenv('LOGOUT_URL', '/account/logout/')
+SHOW_PROFILE_EMAIL = False
 
 # Documents application
 _DEFAULT_ALLOWED_DOCUMENT_TYPES = [
@@ -1183,9 +1211,13 @@ if 'geonode.geoserver' in INSTALLED_APPS:
 
     # TODO: Allow overriding with an env var
     DB_DATASTORE = strtobool(os.getenv('DB_DATASTORE', 'True'))
+    if 'geonode.contrib.ows_api' not in INSTALLED_APPS:
+        INSTALLED_APPS += ('geonode.contrib.ows_api',)
+    if 'geonode.contrib.monitoring' not in INSTALLED_APPS:
+    if 'geonode.contrib.monitoring.middleware.MonitoringMiddleware' not in MIDDLEWARE_CLASSES:
+
 
     ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ['localhost', ])
-
 
 # Keywords thesauri
 # e.g. THESAURI = [{'name':'inspire_themes', 'required':True, 'filter':True}, {'name':'inspire_concepts', 'filter':True}, ]

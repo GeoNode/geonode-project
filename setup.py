@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2017 OSGeo
+# Copyright (C) 2018 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,14 +19,27 @@
 #########################################################################
 
 import os
+try: # for pip >= 10
+    from pip._internal.req import parse_requirements
+    from pip._internal.download import PipSession
+except ImportError: # for pip <= 9.0.3
+    from pip.req import parse_requirements
+    from pip.download import PipSession
 from distutils.core import setup
+
+from setuptools import find_packages
+
+# Parse requirements.txt to get the list of dependencies
+inst_req = parse_requirements('requirements.txt',
+                              session=PipSession())
+REQUIREMENTS = [str(r.req) for r in inst_req]
 
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(
     name="{{ project_name }}",
-    version="0.1",
+    version="2.9",
     author="",
     author_email="",
     description="{{ project_name }}, based on GeoNode",
@@ -42,7 +55,5 @@ setup(
     packages=['{{ project_name }}',],
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-       'geonode>=2.5',
-    ],
+    install_requires=REQUIREMENTS,
 )

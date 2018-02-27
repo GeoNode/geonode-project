@@ -156,8 +156,8 @@ urlpatterns += patterns('',
                         (r'^featured/(?P<site>[A-Za-z0-9_\-]+)/info$', 'geonode.maps.views.featured_map_info'),
                         )
 
-urlpatterns = patterns('',
+urlpatterns = [
    url(r'^/?$',
        TemplateView.as_view(template_name='site_index.html'),
        name='home'),
- ) + urlpatterns
+ ] + urlpatterns
