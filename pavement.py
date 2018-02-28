@@ -38,10 +38,9 @@ from paver.easy import (BuildFailure, call_task, cmdopts, info, needs, options,
 from setuptools.command import easy_install
 
 try:
-    from {{ project_name }}.settings import *
+    from {{ project_name }}.local_settings import *
 except ImportError:
-    # probably trying to run install_win_deps.
-    from geonode.settings import *
+    from {{ project_name }}.settings import *
 
 try:
     from paver.path import pushd
