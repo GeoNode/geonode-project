@@ -38,17 +38,15 @@ from paver.easy import (BuildFailure, call_task, cmdopts, info, needs, options,
 from setuptools.command import easy_install
 
 try:
-    from {{ project_name }}.settings import GEONODE_APPS, OGC_SERVER, INSTALLED_APPS
-except:
+    from {{ project_name }}.settings import *
+except ImportError:
     # probably trying to run install_win_deps.
-    pass
+    from geonode.settings import *
 
 try:
     from paver.path import pushd
 except ImportError:
     from paver.easy import pushd
-
-from geonode.settings import OGC_SERVER, INSTALLED_APPS
 
 assert sys.version_info >= (2, 6), \
     SystemError("GeoNode Build requires python 2.6 or better")
