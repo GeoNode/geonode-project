@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2017 OSGeo
+# Copyright (C) 2018 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ def setup_geoserver(options):
 def setup_qgis_server(options):
     """Prepare a testing instance of QGIS Server."""
     # only start if using QGIS Server backend
-    if 'geonode.qgis_server' not in INSTALLED_APPS:
+    if 'geonode.qgis_server' not in INSTALLED_APPS or OGC_SERVER['default']['BACKEND'] == 'geonode.geoserver':
         return
 
     # QGIS Server testing instance run on top of docker
@@ -498,7 +498,7 @@ def stop_qgis_server():
     Stop QGIS Server Backend.
     """
     # only start if using QGIS Server backend
-    if 'geonode.qgis_server' not in INSTALLED_APPS:
+    if 'geonode.qgis_server' not in INSTALLED_APPS or OGC_SERVER['default']['BACKEND'] == 'geonode.geoserver':
         return
     port = options.get('qgis_server_port', '9000')
 
@@ -672,7 +672,7 @@ def start_geoserver(options):
 def start_qgis_server():
     """Start QGIS Server instance with GeoNode related plugins."""
     # only start if using QGIS Serrver backend
-    if 'geonode.qgis_server' not in INSTALLED_APPS:
+    if 'geonode.qgis_server' not in INSTALLED_APPS or OGC_SERVER['default']['BACKEND'] == 'geonode.geoserver':
         return
     info('Starting up QGIS Server...')
 
