@@ -22,7 +22,7 @@ To setup your project using Docker, follow these instructions:
 If you experience a permissions problem, make sure that the files belong to your user and not the root user.
 
 Using a Python virtual environment
-++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++
 
 To setup your project using a local python virtual environment, follow these instructions:
 
@@ -33,7 +33,7 @@ To setup your project using a local python virtual environment, follow these ins
     django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/2.8.0.zip -e py,rst,json,yml my_geonode
 
 Start your server
-----------------
+-----------------
 
 You need Docker 1.12 or higher, get the latest stable official release for your platform. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
 
@@ -51,7 +51,7 @@ Access the site on http://localhost/
 
 
 Recommended: Track your changes
------
+-------------------------------
 
 Step 1. Install Git (for Linux, Mac or Windows).
 
@@ -66,7 +66,7 @@ Step 2. Init git locally and do the first commit:
 Step 3. Set up a free account on github or bitbucket and make a copy of the repo there.
 
 Configuring Requirements.txt
-++++++++++++
+++++++++++++++++++++++++++++
 
 You may want to configure your requirements.txt, if you are using additional or custom versions of python packages.  For example::
 
