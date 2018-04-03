@@ -19,7 +19,9 @@
 #########################################################################
 
 # Django settings for the GeoNode project.
+import ast
 import os
+from urlparse import urlparse, urlunparse
 # Load more settings from a file called local_settings.py if it exists
 try:
     from geonode.local_settings import *
@@ -31,7 +33,15 @@ except ImportError:
 #
 PROJECT_NAME = '{{ project_name }}'
 
-SITENAME = '{{ project_name }}'
+# we need hostname for deployed 
+surl = urlparse(SITEURL)
+hostname = surl.hostname
+
+# add trailing slash to site url. geoserver url will be relative to this
+if not SITEURL.endswith('/'):
+    SITEURL = '{}/'.format(SITEURL)
+
+SITENAME = os.getenv("SITENAME", '{{ project_name }}')
 
 # Defines the directory that contains the settings file as the LOCAL_ROOT
 # It is used for relative settings elsewhere.
@@ -39,8 +49,13 @@ LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 WSGI_APPLICATION = "{}.wsgi.application".format(PROJECT_NAME)
 
-ALLOWED_HOSTS = ['localhost', 'django'] if os.getenv('ALLOWED_HOSTS') is None \
-    else re.split(r' *[,|:|;] *', os.getenv('ALLOWED_HOSTS'))
+try:
+    # try to parse python notation, default in dockerized env
+    ALLOWED_HOSTS = ast.literal_eval(os.getenv('ALLOWED_HOSTS'))
+except ValueError:
+    # fallback to regular list of values separated with misc chars
+    ALLOWED_HOSTS = ['localhost', 'django', 'geonode'] if os.getenv('ALLOWED_HOSTS') is None \
+        else re.split(r' *[,|:|;] *', os.getenv('ALLOWED_HOSTS'))
 
 PROXY_ALLOWED_HOSTS += ('nominatim.openstreetmap.org',)
 
@@ -56,10 +71,26 @@ PROXY_ALLOWED_HOSTS += ('nominatim.openstreetmap.org',)
 AUTH_IP_WHITELIST = []
 
 MANAGERS = ADMINS = os.getenv('ADMINS', [])
-TIME_ZONE = os.getenv('TIME_ZONE', "America/Chicago")
-USE_TZ = True
 
-INSTALLED_APPS += ('geonode', PROJECT_NAME,)
+# Local time zone for this installation. Choices can be found here:
+# http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
+# although not all choices may be available on all operating systems.
+# If running in a Windows environment this must be set to the same as your
+# system time zone.
+TIME_ZONE = os.getenv('TIME_ZONE', "UTC")
+
+SITE_ID = int(os.getenv('SITE_ID', '1'))
+
+USE_TZ = True
+USE_I18N = strtobool(os.getenv('USE_I18N', 'True'))
+USE_L10N = strtobool(os.getenv('USE_I18N', 'True'))
+
+# Language code for this installation. All choices can be found here:
+# http://www.i18nguy.com/unicode/language-identifiers.html
+LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
+
+if PROJECT_NAME not in INSTALLED_APPS:
+    INSTALLED_APPS += (PROJECT_NAME,)
 
 # Location of url mappings
 ROOT_URLCONF = os.getenv('ROOT_URLCONF', '{}.urls'.format(PROJECT_NAME))
@@ -92,8 +123,9 @@ FREETEXT_KEYWORDS_READONLY = False
 RESOURCE_PUBLISHING = False
 ADMIN_MODERATE_UPLOADS = False
 GROUP_PRIVATE_RESOURCES = False
-GROUP_MANDATORY_RESOURCES = True
+GROUP_MANDATORY_RESOURCES = False
 MODIFY_TOPICCATEGORY = True
+SHOW_PROFILE_EMAIL = False
 USER_MESSAGES_ALLOW_MULTIPLE_RECIPIENTS = True
 DISPLAY_WMS_LINKS = True
 
@@ -112,8 +144,8 @@ SOCIALACCOUNT_AUTO_SIGNUP = False
 
 # Uncomment this to enable Linkedin and Facebook login
 # INSTALLED_APPS += (
-#     'allauth.socialaccount.providers.linkedin_oauth2',
-#     'allauth.socialaccount.providers.facebook',
+#    'allauth.socialaccount.providers.linkedin_oauth2',
+#    'allauth.socialaccount.providers.facebook',
 # )
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -335,17 +367,19 @@ NOTIFICATIONS_MODULE = 'pinax.notifications'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-MONITORING_ENABLED = False
 # add following lines to your local settings to enable monitoring
 if MONITORING_ENABLED:
-    INSTALLED_APPS += ('geonode.contrib.monitoring',)
-    MIDDLEWARE_CLASSES += ('geonode.contrib.monitoring.middleware.MonitoringMiddleware',)
-    MONITORING_CONFIG = None
-    MONITORING_HOST_NAME = 'localhost'
-    MONITORING_SERVICE_NAME = 'local-geonode'
-    MONITORING_HOST_NAME = SITE_HOST_NAME
+    if 'geonode.contrib.ows_api' not in INSTALLED_APPS:
+        INSTALLED_APPS += ('geonode.contrib.ows_api',)
+    if 'geonode.contrib.monitoring' not in INSTALLED_APPS:
+        INSTALLED_APPS += ('geonode.contrib.monitoring',)
+    if 'geonode.contrib.monitoring.middleware.MonitoringMiddleware' not in MIDDLEWARE_CLASSES:
+        MIDDLEWARE_CLASSES += ('geonode.contrib.monitoring.middleware.MonitoringMiddleware',)
 
-INSTALLED_APPS += ('geonode.contrib.ows_api',)
+    MONITORING_CONFIG = None
+    MONITORING_HOST_NAME = os.getenv("MONITORING_HOST_NAME", hostname)
+    MONITORING_SERVICE_NAME = 'geonode'
+    MONITORING_HOST_NAME = SITE_HOST_NAME
 
 GEOIP_PATH = os.path.join(os.path.dirname(__file__), '..', 'GeoLiteCity.dat')
 
@@ -367,12 +401,8 @@ LOGGING = {
         }
     },
     'handlers': {
-        'null': {
-            'level': 'INFO',
-            'class': 'django.utils.log.NullHandler',
-        },
         'console': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
@@ -385,7 +415,7 @@ LOGGING = {
         "django": {
             "handlers": ["console"], "level": "INFO", },
         "geonode": {
-            "handlers": ["console"], "level": "INFO", },
+            "handlers": ["console"], "level": "DEBUG", },
         "gsconfig.catalog": {
             "handlers": ["console"], "level": "INFO", },
         "owslib": {
