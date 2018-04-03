@@ -30,7 +30,7 @@ To setup your project using a local python virtual environment, follow these ins
 2. Install django into your virtualenviornment ``pip install Django==1.8.19``
 3. Create your project using the template project::
 
-    django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/2.8.0.zip -e py,rst,json,yml my_geonode
+    django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/master.zip -e py,rst,json,yml my_geonode
 
 4. Install Python deps
 
