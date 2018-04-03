@@ -27,10 +27,10 @@ Using a Python virtual environment
 To setup your project using a local python virtual environment, follow these instructions:
 
 1. Setup your virtualenvironment ``mkvirtualenv my_geonode``
-2. Install django into your virtualenviornment ``pip install Django==1.8.7``
+2. Install django into your virtualenviornment ``pip install Django==1.8.19``
 3. Create your project using the template project::
 
-    django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/master.zip -e py,rst,json,yml my_geonode
+    django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/2.8.0.zip -e py,rst,json,yml my_geonode
 
 Start your server
 ----------------
@@ -70,13 +70,18 @@ Configuring Requirements.txt
 
 You may want to configure your requirements.txt, if you are using additional or custom versions of python packages.  For example::
 
-    five==0.4.0
-    django-geonode-client==0.0.22
-    django-cors-headers==1.3.1
+    Django==1.8.19
+    six==1.10.0
+    django-cuser==2017.3.16
+    django-model-utils==3.1.1
+    pyshp==1.2.12
+    celery==4.1.0
+    Shapely>=1.5.13,<1.6.dev0
+    proj==0.1.0
+    pyproj==1.9.5.1
+    pygdal==2.2.1.3
+    inflection==0.3.1
     git+git://github.com/<your organization>/geonode.git@<your branch>
-    pymemcache
-    defusedxml
-    django-floppyforms
 
 
 Using Ansibe
