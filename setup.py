@@ -58,6 +58,5 @@ setup(
        'oauthlib==2.0.1',
        'python-dateutil==2.6.1',
        'pycsw==2.0.3',
-       'geonode==2.8',
     ],
 )
