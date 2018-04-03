@@ -36,8 +36,9 @@ To setup your project using a local python virtual environment, follow these ins
 
   .. warning:: you might need to fix pygdal version accordingly to your system. If so, update it on ``requirements.txt`` and retry.
 
-  .. code:: python
+  .. code:: bash
   
+      cd my_geonode
       pip install celery==4.1.0
       pip install -r requirements.txt --no-warn-conflicts
       pip install -e . --no-warn-conflicts
