@@ -108,8 +108,8 @@ You may want to configure your requirements.txt, if you are using additional or 
     git+git://github.com/<your organization>/geonode.git@<your branch>
 
 
-Using Ansibe
-++++++++++++
+Using Ansible
++++++++++++++
 
 To run the Ansible playbook use something like this::
 
