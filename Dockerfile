@@ -1,4 +1,4 @@
-FROM geonode/geonode:2.7.x
+FROM python:2.7.14-stretch
 MAINTAINER GeoNode development team
 
 RUN mkdir -p /usr/src/{app,geonode,{{project_name}}}
@@ -26,6 +26,9 @@ RUN chmod +x /usr/bin/wait-for-databases
 
 # Upgrade pip
 RUN pip install --upgrade pip
+
+# Install Celery
+RUN pip install celery==4.1.0
 
 # To understand the next section (the need for requirements.txt and setup.py)
 # Please read: https://packaging.python.org/requirements/

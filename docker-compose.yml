@@ -68,7 +68,6 @@ services:
       - GEONODE_GEODATABASE_PASSWORD=geonode_data
       - ASYNC_SIGNALS=False
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672
-      - ALLOWED_HOSTS=['django',]
       - CELERY_CMD=celery worker --app={{project_name}}.celeryapp:app --broker=amqp://guest:guest@rabbitmq:5672/ -B -l INFO
       - IS_CELERY=true
       - C_FORCE_ROOT=1
@@ -143,7 +142,6 @@ services:
       - GEONODE_GEODATABASE_PASSWORD=geonode_data
       - ASYNC_SIGNALS=False
       - BROKER_URL=amqp://guest:guest@rabbitmq:5672
-      - ALLOWED_HOSTS=['django',]
       - CELERY_CMD=celery worker --app={{project_name}}.celeryapp:app --broker=amqp://guest:guest@rabbitmq:5672/ -B -l INFO
       - IS_CELERY=false
       - C_FORCE_ROOT=1
