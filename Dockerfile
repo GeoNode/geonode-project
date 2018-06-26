@@ -1,7 +1,7 @@
 FROM geonode/geonode:2.7.x
 MAINTAINER GeoNode development team
 
-RUN mkdir -p /usr/src/{app,geonode}
+RUN mkdir -p /usr/src/{app,{{project_name}}}
 
 WORKDIR /usr/src/app
 
