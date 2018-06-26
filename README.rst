@@ -13,15 +13,21 @@ Using a Python virtual environment
 
 To setup your project using a local python virtual environment, follow these instructions:
 
+1. Prepare the Environment
+
   .. code:: bash
 
     git clone https://github.com/GeoNode/geonode-project.git -b 2.7
-    mkvirtualenv geonode-project-27x
+    mkvirtualenv my_geonode
     pip install Django==1.8.19
 
-    django-admin.py startproject --template=./geonode-project -e py,rst,json,yml my_geonode
+    django-admin.py startproject --template=../geonode-project -e py,rst,json,yml,ini,env,sample -n Dockerfile my_geonode
 
     cd my_geonode
+
+2. Setup the Python Dependencies
+
+  .. code:: bash
 
     pip install -r requirements.txt --upgrade
     pip install -e . --upgrade
@@ -44,41 +50,42 @@ To setup your project using a local python virtual environment, follow these ins
     DJANGO_SETTINGS_MODULE=my_geonode.local_settings paver sync
     DJANGO_SETTINGS_MODULE=my_geonode.local_settings paver start
   
-Then access GeoNode from browser::
+3. Access GeoNode from browser::
 
     http://localhost:8000/
     
 .. note:: default admin user is ``admin`` (with pw: ``admin``)
 
-Using Docker
-++++++++++++
-
-To setup your project using Docker, follow these instructions:
-
-1. Install Docker (for Linux, Mac or Windows).
-2. Run the following command in a terminal.::
-
-    docker run -v `pwd`:/usr/src/app geonode/django:geonode django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/docker.zip -e py,rst,json,yml my_geonode
-    cd my_geonode
-
-If you experience a permissions problem, make sure that the files belong to your user and not the root user.
-
 Start your server
 -----------------
 
-You need Docker 1.12 or higher, get the latest stable official release for your platform. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
+You need Docker 1.12 or higher, get the latest stable official release for your platform.
+
+1. Prepare the Environment
+
+  .. code:: bash
+
+    git clone https://github.com/GeoNode/geonode-project.git -b 2.7
+    mkvirtualenv my_geonode
+    pip install Django==1.8.19
+
+    django-admin.py startproject --template=../geonode-project -e py,rst,json,yml,ini,env,sample -n Dockerfile my_geonode
+
+    cd my_geonode
+
+2. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
 
     docker-compose up
 
-Create the tables in your postgres database::
+3. Create the tables in your postgres database::
 
     docker-compose run django python manage.py migrate
 
-Set up a superuser so you can access the admin area::
+4. Set up a superuser so you can access the admin area::
 
     docker-compose run django python manage.py createsuperuser
 
-Access the site on http://localhost/
+5. Access the site on http://localhost/
 
 
 Recommended: Track your changes

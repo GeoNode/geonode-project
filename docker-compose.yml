@@ -157,7 +157,7 @@ services:
       - TIME_ENABLED=True
       - MOSAIC_ENABLED=False
       - GEOGIG_ENABLED=False
-      - DOCKER_API_VERSION: "1.24"
+      # - DOCKER_API_VERSION: "1.24"
 
   geonode:
     image: geonode/nginx:geoserver
