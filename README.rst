@@ -75,17 +75,9 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
 2. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
 
-    docker-compose up
+    docker-compose up --build
 
-3. Create the tables in your postgres database::
-
-    docker-compose run django python manage.py migrate
-
-4. Set up a superuser so you can access the admin area::
-
-    docker-compose run django python manage.py createsuperuser
-
-5. Access the site on http://localhost/
+3. Access the site on http://localhost/
 
 
 Recommended: Track your changes
