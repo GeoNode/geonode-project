@@ -55,7 +55,6 @@ services:
     command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-
     environment:
       - DJANGO_SETTINGS_MODULE={{project_name}}.settings
       - GEONODE_INSTANCE_NAME={{project_name}}

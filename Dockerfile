@@ -24,13 +24,28 @@ RUN apt-get update && apt-get install -y \
 COPY wait-for-databases.sh /usr/bin/wait-for-databases
 RUN chmod +x /usr/bin/wait-for-databases
 
+COPY . /usr/src/app
+
 # fix for known bug in system-wide packages
 RUN ln -fs /usr/lib/python2.7/plat-x86_64-linux-gnu/_sysconfigdata*.py /usr/lib/python2.7/
 
-#RUN cp /usr/src/geonode/tasks.py /usr/src/app/
-#RUN cp /usr/src/geonode/entrypoint.sh /usr/src/app/
+# Upgrade pip
+RUN pip install --upgrade pip
 
-COPY . /usr/src/app
+# To understand the next section (the need for requirements.txt and setup.py)
+# Please read: https://packaging.python.org/requirements/
+
+# python-gdal does not seem to work, let's install manually the version that is
+# compatible with the provided libgdal-dev
+RUN pip install GDAL==1.10 --global-option=build_ext --global-option="-I/usr/include/gdal"
+
+# install shallow clone of geonode master branch
+RUN git clone --depth=1 git://github.com/GeoNode/geonode.git --branch 2.7.x /usr/src/geonode
+RUN cd /usr/src/geonode/; pip install --upgrade --no-cache-dir -r requirements.txt; pip install --upgrade -e .
+
+
+RUN cp /usr/src/geonode/tasks.py /usr/src/app/
+RUN cp /usr/src/geonode/entrypoint.sh /usr/src/app/
 
 RUN chmod +x /usr/src/app/tasks.py \
     && chmod +x /usr/src/app/entrypoint.sh
