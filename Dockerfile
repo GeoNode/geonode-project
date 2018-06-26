@@ -40,12 +40,10 @@ RUN pip install --upgrade pip
 RUN pip install GDAL==1.10 --global-option=build_ext --global-option="-I/usr/include/gdal"
 
 # install shallow clone of geonode master branch
-RUN git clone --depth=1 git://github.com/GeoNode/geonode.git --branch 2.7.x /usr/src/geonode
-RUN cd /usr/src/geonode/; pip install --upgrade --no-cache-dir -r requirements.txt; pip install --upgrade -e .
+RUN cd ./src/geonode/; pip install --upgrade --no-cache-dir -r requirements.txt; pip install --upgrade -e .
 
-
-RUN cp /usr/src/geonode/tasks.py /usr/src/app/
-RUN cp /usr/src/geonode/entrypoint.sh /usr/src/app/
+RUN cp ./src/geonode/tasks.py /usr/src/app/
+RUN cp ./src/geonode/entrypoint.sh /usr/src/app/
 
 RUN chmod +x /usr/src/app/tasks.py \
     && chmod +x /usr/src/app/entrypoint.sh
