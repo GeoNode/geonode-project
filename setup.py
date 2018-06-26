@@ -19,14 +19,27 @@
 #########################################################################
 
 import os
+try: # for pip >= 10
+    from pip._internal.req import parse_requirements
+    from pip._internal.download import PipSession
+except ImportError: # for pip <= 9.0.3
+    from pip.req import parse_requirements
+    from pip.download import PipSession
 from distutils.core import setup
+
+from setuptools import find_packages
+
+# Parse requirements.txt to get the list of dependencies
+inst_req = parse_requirements('requirements.txt',
+                              session=PipSession())
+REQUIREMENTS = [str(r.req) for r in inst_req]
 
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(
     name="{{ project_name }}",
-    version="0.1",
+    version="2.7",
     author="",
     author_email="",
     description="{{ project_name }}, based on GeoNode",
@@ -42,21 +55,5 @@ setup(
     packages=['{{ project_name }}',],
     include_package_data=True,
     zip_safe=False,
-    install_requires=[
-       'Django==1.8.19',
-       'six==1.10.0',
-       'django-cuser==2017.3.16',
-       'django-model-utils==3.1.1',
-       'django-autocomplete-light==2.3.3',
-       'pyshp==1.2.12',
-       'celery==4.1.0',
-       'Shapely>=1.5.13,<1.6.dev0',
-       'OWSLib==0.15.0',
-       'proj==0.1.0',
-       'pyproj==1.9.5.1',
-       'inflection==0.3.1',
-       'oauthlib==2.0.1',
-       'python-dateutil==2.6.1',
-       'pycsw==2.0.3',
-    ],
+    install_requires=REQUIREMENTS,
 )

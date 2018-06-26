@@ -8,6 +8,48 @@ Create a custom project
 
 Note: You can call your geonode project whatever you like following the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``my_geonode`` with whatever you would like to name your project.
 
+Using a Python virtual environment
+++++++++++++++++++++++++++++++++++
+
+To setup your project using a local python virtual environment, follow these instructions:
+
+  .. code:: bash
+
+    git clone https://github.com/GeoNode/geonode-project.git -b 2.7
+    mkvirtualenv geonode-project-27x
+    pip install Django==1.8.19
+
+    django-admin.py startproject --template=./geonode-project -e py,rst,json,yml my_geonode
+
+    cd my_geonode
+
+    pip install -r requirements.txt --upgrade
+    pip install -e . --upgrade
+
+    GDAL_VERSION=`gdal-config --version`
+    PYGDAL_VERSION="$(pip install pygdal==$GDAL_VERSION 2>&1 | grep -oP '(?<=: )(.*)(?=\))' | grep -oh $GDAL_VERSION\.[0-9])"
+    pip install pygdal==$PYGDAL_VERSION
+
+    # Using Default Settings
+    DJANGO_SETTINGS_MODULE=my_geonode.settings paver reset
+    DJANGO_SETTINGS_MODULE=my_geonode.settings paver setup
+    DJANGO_SETTINGS_MODULE=my_geonode.settings paver sync
+    DJANGO_SETTINGS_MODULE=my_geonode.settings paver start
+
+    # Using Custom Local Settings
+    cp my_geonode/local_settings.py.sample my_geonode/local_settings.py
+
+    DJANGO_SETTINGS_MODULE=my_geonode.local_settings paver reset
+    DJANGO_SETTINGS_MODULE=my_geonode.local_settings paver setup
+    DJANGO_SETTINGS_MODULE=my_geonode.local_settings paver sync
+    DJANGO_SETTINGS_MODULE=my_geonode.local_settings paver start
+  
+Then access GeoNode from browser::
+
+    http://localhost:8000/
+    
+.. note:: default admin user is ``admin`` (with pw: ``admin``)
+
 Using Docker
 ++++++++++++
 
@@ -21,41 +63,6 @@ To setup your project using Docker, follow these instructions:
 
 If you experience a permissions problem, make sure that the files belong to your user and not the root user.
 
-Using a Python virtual environment
-++++++++++++++++++++++++++++++++++
-
-To setup your project using a local python virtual environment, follow these instructions:
-
-1. Setup your virtualenvironment ``mkvirtualenv my_geonode``
-2. Install django into your virtualenviornment ``pip install Django==1.8.19``
-3. Create your project using the template project::
-
-    django-admin.py startproject --template=https://github.com/GeoNode/geonode-project/archive/master.zip -e py,rst,json,yml my_geonode
-
-4. Install Python deps
-
-  .. warning:: you might need to fix pygdal version accordingly to your system. If so, update it on ``requirements.txt`` and retry.
-
-  .. code:: bash
-  
-      cd my_geonode
-      pip install celery==4.1.0
-      pip install -r requirements.txt --no-warn-conflicts
-      pip install -e . --no-warn-conflicts
-
-6. Start the project::
-
-    DJANGO_SETTINGS_MODULE=my_geonode.settings paver reset
-    DJANGO_SETTINGS_MODULE=my_geonode.settings paver setup
-    DJANGO_SETTINGS_MODULE=my_geonode.settings paver sync
-    DJANGO_SETTINGS_MODULE=my_geonode.settings paver start
-  
-7. Access GeoNode from browser::
-
-    http://localhost:8000/
-    
-.. note:: default admin user is ``admin`` (with pw: ``admin``)
-    
 Start your server
 -----------------
 
