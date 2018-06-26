@@ -40,16 +40,17 @@ http://{public_fqdn}/geoserver/ >> {override_fn}".format(**envs), pty=True)
     if not os.environ.get('SITEURL'):
         ctx.run("echo export SITEURL=\
 http://{public_fqdn}/ >> {override_fn}".format(**envs), pty=True)
+
     try:
         current_allowed = ast.literal_eval(os.getenv('ALLOWED_HOSTS') or \
                                            "['{public_fqdn}', '{public_host}', 'localhost', 'django', '{{project_name}}',]".format(**envs))
     except ValueError:
         current_allowed = []
     current_allowed.extend(['{}'.format(pub_ip), '{}:{}'.format(pub_ip, pub_port)])
-    allowed_hosts = ['"{}"'.format(c) for c in current_allowed]
+    allowed_hosts = ['"{}"'.format(c) for c in current_allowed] + ['"geonode"', '"django"']
 
-    ctx.run('export ALLOWED_HOSTS="\\"{}\\""'.format(allowed_hosts), pty=True)
-    ctx.run('echo export ALLOWED_HOSTS="\\"{}\\""'.format(allowed_hosts), pty=True)
+    ctx.run('echo export ALLOWED_HOSTS="\\"{}\\"" >> {}'.format(allowed_hosts, override_env), pty=True)
+
     if not os.environ.get('DATABASE_URL'):
         ctx.run("echo export DATABASE_URL=\
 {dburl} >> {override_fn}".format(**envs), pty=True)
@@ -68,20 +69,25 @@ amqp://guest:guest@rabbitmq:5672/ >> {override_fn}".format(**envs), pty=True)
 @task
 def migrations(ctx):
     print "**************************migrations*******************************"
-    ctx.run("django-admin.py makemigrations --noinput --merge --settings={0}".format(
+    ctx.run("python manage.py makemigrations --noinput --merge --settings={0}".format(
         _localsettings()
     ), pty=True)
-    ctx.run("django-admin.py makemigrations --noinput --settings={0}".format(
+    ctx.run("python manage.py makemigrations --noinput --settings={0}".format(
         _localsettings()
     ), pty=True)
-    ctx.run("django-admin.py migrate --noinput --settings={0}".format(
+    ctx.run("python manage.py migrate --noinput --settings={0}".format(
         _localsettings()
     ), pty=True)
+    ctx.run("python manage.py updategeoip --settings={0}".format(
+        _localsettings()
+    ), pty=True)
+
 
 @task
 def statics(ctx):
     print "**************************migrations*******************************"
-    ctx.run("python manage.py collectstatic --noinput --settings={0}".format(
+    ctx.run('mkdir -p /mnt/volumes/statics/{static,uploads}')
+    ctx.run("python manage.py collectstatic --noinput --clear --settings={0}".format(
         _localsettings()
     ), pty=True)
 
@@ -103,8 +109,14 @@ def fixtures(ctx):
 --settings={0}".format(_localsettings()), pty=True)
 
 
+@task
+def initialized(ctx):
+    print "**************************init file********************************"
+    ctx.run('date > /mnt/volumes/statics/geonode_init.lock')
+
+
 def _docker_host_ip():
-    client = docker.from_env()
+    client = docker.from_env(version='1.24')
     ip_list = client.containers.run(BOOTSTRAP_IMAGE_CHEIP,
                                     network_mode='host'
                                     ).split("\n")
@@ -121,7 +133,7 @@ address {0}".format(ip_list[0]))
 
 
 def _container_exposed_port(component, instname):
-    client = docker.from_env()
+    client = docker.from_env(version='1.24')
     try:
         ports_dict = json.dumps(
             [c.attrs['Config']['ExposedPorts'] for c in client.containers.list(
@@ -184,19 +196,20 @@ def _geonode_public_port():
 
 
 def _prepare_oauth_fixture():
-    pub_ip = _geonode_public_host_ip()
-    print "Public Hostname or IP is {0}".format(pub_ip)
-    pub_port = _geonode_public_port()
-    print "Public PORT is {0}".format(pub_port)
+    # pub_ip = _geonode_public_host_ip()
+    # print "Public Hostname or IP is {0}".format(pub_ip)
+    # pub_port = _geonode_public_port()
+    # print "Public PORT is {0}".format(pub_port)
+    # redirect_uris = "http://{0}:{1}/geoserver/index.html".format(pub_ip, pub_port)
+    from django.conf import settings
+    redirect_uris = "{0}geoserver/index.html".format(settings.SITEURL)
     default_fixture = [
         {
             "model": "oauth2_provider.application",
             "pk": 1001,
             "fields": {
                 "skip_authorization": True,
-                "redirect_uris": "http://{0}:{1}/geoserver/index.html".format(
-                    pub_ip, pub_port
-                ),
+                "redirect_uris": redirect_uris,
                 "name": "GeoServer",
                 "authorization_grant_type": "authorization-code",
                 "client_type": "confidential",

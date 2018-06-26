@@ -21,6 +21,7 @@
 # Django settings for the GeoNode project.
 import ast
 import os
+from urlparse import urlparse, urlunparse
 # Load more settings from a file called local_settings.py if it exists
 try:
     from geonode.local_settings import *
@@ -32,7 +33,15 @@ except ImportError:
 #
 PROJECT_NAME = '{{ project_name }}'
 
-SITENAME = '{{ project_name }}'
+# we need hostname for deployed 
+surl = urlparse(SITEURL)
+hostname = surl.hostname
+
+# add trailing slash to site url. geoserver url will be relative to this
+if not SITEURL.endswith('/'):
+    SITEURL = '{}/'.format(SITEURL)
+
+SITENAME = os.getenv("SITENAME", '{{ project_name }}')
 
 # Defines the directory that contains the settings file as the LOCAL_ROOT
 # It is used for relative settings elsewhere.
@@ -79,6 +88,7 @@ USE_L10N = strtobool(os.getenv('USE_I18N', 'True'))
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
+
 if PROJECT_NAME not in INSTALLED_APPS:
     INSTALLED_APPS += (PROJECT_NAME,)
 
@@ -357,7 +367,6 @@ NOTIFICATIONS_MODULE = 'pinax.notifications'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-MONITORING_ENABLED = False
 # add following lines to your local settings to enable monitoring
 if MONITORING_ENABLED:
     if 'geonode.contrib.ows_api' not in INSTALLED_APPS:
@@ -368,8 +377,8 @@ if MONITORING_ENABLED:
         MIDDLEWARE_CLASSES += ('geonode.contrib.monitoring.middleware.MonitoringMiddleware',)
 
     MONITORING_CONFIG = None
-    MONITORING_HOST_NAME = 'localhost'
-    MONITORING_SERVICE_NAME = 'local-geonode'
+    MONITORING_HOST_NAME = os.getenv("MONITORING_HOST_NAME", hostname)
+    MONITORING_SERVICE_NAME = 'geonode'
     MONITORING_HOST_NAME = SITE_HOST_NAME
 
 GEOIP_PATH = os.path.join(os.path.dirname(__file__), '..', 'GeoLiteCity.dat')

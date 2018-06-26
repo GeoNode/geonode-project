@@ -1,7 +1,7 @@
 FROM geonode/geonode:2.7.x
 MAINTAINER GeoNode development team
 
-RUN mkdir -p /usr/src/{app,{{project_name}}}
+RUN mkdir -p /usr/src/{app,geonode,{{project_name}}}
 
 WORKDIR /usr/src/app
 
@@ -24,11 +24,6 @@ RUN apt-get update && apt-get install -y \
 COPY wait-for-databases.sh /usr/bin/wait-for-databases
 RUN chmod +x /usr/bin/wait-for-databases
 
-COPY . /usr/src/app
-
-# fix for known bug in system-wide packages
-RUN ln -fs /usr/lib/python2.7/plat-x86_64-linux-gnu/_sysconfigdata*.py /usr/lib/python2.7/
-
 # Upgrade pip
 RUN pip install --upgrade pip
 
@@ -37,22 +32,27 @@ RUN pip install --upgrade pip
 
 # python-gdal does not seem to work, let's install manually the version that is
 # compatible with the provided libgdal-dev
-RUN pip install GDAL==1.10 --global-option=build_ext --global-option="-I/usr/include/gdal"
+# superseded by pygdal
+#RUN pip install GDAL==2.1.3 --global-option=build_ext --global-option="-I/usr/include/gdal"
 
 # install shallow clone of geonode master branch
-RUN cd ./src/geonode/; pip install --upgrade --no-cache-dir -r requirements.txt; pip install --upgrade -e .
+RUN git clone --depth=1 git://github.com/geosolutions-it/geonode.git --branch 2.7.x /usr/src/geonode
+RUN cd /usr/src/geonode/; pip install -r requirements.txt --no-cache-dir; pip install -e .
 
-RUN cp ./src/geonode/tasks.py /usr/src/app/
-RUN cp ./src/geonode/entrypoint.sh /usr/src/app/
+# fix for known bug in system-wide packages
+RUN ln -fs /usr/lib/python2.7/plat-x86_64-linux-gnu/_sysconfigdata*.py /usr/lib/python2.7/
+
+#RUN cp /usr/src/geonode/tasks.py /usr/src/app/
+#RUN cp /usr/src/geonode/entrypoint.sh /usr/src/app/
+
+COPY . /usr/src/app
 
 RUN chmod +x /usr/src/app/tasks.py \
     && chmod +x /usr/src/app/entrypoint.sh
 
-COPY requirements.txt /usr/src/app/
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt --upgrade
-RUN python manage.py makemigrations --settings={{ project_name }}.settings
-RUN python manage.py migrate --settings={{ project_name }}.settings
+# app-specific requirements
+RUN pip install --no-cache-dir -r /usr/src/app/requirements.txt
+RUN pip install -e /usr/src/app
 
 EXPOSE 8000
 

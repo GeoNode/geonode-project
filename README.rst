@@ -75,7 +75,8 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
 2. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)::
 
-    docker-compose up --build
+    docker-compose build --no-cache
+    docker-compose up -d
 
 3. Access the site on http://localhost/
 

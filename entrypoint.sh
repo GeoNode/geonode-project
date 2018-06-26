@@ -20,10 +20,15 @@ echo "running migrations"
 /usr/local/bin/invoke statics
 
 echo "migrations task done"
-/usr/local/bin/invoke prepare
-echo "prepare task done"
-/usr/local/bin/invoke fixtures
-echo "fixture task done"
+
+if [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
+    /usr/local/bin/invoke statics
+    /usr/local/bin/invoke prepare
+    echo "prepare task done"
+    /usr/local/bin/invoke fixtures
+    echo "fixture task done"
+fi
+/usr/local/bin/invoke initialized
 
 cmd="$@"
 
@@ -50,4 +55,5 @@ else
     fi
 
 fi
+echo 'got command ${cmd}'
 exec $cmd
