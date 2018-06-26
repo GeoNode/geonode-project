@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y \
 
 
 COPY wait-for-databases.sh /usr/bin/wait-for-databases
-
 RUN chmod +x /usr/bin/wait-for-databases
 
 # fix for known bug in system-wide packages

@@ -15,7 +15,10 @@ echo GEOSERVER_PUBLIC_LOCATION=$GEOSERVER_PUBLIC_LOCATION
 
 echo "waitfordbs task done"
 
+echo "running migrations"
 /usr/local/bin/invoke migrations >> /usr/src/app/invoke.log
+/usr/local/bin/invoke statics >> /usr/src/app/invoke.log
+
 echo "migrations task done"
 /usr/local/bin/invoke prepare >> /usr/src/app/invoke.log
 echo "prepare task done"
@@ -47,5 +50,4 @@ else
     fi
 
 fi
-
 exec $cmd
