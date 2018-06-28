@@ -20,6 +20,7 @@ def waitfordbs(ctx):
 @task
 def update(ctx):
     print "***************************initial*********************************"
+    ctx.run("env", pty=True)
     pub_ip = _geonode_public_host_ip()
     print "Public Hostname or IP is {0}".format(pub_ip)
     pub_port = _geonode_public_port()
@@ -57,9 +58,11 @@ http://{public_fqdn}/ >> {override_fn}".format(**envs), pty=True)
     if not os.environ.get('GEODATABASE_URL'):
         ctx.run("echo export GEODATABASE_URL=\
 {geodburl} >> {override_fn}".format(**envs), pty=True)
-    ctx.run("echo export ASYNC_SIGNALS=\
+    if not os.environ.get('ASYNC_SIGNALS'):
+        ctx.run("echo export ASYNC_SIGNALS=\
 True >> {override_fn}".format(**envs), pty=True)
-    ctx.run("echo export BROKER_URL=\
+    if not os.environ.get('BROKER_URL'):
+        ctx.run("echo export BROKER_URL=\
 amqp://guest:guest@rabbitmq:5672/ >> {override_fn}".format(**envs), pty=True)
     ctx.run("source $HOME/.override_env", pty=True)
     print "****************************final**********************************"

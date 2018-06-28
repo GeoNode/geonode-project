@@ -41,7 +41,7 @@ then
 
 else
 
-    if [ ${IS_CELERY} = "true" ]
+    if [ ${IS_CELERY} = "True" ]
     then
 
         cmd=$CELERY_CMD

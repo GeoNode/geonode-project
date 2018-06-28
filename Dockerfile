@@ -1,9 +1,9 @@
 FROM python:2.7.14-stretch
 MAINTAINER GeoNode development team
 
-RUN mkdir -p /usr/src/{app,geonode,{{project_name}}}
+RUN mkdir -p /usr/src/{{project_name}}
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/{{project_name}}
 
 # This section is borrowed from the official Django image but adds GDAL and others
 RUN apt-get update && apt-get install -y \
@@ -37,27 +37,31 @@ RUN pip install celery==4.1.0
 # compatible with the provided libgdal-dev
 # superseded by pygdal
 #RUN pip install GDAL==2.1.3 --global-option=build_ext --global-option="-I/usr/include/gdal"
+RUN GDAL_VERSION=`gdal-config --version` \
+    && PYGDAL_VERSION="$(pip install pygdal==$GDAL_VERSION 2>&1 | grep -oP '(?<=: )(.*)(?=\))' | grep -oh $GDAL_VERSION\.[0-9])" \
+    && pip install pygdal==$PYGDAL_VERSION
 
 # install shallow clone of geonode master branch
-RUN git clone --depth=1 git://github.com/geosolutions-it/geonode.git --branch 2.7.x /usr/src/geonode
-RUN cd /usr/src/geonode/; pip install -r requirements.txt --no-cache-dir; pip install -e .
+RUN git clone --depth=1 git://github.com/GeoNode/geonode.git --branch 2.7.x /usr/src/{{project_name}}/src/geonode
+RUN cd /usr/src/{{project_name}}/src/geonode/; pip install -r requirements.txt --upgrade --no-cache-dir; pip install -e . --upgrade; cd /usr/src/{{project_name}}
 
 # fix for known bug in system-wide packages
 RUN ln -fs /usr/lib/python2.7/plat-x86_64-linux-gnu/_sysconfigdata*.py /usr/lib/python2.7/
 
-#RUN cp /usr/src/geonode/tasks.py /usr/src/app/
-#RUN cp /usr/src/geonode/entrypoint.sh /usr/src/app/
+#RUN cp /usr/src/geonode/tasks.py /usr/src/{{project_name}}/
+#RUN cp /usr/src/geonode/entrypoint.sh /usr/src/{{project_name}}/
 
-COPY . /usr/src/app
+COPY . /usr/src/{{project_name}}
 
-RUN chmod +x /usr/src/app/tasks.py \
-    && chmod +x /usr/src/app/entrypoint.sh
+RUN chmod +x /usr/src/{{project_name}}/tasks.py \
+    && chmod +x /usr/src/{{project_name}}/entrypoint.sh
 
 # app-specific requirements
-RUN pip install --no-cache-dir -r /usr/src/app/requirements.txt
-RUN pip install -e /usr/src/app
+# RUN pip install --upgrade --no-cache-dir -r requirements.txt
+RUN pip install --upgrade -e .
 
-EXPOSE 8000
+# EXPOSE 8000
 
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
-CMD ["uwsgi", "--ini", "/usr/src/app/uwsgi.ini"]
+ENTRYPOINT ["/usr/src/{{project_name}}/entrypoint.sh"]
+
+# CMD ["uwsgi", "--ini", "/usr/src/{{project_name}}/uwsgi.ini"]

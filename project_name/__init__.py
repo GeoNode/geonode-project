@@ -27,5 +27,5 @@ default_app_config = "{{project_name}}.apps.AppConfig"
 
 
 def get_version():
-    import geonode.version
-    return geonode.version.get_version(__version__)
+    import {{project_name}}.version
+    return {{project_name}}.version.get_version(__version__)
