@@ -17,12 +17,15 @@ echo "waitfordbs task done"
 
 echo "running migrations"
 /usr/local/bin/invoke migrations
-/usr/local/bin/invoke statics
 
 echo "migrations task done"
 
+echo "refresh static data"
+/usr/local/bin/invoke statics
+
+echo "static data refreshed"
+
 if [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
-    /usr/local/bin/invoke statics
     /usr/local/bin/invoke prepare
     echo "prepare task done"
     /usr/local/bin/invoke fixtures
