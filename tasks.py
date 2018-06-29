@@ -108,7 +108,9 @@ def fixtures(ctx):
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("django-admin.py loaddata /tmp/default_oauth_apps_docker.json \
 --settings={0}".format(_localsettings()), pty=True)
-    ctx.run("django-admin.py loaddata /usr/src/geonode/geonode/base/fixtures/initial_data.json \
+    ctx.run("django-admin.py loaddata /usr/src/{{project_name}}/src/geonode/geonode/base/fixtures/initial_data.json \
+--settings={0}".format(_localsettings()), pty=True)
+    ctx.run("python manage.py set_all_layers_alternate \
 --settings={0}".format(_localsettings()), pty=True)
 
 
