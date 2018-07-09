@@ -62,7 +62,7 @@ DATABASES = {
         'NAME': 'geonode',
         'USER': 'geonode',
         'PASSWORD': 'geonode',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
         'CONN_TOUT': 900,
     },
@@ -72,8 +72,8 @@ DATABASES = {
         # 'ENGINE': '', # Empty ENGINE name disables
         'NAME': 'geonode_data',
         'USER': 'geonode',
-        'PASSWORD': 'geonode',
-        'HOST': 'localhost',
+        'PASSWORD': 'geonode_data',
+        'HOST': 'db',
         'PORT': '5432',
         'CONN_TOUT': 900,
     }
@@ -128,7 +128,7 @@ OGC_SERVER = {
         # Set to dictionary identifier of database containing spatial data in DATABASES dictionary to enable
         'DATASTORE': 'datastore',
         'PG_GEOGIG': False,
-        'TIMEOUT': 10  # number of seconds to allow for HTTP requests
+        'TIMEOUT': 30  # number of seconds to allow for HTTP requests
     }
 }
 
