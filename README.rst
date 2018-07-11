@@ -21,7 +21,7 @@ To setup your project using a local python virtual environment, follow these ins
     mkvirtualenv my_geonode
     pip install Django==1.8.19
 
-    django-admin.py startproject --template=./geonode-project -e py,rst,json,yml,ini,env,sample -n Dockerfile my_geonode
+    django-admin startproject --template=./geonode-project -e py,rst,json,yml,ini,env,sample -n Dockerfile my_geonode
 
     cd my_geonode
 
@@ -72,7 +72,7 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
     mkvirtualenv my_geonode
     pip install Django==1.8.19
 
-    django-admin.py startproject --template=./geonode-project -e py,rst,json,yml,ini,env,sample -n Dockerfile my_geonode
+    django-admin startproject --template=./geonode-project -e py,rst,json,yml,ini,env,sample -n Dockerfile my_geonode
 
     cd my_geonode
 
