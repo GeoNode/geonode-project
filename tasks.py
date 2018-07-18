@@ -108,7 +108,7 @@ def fixtures(ctx):
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("django-admin.py loaddata /tmp/default_oauth_apps_docker.json \
 --settings={0}".format(_localsettings()), pty=True)
-    ctx.run("django-admin.py loaddata /usr/src/{{project_name}}/src/geonode/geonode/base/fixtures/initial_data.json \
+    ctx.run("django-admin.py loaddata /usr/src/geonode/geonode/base/fixtures/initial_data.json \
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("python manage.py set_all_layers_alternate \
 --settings={0}".format(_localsettings()), pty=True)
@@ -201,13 +201,10 @@ def _geonode_public_port():
 
 
 def _prepare_oauth_fixture():
-    # pub_ip = _geonode_public_host_ip()
-    # print "Public Hostname or IP is {0}".format(pub_ip)
-    # pub_port = _geonode_public_port()
-    # print "Public PORT is {0}".format(pub_port)
-    # redirect_uris = "http://{0}:{1}/geoserver/index.html".format(pub_ip, pub_port)
-    from django.conf import settings
-    redirect_uris = "{0}geoserver/index.html".format(settings.SITEURL)
+    pub_ip = _geonode_public_host_ip()
+    print "Public Hostname or IP is {0}".format(pub_ip)
+    pub_port = _geonode_public_port()
+    print "Public PORT is {0}".format(pub_port)
     default_fixture = [
         {
             "model": "oauth2_provider.application",
@@ -217,7 +214,9 @@ def _prepare_oauth_fixture():
                 "created": "2018-05-31T10:00:31.661Z",
                 "updated": "2018-05-31T11:30:31.245Z",
                 "algorithm": "RS256",
-                "redirect_uris": redirect_uris,
+                "redirect_uris": "http://{0}:{1}/geoserver/index.html".format(
+                    pub_ip, pub_port
+                ),
                 "name": "GeoServer",
                 "authorization_grant_type": "authorization-code",
                 "client_type": "confidential",
@@ -233,3 +232,4 @@ Y9HKeIQPcy5Cp08KQNpRHQbjpLItDHv12GvkSeXp6OxaUETv3",
     ]
     with open('/tmp/default_oauth_apps_docker.json', 'w') as fixturefile:
         json.dump(default_fixture, fixturefile)
+

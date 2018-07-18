@@ -27,7 +27,7 @@ services:
 #     # tty: true
 #     labels:
 #         org.geonode.component: elasticsearch
-#         org.geonode.instance.name: geonode
+#         org.geonode.instance.name: geonode 
 
   rabbitmq:
     image: rabbitmq
@@ -113,6 +113,9 @@ services:
       - geoserver-data-dir:/geoserver_data/data
     environment:
       # GEOSERVER_ADMIN_PASSWORD: admin
+      DOCKERHOST:
+      DOCKER_HOST_IP:
+      GEONODE_HOST_IP:
       GEONODE_LB_HOST_IP:
       GEONODE_LB_PORT:
       PUBLIC_PORT: 80
@@ -214,3 +217,4 @@ volumes:
 #    name: ${COMPOSE_PROJECT_NAME}-dbbackups
   statics:
 #    name: ${COMPOSE_PROJECT_NAME}-statics
+
