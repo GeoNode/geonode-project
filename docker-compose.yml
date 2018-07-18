@@ -93,9 +93,6 @@ services:
        # See https://github.com/geosolutions-it/geonode-generic/issues/28
        # to see why we force API version to 1.24
        DOCKER_API_VERSION: "1.24"
-       # See https://github.com/geosolutions-it/geonode-generic/issues/28
-       # to see why we force API version to 1.24
-       DOCKER_API_VERSION: "1.24"
 
   geoserver:
     image: geonode/geoserver:2.13.x
@@ -118,8 +115,6 @@ services:
       # GEOSERVER_ADMIN_PASSWORD: admin
       GEONODE_LB_HOST_IP:
       GEONODE_LB_PORT:
-      PUBLIC_PORT: 80
-      NGINX_BASE_URL: http://localhost/
       PUBLIC_PORT: 80
       NGINX_BASE_URL: http://localhost/
 
@@ -176,9 +171,6 @@ services:
        # See https://github.com/geosolutions-it/geonode-generic/issues/28
        # to see why we force API version to 1.24
        DOCKER_API_VERSION: "1.24"
-       # See https://github.com/geosolutions-it/geonode-generic/issues/28
-       # to see why we force API version to 1.24
-       DOCKER_API_VERSION: "1.24"
 
   geonode:
     image: geonode/nginx:geoserver
@@ -222,5 +214,3 @@ volumes:
 #    name: ${COMPOSE_PROJECT_NAME}-dbbackups
   statics:
 #    name: ${COMPOSE_PROJECT_NAME}-statics
-#    name: ${COMPOSE_PROJECT_NAME}-statics
-
