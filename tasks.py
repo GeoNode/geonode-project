@@ -201,10 +201,13 @@ def _geonode_public_port():
 
 
 def _prepare_oauth_fixture():
-    pub_ip = _geonode_public_host_ip()
-    print "Public Hostname or IP is {0}".format(pub_ip)
-    pub_port = _geonode_public_port()
-    print "Public PORT is {0}".format(pub_port)
+    # pub_ip = _geonode_public_host_ip()
+    # print "Public Hostname or IP is {0}".format(pub_ip)
+    # pub_port = _geonode_public_port()
+    # print "Public PORT is {0}".format(pub_port)
+    # redirect_uris = "http://{0}:{1}/geoserver/index.html".format(pub_ip, pub_port)
+    from django.conf import settings
+    redirect_uris = "{0}geoserver/index.html".format(settings.SITEURL)
     default_fixture = [
         {
             "model": "oauth2_provider.application",
@@ -214,9 +217,7 @@ def _prepare_oauth_fixture():
                 "created": "2018-05-31T10:00:31.661Z",
                 "updated": "2018-05-31T11:30:31.245Z",
                 "algorithm": "RS256",
-                "redirect_uris": "http://{0}:{1}/geoserver/index.html".format(
-                    pub_ip, pub_port
-                ),
+                "redirect_uris": redirect_uris,
                 "name": "GeoServer",
                 "authorization_grant_type": "authorization-code",
                 "client_type": "confidential",
@@ -232,4 +233,3 @@ Y9HKeIQPcy5Cp08KQNpRHQbjpLItDHv12GvkSeXp6OxaUETv3",
     ]
     with open('/tmp/default_oauth_apps_docker.json', 'w') as fixturefile:
         json.dump(default_fixture, fixturefile)
-

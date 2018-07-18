@@ -1,5 +1,2 @@
-Django==1.11.11
-six<1.11.0
-
 # GeoNode
 -e git://github.com/GeoNode/geonode.git@master#egg=geonode
