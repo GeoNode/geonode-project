@@ -62,7 +62,7 @@ services:
        GEONODE_INSTANCE_NAME: geonode
        GEONODE_LB_HOST_IP:
        GEONODE_LB_PORT:
-       DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+       DATABASE_URL: postgres://postgres:postgres@db:5432/geonode
        DEFAULT_BACKEND_DATASTORE: datastore
        GEONODE_DATABASE: geonode
        GEONODE_DATABASE_PASSWORD: geonode
@@ -89,6 +89,9 @@ services:
        TIME_ENABLED: 'True'
        MOSAIC_ENABLED: 'False'
        GEOGIG_ENABLED: 'False'
+       # GEOSERVER_ADMIN_PASSWORD: admin
+       # See https://github.com/geosolutions-it/geonode-generic/issues/28
+       # to see why we force API version to 1.24
        DOCKER_API_VERSION: "1.24"
 
   geoserver:
@@ -139,7 +142,7 @@ services:
        GEONODE_INSTANCE_NAME: geonode
        GEONODE_LB_HOST_IP:
        GEONODE_LB_PORT:
-       DATABASE_URL: postgres://postgres:postgres@db:5432/postgres
+       DATABASE_URL: postgres://postgres:postgres@db:5432/geonode
        DEFAULT_BACKEND_DATASTORE: datastore
        GEONODE_DATABASE: geonode
        GEONODE_DATABASE_PASSWORD: geonode
@@ -164,6 +167,9 @@ services:
        TIME_ENABLED: 'True'
        MOSAIC_ENABLED: 'False'
        GEOGIG_ENABLED: 'False'
+       # GEOSERVER_ADMIN_PASSWORD: admin
+       # See https://github.com/geosolutions-it/geonode-generic/issues/28
+       # to see why we force API version to 1.24
        DOCKER_API_VERSION: "1.24"
 
   geonode:
