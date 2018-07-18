@@ -47,7 +47,7 @@ RUN chmod +x /usr/src/{{project_name}}/tasks.py \
     && chmod +x /usr/src/{{project_name}}/entrypoint.sh
 
 # app-specific requirements
-RUN pip install --upgrade --no-cache-dir -r requirements.txt
+RUN pip install --upgrade --no-cache-dir --src /usr/src -r requirements.txt
 RUN pip install --upgrade -e .
 
 ENTRYPOINT ["/usr/src/{{project_name}}/entrypoint.sh"]
