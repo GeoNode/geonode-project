@@ -12,18 +12,11 @@ echo ALLOWED_HOSTS=$ALLOWED_HOSTS
 echo GEOSERVER_PUBLIC_LOCATION=$GEOSERVER_PUBLIC_LOCATION
 
 /usr/local/bin/invoke waitfordbs
-
 echo "waitfordbs task done"
 
 echo "running migrations"
 /usr/local/bin/invoke migrations
-
 echo "migrations task done"
-
-echo "refresh static data"
-/usr/local/bin/invoke statics
-
-echo "static data refreshed"
 
 if [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
     /usr/local/bin/invoke prepare
@@ -32,6 +25,11 @@ if [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
     echo "fixture task done"
 fi
 /usr/local/bin/invoke initialized
+echo "initialized"
+
+echo "refresh static data"
+/usr/local/bin/invoke statics
+echo "static data refreshed"
 
 cmd="$@"
 
