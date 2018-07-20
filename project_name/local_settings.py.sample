@@ -21,7 +21,7 @@
 import ast
 import os
 from urlparse import urlparse, urlunparse
-from .settings import *
+from geonode.settings import *
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
@@ -34,7 +34,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
 
 # per-deployment settings should go here
 SITE_HOST_NAME = os.getenv('SITE_HOST_NAME', "localhost")
-SITE_HOST_PORT = os.getenv('SITE_HOST_PORT', "8000")
+SITE_HOST_PORT = os.getenv('SITE_HOST_PORT', "80")
 SITEURL = os.getenv('SITEURL', "http://%s:%s/" % (SITE_HOST_NAME, SITE_HOST_PORT))
 
 #
@@ -62,7 +62,7 @@ DATABASES = {
         'NAME': 'geonode',
         'USER': 'geonode',
         'PASSWORD': 'geonode',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
         'CONN_TOUT': 900,
     },
@@ -72,8 +72,8 @@ DATABASES = {
         # 'ENGINE': '', # Empty ENGINE name disables
         'NAME': 'geonode_data',
         'USER': 'geonode',
-        'PASSWORD': 'geonode',
-        'HOST': 'localhost',
+        'PASSWORD': 'geonode_data',
+        'HOST': 'db',
         'PORT': '5432',
         'CONN_TOUT': 900,
     }
@@ -88,7 +88,7 @@ GEOSERVER_PUBLIC_HOST = os.getenv(
 )
 
 GEOSERVER_PUBLIC_PORT = os.getenv(
-    'GEOSERVER_PUBLIC_PORT', 8080
+    'GEOSERVER_PUBLIC_PORT', 80
 )
 
 GEOSERVER_PUBLIC_LOCATION = os.getenv(
@@ -128,7 +128,7 @@ OGC_SERVER = {
         # Set to dictionary identifier of database containing spatial data in DATABASES dictionary to enable
         'DATASTORE': 'datastore',
         'PG_GEOGIG': False,
-        'TIMEOUT': 10  # number of seconds to allow for HTTP requests
+        'TIMEOUT': 30  # number of seconds to allow for HTTP requests
     }
 }
 

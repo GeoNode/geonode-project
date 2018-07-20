@@ -35,3 +35,4 @@ class AppConfig(BaseAppConfig):
     def ready(self):
         super(AppConfig, self).ready()
         run_setup_hooks()
+
