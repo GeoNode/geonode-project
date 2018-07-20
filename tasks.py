@@ -106,7 +106,7 @@ def fixtures(ctx):
     print "**************************fixtures********************************"
     ctx.run("python manage.py loaddata sample_admin \
 --settings={0}".format(_localsettings()), pty=True)
-    ctx.run("python manage.pyy loaddata /tmp/default_oauth_apps_docker.json \
+    ctx.run("python manage.py loaddata /tmp/default_oauth_apps_docker.json \
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("python manage.py loaddata /usr/src/geonode/geonode/base/fixtures/initial_data.json \
 --settings={0}".format(_localsettings()), pty=True)
