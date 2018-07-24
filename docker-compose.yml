@@ -19,15 +19,15 @@ services:
       GEONODE_GEODATABASE: geonode_data
       GEONODE_GEODATABASE_PASSWORD: geonode_data
 
-#   elasticsearch:
-#     image: elasticsearch
-#     restart: unless-stopped
-#     container_name: elasticsearch4${COMPOSE_PROJECT_NAME}
-#     stdin_open: true
-#     # tty: true
-#     labels:
-#         org.geonode.component: elasticsearch
-#         org.geonode.instance.name: geonode 
+  elasticsearch:
+    image: elasticsearch:2.4.1
+    restart: unless-stopped
+    container_name: elasticsearch4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    tty: true
+    labels:
+        org.geonode.component: elasticsearch
+        org.geonode.instance.name: geonode 
 
   rabbitmq:
     image: rabbitmq
@@ -50,7 +50,7 @@ services:
         org.geonode.instance.name: geonode
     depends_on:
       - db
-      # - elasticsearch
+      - elasticsearch
       - rabbitmq
     # command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
     volumes:
@@ -67,10 +67,10 @@ services:
        GEONODE_DATABASE_PASSWORD: geonode
        GEONODE_GEODATABASE: geonode_data
        GEONODE_GEODATABASE_PASSWORD: geonode_data
-       ASYNC_SIGNALS: 'False'
-       # BROKER_URL: amqp://guest:guest@rabbitmq:5672
-       # CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=amqp://guest:guest@rabbitmq:5672/ -B -l INFO
-       CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=memory:// -B -l INFO
+       ASYNC_SIGNALS: 'True'
+       BROKER_URL: amqp://guest:guest@rabbitmq:5672
+       CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=amqp://guest:guest@rabbitmq:5672/ -B -l INFO
+       # CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=memory:// -B -l INFO
        DOCKER_ENV: production
        IS_CELERY: 'True'
        C_FORCE_ROOT: 1
@@ -88,6 +88,10 @@ services:
        TIME_ENABLED: 'True'
        MOSAIC_ENABLED: 'False'
        GEOGIG_ENABLED: 'False'
+       HAYSTACK_SEARCH: 'True'
+       HAYSTACK_ENGINE_URL: http://elasticsearch:9200/
+       HAYSTACK_ENGINE_INDEX_NAME: haystack
+       HAYSTACK_SEARCH_RESULTS_PER_PAGE: 200
        # GEOSERVER_ADMIN_PASSWORD: admin
        # See https://github.com/geosolutions-it/geonode-generic/issues/28
        # to see why we force API version to 1.24
@@ -104,7 +108,7 @@ services:
         org.geonode.instance.name: geonode
     depends_on:
       - db
-      # - elasticsearch
+      - elasticsearch
       - rabbitmq
       - data-dir-conf
     volumes:
@@ -119,6 +123,7 @@ services:
       GEONODE_LB_PORT:
       PUBLIC_PORT: 80
       NGINX_BASE_URL:
+      GEOSERVER_JAVA_OPTS: "-Djava.awt.headless=true -XX:MaxPermSize=512m -XX:PermSize=256m -Xms512m -Xmx2048m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Dfile.encoding=UTF8 -Duser.timezone=GMT -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -Duser.timezone=GMT -Dorg.geotools.shapefile.datetime=true"
 
   django:
     restart: unless-stopped
@@ -131,7 +136,7 @@ services:
       org.geonode.instance.name: geonode
     depends_on:
       - db
-      # - elasticsearch
+      - elasticsearch
       - rabbitmq
       - data-dir-conf
     # command: paver start_django -b 0.0.0.0:8000
@@ -149,7 +154,8 @@ services:
        GEONODE_DATABASE_PASSWORD: geonode
        GEONODE_GEODATABASE: geonode_data
        GEONODE_GEODATABASE_PASSWORD: geonode_data
-       ASYNC_SIGNALS: 'False'
+       ASYNC_SIGNALS: 'True'
+       BROKER_URL: amqp://guest:guest@rabbitmq:5672
        DOCKER_ENV: production
        UWSGI_CMD: uwsgi --ini /usr/src/{{project_name}}/uwsgi.ini
        IS_CELERY: 'False'
@@ -168,6 +174,10 @@ services:
        TIME_ENABLED: 'True'
        MOSAIC_ENABLED: 'False'
        GEOGIG_ENABLED: 'False'
+       HAYSTACK_SEARCH: 'True'
+       HAYSTACK_ENGINE_URL: http://elasticsearch:9200/
+       HAYSTACK_ENGINE_INDEX_NAME: haystack
+       HAYSTACK_SEARCH_RESULTS_PER_PAGE: 200
        # GEOSERVER_ADMIN_PASSWORD: admin
        # See https://github.com/geosolutions-it/geonode-generic/issues/28
        # to see why we force API version to 1.24
