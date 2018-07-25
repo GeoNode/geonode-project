@@ -84,6 +84,9 @@ def migrations(ctx):
     ctx.run("python manage.py updategeoip --settings={0}".format(
         _localsettings()
     ), pty=True)
+    ctx.run("python manage.py rebuild_index --noinput --settings={0}".format(
+        _localsettings()
+    ), pty=True)
 
 
 @task

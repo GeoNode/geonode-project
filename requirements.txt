@@ -1,3 +1,2 @@
 # GeoNode
 -e git://github.com/GeoNode/geonode.git@2.7.x#egg=geonode
-
