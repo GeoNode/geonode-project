@@ -24,9 +24,12 @@ import os
 from urlparse import urlparse, urlunparse
 # Load more settings from a file called local_settings.py if it exists
 try:
-    from geonode.local_settings import *
+    from {{ project_name }}.local_settings import *
+#    from geonode.local_settings import *
 except ImportError:
     from geonode.settings import *
+
+DEBUG = os.environ.get('DEBUG', True)
 
 #
 # General Django development settings
@@ -117,6 +120,12 @@ loaders = TEMPLATES[0]['OPTIONS'].get('loaders') or ['django.template.loaders.fi
 TEMPLATES[0]['OPTIONS']['loaders'] = loaders
 TEMPLATES[0].pop('APP_DIRS', None)
 
+UNOCONV_ENABLE = strtobool(os.getenv('UNOCONV_ENABLE', 'True'))
+
+if UNOCONV_ENABLE:
+    UNOCONV_EXECUTABLE = os.getenv('UNOCONV_EXECUTABLE', '/usr/bin/unoconv')
+    UNOCONV_TIMEOUT = os.getenv('UNOCONV_TIMEOUT', 30)  # seconds
+
 CLIENT_RESULTS_LIMIT = 20
 API_LIMIT_PER_PAGE = 1000
 FREETEXT_KEYWORDS_READONLY = False
@@ -194,53 +203,6 @@ SOCIALACCOUNT_PROFILE_EXTRACTORS = {
     "facebook": "geonode.people.profileextractors.FacebookExtractor",
     "linkedin_oauth2": "geonode.people.profileextractors.LinkedInExtractor",
 }
-
-# MAPs and Backgrounds
-
-# Default preview library
-LAYER_PREVIEW_LIBRARY = 'geoext'
-
-# LAYER_PREVIEW_LIBRARY = 'leaflet'
-LEAFLET_CONFIG = {
-    'TILES': [
-        # Find tiles at:
-        # http://leaflet-extras.github.io/leaflet-providers/preview/
-
-        # Map Quest
-        ('Map Quest',
-         'http://otile4.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
-         'Tiles Courtesy of <a href="http://www.mapquest.com/">MapQuest</a> '
-         '&mdash; Map data &copy; '
-         '<a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'),
-        # Stamen toner lite.
-        # ('Watercolor',
-        #  'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png',
-        #  'Map tiles by <a href="http://stamen.com">Stamen Design</a>, \
-        #  <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; \
-        #  <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, \
-        #  <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'),
-        # ('Toner Lite',
-        #  'http://{s}.tile.stamen.com/toner-lite/{z}/{x}/{y}.png',
-        #  'Map tiles by <a href="http://stamen.com">Stamen Design</a>, \
-        #  <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; \
-        #  <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, \
-        #  <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'),
-    ],
-    'PLUGINS': {
-        'esri-leaflet': {
-            'js': 'lib/js/esri-leaflet.js',
-            'auto-include': True,
-        },
-        'leaflet-fullscreen': {
-            'css': 'lib/css/leaflet.fullscreen.css',
-            'js': 'lib/js/Leaflet.fullscreen.min.js',
-            'auto-include': True,
-        },
-    },
-    'SRID': 3857,
-    'RESET_VIEW': False
-}
-
 
 # default map projection
 # Note: If set to EPSG:4326, then only EPSG:4326 basemaps will work.
@@ -402,7 +364,7 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': "INFO",
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
@@ -415,7 +377,7 @@ LOGGING = {
         "django": {
             "handlers": ["console"], "level": "INFO", },
         "geonode": {
-            "handlers": ["console"], "level": "DEBUG", },
+            "handlers": ["console"], "level": "INFO", },
         "gsconfig.catalog": {
             "handlers": ["console"], "level": "INFO", },
         "owslib": {
@@ -423,6 +385,6 @@ LOGGING = {
         "pycsw": {
             "handlers": ["console"], "level": "INFO", },
         "{{ project_name }}": {
-            "handlers": ["console"], "level": "DEBUG", },
+            "handlers": ["console"], "level": "INFO", },
         },
     }
