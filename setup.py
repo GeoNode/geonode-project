@@ -39,7 +39,7 @@ def read(*rnames):
 
 setup(
     name="{{ project_name }}",
-    version="2.9",
+    version="2.10.0",
     author="",
     author_email="",
     description="{{ project_name }}, based on GeoNode",
