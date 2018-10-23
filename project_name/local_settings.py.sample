@@ -41,14 +41,15 @@ STATIC_ROOT = os.getenv('STATIC_ROOT',
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.getenv('SECRET_KEY', "{{ secret_key }}")
 
-# per-deployment settings should go here
-SITE_HOST_NAME = os.getenv('SITE_HOST_NAME', "localhost")
-SITE_HOST_PORT = os.getenv('SITE_HOST_PORT', "80")
 SITEURL = os.getenv('SITEURL', "http://%s:%s/" % (SITE_HOST_NAME, SITE_HOST_PORT))
 
 # we need hostname for deployed
 _surl = urlparse(SITEURL)
 HOSTNAME = _surl.hostname
+
+# per-deployment settings should go here
+SITE_HOST_NAME = os.getenv('SITE_HOST_NAME', HOSTNAME)
+SITE_HOST_PORT = os.getenv('SITE_HOST_PORT', "80")
 
 # add trailing slash to site url. geoserver url will be relative to this
 if not SITEURL.endswith('/'):
