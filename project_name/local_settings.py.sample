@@ -408,50 +408,43 @@ if GEONODE_CATALOGUE_SERVICE:
     MAPSTORE_CATALOGUE_SERVICES[GEONODE_CATALOGUE_SERVICE.keys()[0]] = GEONODE_CATALOGUE_SERVICE[GEONODE_CATALOGUE_SERVICE.keys()[0]]
     MAPSTORE_CATALOGUE_SELECTED_SERVICE = GEONODE_CATALOGUE_SERVICE.keys()[0]
 
-DEFAULT_MS2_BACKGROUNDS = [{
-        "type": "osm",
-        "title": "Open Street Map",
-        "name": "mapnik",
-        "source": "osm",
-        "group": "background",
-        "visibility": True
-    },
-    {
-        "group": "background",
-        "name": "osm",
-        "source": "mapquest",
-        "title": "MapQuest OSM",
-        "type": "mapquest",
-        "visibility": False
-    },
-    {
-        "type": "wms",
-        "url": "https://demo.geo-solutions.it/geoserver/wms",
-        "visibility": False,
-        "title": "Natural Earth",
-        "name": "sde:NE2_HR_LC_SR_W_DR",
-        "group": "background",
-        "format": "image/png"
-    },
-    {
-        "type": "wms",
-        "url": "https://demo.geo-solutions.it/geoserver/wms",
-        "visibility": False,
-        "title": "Hypsometric",
-        "name": "sde:HYP_HR_SR_OB_DR",
-        "group": "background",
-        "format": "image/png"
-    },
-    {
-        "type": "wms",
-        "url": "https://demo.geo-solutions.it/geoserver/wms",
-        "visibility": False,
-        "title": "Gray Earth",
-        "name": "sde:GRAY_HR_SR_OB_DR",
-        "group": "background",
-        "format": "image/png"
-    }
-]
+    DEFAULT_MS2_BACKGROUNDS = [
+        {
+            "type": "osm",
+            "title": "Open Street Map",
+            "name": "mapnik",
+            "source": "osm",
+            "group": "background",
+            "visibility": True
+        }, {
+            "type": "tileprovider",
+            "title": "OpenTopoMap",
+            "provider": "OpenTopoMap",
+            "name": "OpenTopoMap",
+            "source": "OpenTopoMap",
+            "group": "background",
+            "visibility": False
+        }, {
+            "type": "wms",
+            "title": "Sentinel2 Cloudless - EOX https://eox.at",
+            "format": "image/png8",
+            "id": "s2cloudless",
+            "name": "s2cloudless:s2cloudless",
+            "url": "https://maps.geo-solutions.it/geoserver/wms",
+            "group": "background",
+            "thumbURL": "%sstatic/mapstorestyle/img/s2cloudless-s2cloudless.png" % SITEURL,
+            "visibility": False
+       }, {
+            "source": "ol",
+            "group": "background",
+            "id": "none",
+            "name": "empty",
+            "title": "Empty Background",
+            "type": "empty",
+            "visibility": False,
+            "args": ["Empty Background", {"visibility": False}]
+        }
+    ]
 
 MAPSTORE_BASELAYERS = DEFAULT_MS2_BACKGROUNDS
 
