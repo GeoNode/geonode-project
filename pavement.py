@@ -48,6 +48,15 @@ try:
 except ImportError:
     from paver.easy import pushd
 
+from geonode.settings import (INSTALLED_APPS,
+                              GEONODE_CORE_APPS,
+                              GEONODE_INTERNAL_APPS,
+                              GEONODE_APPS,
+                              OGC_SERVER,
+                              ASYNC_SIGNALS)
+
+_django_11 = django.VERSION[0] == 1 and django.VERSION[1] >= 11 and django.VERSION[2] >= 2
+
 assert sys.version_info >= (2, 6), \
     SystemError("GeoNode Build requires python 2.6 or better")
 
@@ -569,24 +578,25 @@ def start_django():
     foreground = '' if options.get('foreground', False) else '&'
     sh('%s python -W ignore manage.py runserver %s %s' % (settings, bind, foreground))
 
+    celery_queues = [
+        "default",
+        "geonode",
+        "cleanup",
+        "update",
+        "email",
+        # Those queues are directly managed by messages.consumer
+        # "broadcast",
+        # "email.events",
+        # "all.geoserver",
+        # "geoserver.events",
+        # "geoserver.data",
+        # "geoserver.catalog",
+        # "notifications.events",
+        # "geonode.layer.viewer"
+    ]
+    sh('%s celery -A geonode.celery_app:app worker -Q %s -B -E -l INFO %s' % (settings, ",".join(celery_queues),foreground))
+
     if ASYNC_SIGNALS:
-        celery_queues = [
-            "default",
-            "geonode",
-            "cleanup",
-            "update",
-            "email",
-            # Those queues are directly managed by messages.consumer
-            # "broadcast",
-            # "email.events",
-            # "all.geoserver",
-            # "geoserver.events",
-            # "geoserver.data",
-            # "geoserver.catalog",
-            # "notifications.events",
-            # "geonode.layer.viewer"
-        ]
-        sh('%s celery -A geonode worker -Q %s -B -E -l INFO %s' % (settings, ",".join(celery_queues),foreground))
         sh('%s python -W ignore manage.py runmessaging %s' % (settings, foreground))
 
 
@@ -806,14 +816,17 @@ def test_integration(options):
     name = options.get('name', 'geonode.tests.integration')
     settings = options.get('settings', '')
     if not settings and name == 'geonode.upload.tests.integration':
-        settings = 'geonode.upload.tests.test_settings'
+        if _django_11:
+            sh("cp geonode/upload/tests/test_settings.py geonode/")
+            settings = 'geonode.test_settings'
+        else:
+            settings = 'geonode.upload.tests.test_settings'
 
     success = False
     try:
         if name == 'geonode.tests.csw':
             call_task('sync', options={'settings': settings})
             call_task('start', options={'settings': settings})
-            sh('sleep 30')
             call_task('setup_data', options={'settings': settings})
 
         settings = 'DJANGO_SETTINGS_MODULE=%s' % settings if settings else ''
@@ -835,8 +848,13 @@ def test_integration(options):
             sh('sleep 30')
             settings = 'REUSE_DB=1 %s' % settings
 
-        sh(('%s python manage.py test %s'
-            ' --noinput --liveserver=0.0.0.0:8000' % (settings, name)))
+        live_server_option = '--liveserver=localhost:8000'
+        if _django_11:
+            live_server_option = ''
+
+        info("GeoNode is now available, running the tests now.")
+        sh(('%s python -W ignore manage.py test %s'
+            ' %s --noinput %s' % (settings, name, _keepdb, live_server_option)))
 
     except BuildFailure as e:
         info('Tests failed! %s' % str(e))
