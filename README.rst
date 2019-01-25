@@ -94,9 +94,6 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
      docker-compose build --no-cache
      docker-compose up -d
-     
-   **NOTE for Windows users**: In case you're using the native Docker for Windows (on Hyper-V) you will probably be affected by an error related to mounting the /var/run/docker.sock volume. It's due to a `problem with the current version of Docker Compose <https://github.com/docker/for-win/issues/1829>`_ for Windows.
-   In this case you need to set the **COMPOSE_CONVERT_WINDOWS_PATHS** environmental variable:
    
    .. code-block:: none
    
