@@ -1,8 +1,8 @@
-version: '2'
+version: '2.2'
 services:
 
   db:
-    image: geonode/postgis:9.6
+    image: geonode/postgis:10
     restart: unless-stopped
     container_name: db4${COMPOSE_PROJECT_NAME}
     stdin_open: true
@@ -27,7 +27,7 @@ services:
     tty: true
     labels:
         org.geonode.component: elasticsearch
-        org.geonode.instance.name: geonode 
+        org.geonode.instance.name: geonode
 
   rabbitmq:
     image: rabbitmq
@@ -222,4 +222,3 @@ volumes:
 #    name: ${COMPOSE_PROJECT_NAME}-dbbackups
   statics:
 #    name: ${COMPOSE_PROJECT_NAME}-statics
-
