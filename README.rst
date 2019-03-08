@@ -86,9 +86,9 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
 2. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
 
-    Remember to update "wsgi.py" in case you are using "local_settings"
-    vim my_geonode/wsgi.py
-    --> os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_geonode.local_settings")
+  Remember to update "wsgi.py" in case you are using "local_settings"
+  vim my_geonode/wsgi.py
+  --> os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_geonode.local_settings")
 
     .. code:: bash
 
@@ -99,7 +99,7 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
       set COMPOSE_CONVERT_WINDOWS_PATHS=1
 
-    before running docker-compose up
+  before running docker-compose up
 
 3. Access the site on http://localhost/
 
@@ -132,7 +132,9 @@ How to debug
 
     docker-compose run -f docker-compose.development.yml -f docker-compose.development.override.yml --rm --service-ports django
 
-If you set an IPDB debug point with `import ipdb ; ipdb.set_trace()` then you should be facing its console and you can see the django
+3. Access the site on http://localhost/
+
+If you set an IPDB debug point with ``import ipdb ; ipdb.set_trace()`` then you should be facing its console and you can see the django
 server which is restarting at any change of your code from your local machine.
 
 If you want to run the instance on a public site
