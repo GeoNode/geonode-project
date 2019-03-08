@@ -130,7 +130,7 @@ How to debug
 
   .. code:: bash
 
-    docker-compose run -f docker-compose.development.yml -f docker-compose.development.override.yml --rm --service-ports django
+    docker-compose run -e DOCKER_ENV=development --rm --service-ports django python manage.py runserver --settings=my_geonode.settings 0.0.0.0:8000
 
 3. Access the site on http://localhost/
 
