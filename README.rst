@@ -86,20 +86,20 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
 2. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
 
-   Remember to update "wsgi.py" in case you are using "local_settings"
-   vim my_geonode/wsgi.py
-   --> os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_geonode.local_settings")
+    Remember to update "wsgi.py" in case you are using "local_settings"
+    vim my_geonode/wsgi.py
+    --> os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_geonode.local_settings")
 
-   .. code:: bash
+    .. code:: bash
 
-     docker-compose build --no-cache
-     docker-compose up -d
-   
-   .. code-block:: none
-   
-      set COMPOSE_CONVERT_WINDOWS_PATHS=1 
-   
-   before running docker-compose up
+      docker-compose build --no-cache
+      docker-compose up -d
+
+    .. code-block:: none
+
+      set COMPOSE_CONVERT_WINDOWS_PATHS=1
+
+    before running docker-compose up
 
 3. Access the site on http://localhost/
 
