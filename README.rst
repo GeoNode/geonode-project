@@ -86,23 +86,56 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
 2. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
 
-   Remember to update "wsgi.py" in case you are using "local_settings"
-   vim my_geonode/wsgi.py
-   --> os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_geonode.local_settings")
+Remember to update "wsgi.py" in case you are using "local_settings"
+vim my_geonode/wsgi.py
+--> os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_geonode.local_settings")
 
-   .. code:: bash
+  .. code:: bash
 
-     docker-compose build --no-cache
-     docker-compose up -d
-   
-   .. code-block:: none
-   
-      set COMPOSE_CONVERT_WINDOWS_PATHS=1 
-   
-   before running docker-compose up
+    docker-compose build --no-cache
+    docker-compose up -d
+
+  .. code-block:: none
+
+    set COMPOSE_CONVERT_WINDOWS_PATHS=1
+
+before running docker-compose up
 
 3. Access the site on http://localhost/
 
+If you want to run the instance for development
+-----------------------------------------------
+
+Use dedicated docker-compose files while developing
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+.. note:: In this example we are going to keep localhost as the target IP for GeoNode
+
+.. code:: bash
+
+  docker-compose -f docker-compose.development.yml -f docker-compose.development.override.yml up
+
+How to debug
+++++++++++++
+
+.. note:: We are supposing to use IPDB for debugging which is already available as package from the container
+
+1. Stop the container for the "django" service::
+
+  .. code:: bash
+
+    docker-compose stop django
+
+2. Run the container again with the option for service ports::
+
+  .. code:: bash
+
+    docker-compose run -e DOCKER_ENV=development --rm --service-ports django python manage.py runserver --settings=my_geonode.settings 0.0.0.0:8000
+
+3. Access the site on http://localhost/
+
+If you set an IPDB debug point with ``import ipdb ; ipdb.set_trace()`` then you should be facing its console and you can see the django
+server which is restarting at any change of your code from your local machine.
 
 If you want to run the instance on a public site
 ------------------------------------------------

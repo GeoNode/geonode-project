@@ -52,7 +52,7 @@ services:
       - db
       - elasticsearch
       - rabbitmq
-    # command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
+    command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
     volumes:
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
@@ -68,9 +68,7 @@ services:
       GEONODE_GEODATABASE_PASSWORD: geonode_data
       ASYNC_SIGNALS: 'True'
       BROKER_URL: amqp://guest:guest@rabbitmq:5672
-      CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=amqp://guest:guest@rabbitmq:5672/ -B -l INFO
-      # CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=memory:// -B -l INFO
-      DOCKER_ENV: production
+      DOCKER_ENV: development
       IS_CELERY: 'True'
       C_FORCE_ROOT: 1
       SITEURL: http://localhost/
@@ -137,7 +135,7 @@ services:
       - elasticsearch
       - rabbitmq
       - data-dir-conf
-    # command: paver start_django -b 0.0.0.0:8000
+    command: paver start_django -b 0.0.0.0:8000
     volumes:
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
@@ -153,8 +151,7 @@ services:
       GEONODE_GEODATABASE_PASSWORD: geonode_data
       ASYNC_SIGNALS: 'True'
       BROKER_URL: amqp://guest:guest@rabbitmq:5672
-      DOCKER_ENV: production
-      UWSGI_CMD: uwsgi --ini /usr/src/{{project_name}}/uwsgi.ini
+      DOCKER_ENV: development
       IS_CELERY: 'False'
       C_FORCE_ROOT: 1
       SITEURL: http://localhost/
@@ -181,7 +178,7 @@ services:
       DOCKER_API_VERSION: "1.24"
 
   geonode:
-    image: geonode/nginx:geoserver
+    image: geonode/nginx:development
     restart: unless-stopped
     container_name: nginx4${COMPOSE_PROJECT_NAME}
     stdin_open: true
