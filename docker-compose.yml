@@ -19,83 +19,6 @@ services:
       GEONODE_GEODATABASE: geonode_data
       GEONODE_GEODATABASE_PASSWORD: geonode_data
 
-  elasticsearch:
-    image: elasticsearch:2.4.1
-    restart: unless-stopped
-    container_name: elasticsearch4${COMPOSE_PROJECT_NAME}
-    stdin_open: true
-    tty: true
-    labels:
-        org.geonode.component: elasticsearch
-        org.geonode.instance.name: geonode
-
-  rabbitmq:
-    image: rabbitmq
-    restart: unless-stopped
-    container_name: rabbitmq4${COMPOSE_PROJECT_NAME}
-    stdin_open: true
-    tty: true
-    labels:
-        org.geonode.component: rabbitmq
-        org.geonode.instance.name: geonode
-
-  celery:
-    restart: unless-stopped
-    build: .
-    container_name: celery4${COMPOSE_PROJECT_NAME}
-    stdin_open: true
-    # tty: true
-    labels:
-        org.geonode.component: celery
-        org.geonode.instance.name: geonode
-    depends_on:
-      - db
-      - elasticsearch
-      - rabbitmq
-    # command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
-    volumes:
-      - statics:/mnt/volumes/statics
-      - geoserver-data-dir:/geoserver_data/data
-    environment:
-      DJANGO_SETTINGS_MODULE: {{project_name}}.settings
-      GEONODE_INSTANCE_NAME: geonode
-      GEONODE_LB_HOST_IP:
-      GEONODE_LB_PORT:
-      DEFAULT_BACKEND_DATASTORE: datastore
-      GEONODE_DATABASE: geonode
-      GEONODE_DATABASE_PASSWORD: geonode
-      GEONODE_GEODATABASE: geonode_data
-      GEONODE_GEODATABASE_PASSWORD: geonode_data
-      ASYNC_SIGNALS: 'True'
-      BROKER_URL: amqp://guest:guest@rabbitmq:5672
-      CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=amqp://guest:guest@rabbitmq:5672/ -B -l INFO
-      # CELERY_CMD: celery worker --app={{project_name}}.celeryapp:app --broker=memory:// -B -l INFO
-      DOCKER_ENV: production
-      IS_CELERY: 'True'
-      C_FORCE_ROOT: 1
-      SITEURL: http://localhost/
-      # replaced with defaults in settings
-      GEOSERVER_PUBLIC_LOCATION: http://localhost/geoserver/
-      GEOSERVER_LOCATION: http://geoserver:8080/geoserver/
-      OGC_REQUEST_TIMEOUT: 300
-      STATIC_ROOT: /mnt/volumes/statics/static/
-      MEDIA_ROOT: /mnt/volumes/statics/uploaded/
-      GEOIP_PATH: /mnt/volumes/statics/geoip.db
-      ALLOWED_HOSTS: "['*']"
-      ADMIN_EMAILS: ''
-      DEFAULT_BACKEND_UPLOADER: geonode.importer
-      TIME_ENABLED: 'True'
-      MOSAIC_ENABLED: 'False'
-      GEOGIG_ENABLED: 'False'
-      HAYSTACK_SEARCH: 'False'
-      HAYSTACK_ENGINE_URL: http://elasticsearch:9200/
-      HAYSTACK_ENGINE_INDEX_NAME: haystack
-      HAYSTACK_SEARCH_RESULTS_PER_PAGE: 200
-      # GEOSERVER_ADMIN_PASSWORD: admin
-      # See https://github.com/geosolutions-it/geonode-generic/issues/28
-      # to see why we force API version to 1.24
-      DOCKER_API_VERSION: "1.24"
-
   geoserver:
     image: geonode/geoserver:2.14.x
     restart: unless-stopped
@@ -107,8 +30,6 @@ services:
         org.geonode.instance.name: geonode
     depends_on:
       - db
-      - elasticsearch
-      - rabbitmq
       - data-dir-conf
     volumes:
       - geoserver-data-dir:/geoserver_data/data
@@ -134,8 +55,6 @@ services:
       org.geonode.instance.name: geonode
     depends_on:
       - db
-      - elasticsearch
-      - rabbitmq
       - data-dir-conf
     # command: paver start_django -b 0.0.0.0:8000
     volumes:
@@ -151,7 +70,7 @@ services:
       GEONODE_DATABASE_PASSWORD: geonode
       GEONODE_GEODATABASE: geonode_data
       GEONODE_GEODATABASE_PASSWORD: geonode_data
-      ASYNC_SIGNALS: 'True'
+      ASYNC_SIGNALS: 'False'
       BROKER_URL: amqp://guest:guest@rabbitmq:5672
       DOCKER_ENV: production
       UWSGI_CMD: uwsgi --ini /usr/src/{{project_name}}/uwsgi.ini
@@ -170,11 +89,6 @@ services:
       DEFAULT_BACKEND_UPLOADER: geonode.importer
       TIME_ENABLED: 'True'
       MOSAIC_ENABLED: 'False'
-      GEOGIG_ENABLED: 'False'
-      HAYSTACK_SEARCH: 'False'
-      HAYSTACK_ENGINE_URL: http://elasticsearch:9200/
-      HAYSTACK_ENGINE_INDEX_NAME: haystack
-      HAYSTACK_SEARCH_RESULTS_PER_PAGE: 200
       # GEOSERVER_ADMIN_PASSWORD: admin
       # See https://github.com/geosolutions-it/geonode-generic/issues/28
       # to see why we force API version to 1.24
@@ -191,7 +105,6 @@ services:
         org.geonode.instance.name: geonode
     depends_on:
       - django
-      - celery
       - geoserver
     ports:
       - 80:80
