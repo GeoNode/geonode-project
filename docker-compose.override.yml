@@ -7,7 +7,7 @@ services:
       GEONODE_LB_PORT: 80
       SITEURL: http://localhost/
       ALLOWED_HOSTS: "['localhost']"
-      GEOSERVER_PUBLIC_LOCATION: http://localhost/gs/
+      GEOSERVER_PUBLIC_LOCATION: http://localhost/geoserver/
 
   celery:
     environment:
@@ -16,7 +16,7 @@ services:
       GEONODE_LB_PORT: 80
       SITEURL: http://localhost/
       ALLOWED_HOSTS: "['localhost']"
-      GEOSERVER_PUBLIC_LOCATION: http://localhost/gs/
+      GEOSERVER_PUBLIC_LOCATION: http://localhost/geoserver/
 
   geoserver:
     environment:

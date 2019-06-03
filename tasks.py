@@ -36,7 +36,7 @@ def update(ctx):
     }
     if not os.environ.get('GEOSERVER_PUBLIC_LOCATION'):
         ctx.run("echo export GEOSERVER_PUBLIC_LOCATION=\
-http://{public_fqdn}/gs/ >> {override_fn}".format(**envs), pty=True)
+http://{public_fqdn}/geoserver/ >> {override_fn}".format(**envs), pty=True)
     if not os.environ.get('SITEURL'):
         ctx.run("echo export SITEURL=\
 http://{public_fqdn}/ >> {override_fn}".format(**envs), pty=True)
