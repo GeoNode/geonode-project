@@ -65,3 +65,5 @@ development.db-journal
 local_settings.py
 
 .idea/
+
+/.vscode/settings.json
