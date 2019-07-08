@@ -34,9 +34,7 @@ RUN pip install --upgrade pip
 # compatible with the provided libgdal-dev
 # superseded by pygdal
 #RUN pip install GDAL==2.1.3 --global-option=build_ext --global-option="-I/usr/include/gdal"
-RUN GDAL_VERSION=`gdal-config --version` \
-    && PYGDAL_VERSION="$(pip install pygdal==$GDAL_VERSION 2>&1 | grep -oP '(?<=: )(.*)(?=\))' | grep -oh $GDAL_VERSION\.[0-9])" \
-    && pip install pygdal==$PYGDAL_VERSION
+RUN pip install pygdal==$(gdal-config --version).*
 
 # fix for known bug in system-wide packages
 RUN ln -fs /usr/lib/python2.7/plat-x86_64-linux-gnu/_sysconfigdata*.py /usr/lib/python2.7/
