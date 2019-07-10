@@ -20,7 +20,7 @@
 
 import os
 
-__version__ = (2, 10, 0, 'rc', 4)
+__version__ = (2, 10, 0, 'final', 0)
 
 
 default_app_config = "{{project_name}}.apps.AppConfig"
