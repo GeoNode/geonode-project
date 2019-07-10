@@ -1,2 +1,2 @@
 # GeoNode
--e git+https://github.com/GeoNode/geonode.git@master#egg=geonode
+GeoNode==2.10
