@@ -30,12 +30,6 @@ RUN pip install --upgrade pip
 # To understand the next section (the need for requirements.txt and setup.py)
 # Please read: https://packaging.python.org/requirements/
 
-# python-gdal does not seem to work, let's install manually the version that is
-# compatible with the provided libgdal-dev
-# superseded by pygdal
-#RUN pip install GDAL==2.1.3 --global-option=build_ext --global-option="-I/usr/include/gdal"
-RUN pip install pygdal==$(gdal-config --version).*
-
 # fix for known bug in system-wide packages
 RUN ln -fs /usr/lib/python2.7/plat-x86_64-linux-gnu/_sysconfigdata*.py /usr/lib/python2.7/
 
@@ -47,5 +41,8 @@ RUN chmod +x /usr/src/{{project_name}}/tasks.py \
 # app-specific requirements
 RUN pip install --upgrade --no-cache-dir --src /usr/src -r requirements.txt
 RUN pip install --upgrade -e .
+
+# Install pygdal (after requirements for numpy 1.16)
+RUN pip install pygdal==$(gdal-config --version).*
 
 ENTRYPOINT ["/usr/src/{{project_name}}/entrypoint.sh"]

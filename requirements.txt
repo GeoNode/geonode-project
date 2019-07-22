@@ -1,2 +1,3 @@
 # GeoNode
 GeoNode==2.10
+idna==2.5
