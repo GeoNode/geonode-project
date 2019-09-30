@@ -6,7 +6,7 @@ GeoNode template project. Generates a django project with GeoNode support.
 
 -  [Developer Workshop](#developer-Workshop)
 -  [Create a custom project](#create-a-custom-project)
--  [Start your server](#start-your-server)
+-  [Start your server using Docker](#start-your-server-using-docker)
 -  [Run the instance in development mode](#run-the-instance-in-development-mode)
 -  [Run the instance on a public site](#run-the-instance-on-a-public-site)
 -  [Stop the Docker Images](#stop-the-docker-images)
@@ -30,6 +30,8 @@ Available at
 ### Using a Python virtual environment
 
 **NOTE**: *Skip this part if you want to run the project using Docker instead*
+
+(see [Start your server using Docker](#start-your-server-using-docker))
 
 To setup your project using a local python virtual environment, follow these instructions:
 
@@ -82,7 +84,7 @@ To setup your project using a local python virtual environment, follow these ins
     http://localhost:8000/
     ```
 
-## Start your server
+## Start your server using Docker
 
 You need Docker 1.12 or higher, get the latest stable official release for your platform.
 
