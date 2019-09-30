@@ -11,7 +11,7 @@ GeoNode template project. Generates a django project with GeoNode support.
 -  [Run the instance on a public site](#run-the-instance-on-a-public-site)
 -  [Stop the Docker Images](#stop-the-docker-images)
 -  [Recommended: Track your changes](#recommended-track-your-changes)
--  [Hints: Configuring `requirements.txt`](#hints-configuring-requirements.txt)
+-  [Hints: Configuring `requirements.txt`](#hints-configuring-requirementstxt)
 -  [Hints: Using Ansible](#hints-using-ansible)
 -  [Configuration](#configuration)
 
@@ -45,9 +45,9 @@ To setup your project using a local python virtual environment, follow these ins
 
 2. Setup the Python Dependencies
 
-    **NOTE**: *Important: modify your `requirements.txt` file, by adding the `GeoNode` branch before continue!`*
+    **NOTE**: *Important: modify your `requirements.txt` file, by adding the `GeoNode` branch before continue!*
 
-    (see [Hints: Configuring `requirements.txt`](#hints-configuring-requirements.txt))
+    (see [Hints: Configuring `requirements.txt`](#hints-configuring-requirementstxt))
 
     ```bash
     pip install -r requirements.txt --upgrade
