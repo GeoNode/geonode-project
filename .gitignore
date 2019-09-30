@@ -7,6 +7,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+# env/
 build/
 develop-eggs/
 dist/
@@ -42,12 +43,9 @@ nosetests.xml
 coverage.xml
 *,cover
 
-# Translations
-*.mo
-*.pot
-
 # Django stuff:
 *.log
+celerybeat-schedule.*
 
 # Sphinx documentation
 docs/_build/
@@ -57,7 +55,6 @@ target/
 
 # Downstream Project
 downloaded/
-geoserver/
 uploaded/
 static_root/
 development.db
