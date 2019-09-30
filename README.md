@@ -25,9 +25,11 @@ Available at
 
 ## Create a custom project
 
-Note: You can call your geonode project whatever you like following the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``my_geonode`` with whatever you would like to name your project.
+**NOTE**: *You can call your geonode project whatever you like following the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``my_geonode`` with whatever you would like to name your project.*
 
 ### Using a Python virtual environment
+
+**NOTE**: *Skip this part if you want to run the project using Docker instead*
 
 To setup your project using a local python virtual environment, follow these instructions:
 
@@ -53,9 +55,8 @@ To setup your project using a local python virtual environment, follow these ins
     pip install -r requirements.txt --upgrade
     pip install -e . --upgrade
 
-    GDAL_VERSION=`gdal-config --version`
-    PYGDAL_VERSION="$(pip install pygdal==$GDAL_VERSION 2>&1 | grep -oP '(?<=: )(.*)(?=\))' | grep -oh $GDAL_VERSION\.[0-9])"
-    pip install pygdal==$PYGDAL_VERSION
+    # Install GDAL Utilities for Python
+    pip install pygdal=="`gdal-config --version`.*"
 
     # Using the Default Settings
     DJANGO_SETTINGS_MODULE=my_geonode.settings paver reset
