@@ -132,7 +132,7 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 **NOTE**: In this example we are going to publish to the public IP http://123.456.789.111
 
 ```bash
-vim scripts/docker/env/production/*.env
+vim .env
   --> replace localhost with 123.456.789.111 everywhere
 ```
 

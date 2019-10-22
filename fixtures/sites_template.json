@@ -1,0 +1,10 @@
+[
+  {
+    "fields": {
+        "domain": "example.com",
+        "name": "example.com"
+    },
+    "model": "sites.site",
+    "pk": 1
+  }
+]

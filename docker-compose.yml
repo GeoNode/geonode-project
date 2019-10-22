@@ -14,7 +14,7 @@ services:
       - dbdata:/var/lib/postgresql/data
       - dbbackups:/pg_backups
     env_file:
-      - ./scripts/docker/env/production/db.env
+      - .env
 
   geoserver:
     image: geonode/geoserver:2.15.2
@@ -32,7 +32,7 @@ services:
     volumes:
       - geoserver-data-dir:/geoserver_data/data
     env_file:
-      - ./scripts/docker/env/production/geoserver.env
+      - .env
 
   django:
     restart: unless-stopped
@@ -52,7 +52,7 @@ services:
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
     env_file:
-      - ./scripts/docker/env/production/django.env
+      - .env
 
   geonode:
     image: geonode/nginx:geoserver
@@ -75,7 +75,7 @@ services:
       - nginx-certificates:/geonode-certificates
       - statics:/mnt/volumes/statics
     env_file:
-      - ./scripts/docker/env/production/nginx.env
+      - .env
 
   # Gets and installs letsencrypt certificates
   letsencrypt:
@@ -85,7 +85,7 @@ services:
     volumes:
       - nginx-certificates:/geonode-certificates/
     env_file:
-      - ./scripts/docker/env/production/nginx.env
+      - .env
 
   data-dir-conf:
     image: geonode/geoserver_data:2.15.2

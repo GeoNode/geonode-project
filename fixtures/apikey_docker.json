@@ -1,0 +1,11 @@
+[
+    {
+        "fields": {
+            "user": 1000,
+            "key": "pyxW5djJ7XsjeFUXduAsGpR4xMGUwpeBGQRqTeT3",
+            "created": "2018-06-28T14:54:51Z"
+        },
+        "model": "tastypie.apikey",
+        "pk": 1
+    }
+]
