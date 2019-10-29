@@ -5,7 +5,7 @@ set -e
 host="$1"
 shift
 
-until psql -h "$host" -U "postgres" -P "pager=off" -c '\l'; do
+until PGPASSWORD=postgres psql -h "$host" -U "postgres" -P "pager=off" -c '\l'; do
   >&2 echo "Postgres is unavailable - sleeping"
   sleep 1
 done
