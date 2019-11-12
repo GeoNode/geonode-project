@@ -1,4 +1,4 @@
 # GeoNode
 # from Pypi:
 #GeoNode==2.10.1
--e git+https://github.com/GeoNode/geonode.git@master#egg=GeoNode
+-e git+https://github.com/GeoNode/geonode.git@2.10.1#egg=GeoNode
