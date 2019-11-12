@@ -79,7 +79,7 @@ services:
 
   # Gets and installs letsencrypt certificates
   letsencrypt:
-    image: get-it/letsencrypt:latest
+    image: geonode/letsencrypt:latest
     build: ./docker/letsencrypt/
     restart: on-failure
     volumes:
