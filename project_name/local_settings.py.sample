@@ -72,6 +72,8 @@ LOGOUT_URL = os.getenv('LOGOUT_URL', '{}account/logout/'.format(SITEURL))
 ACCOUNT_LOGIN_REDIRECT_URL = os.getenv('LOGIN_REDIRECT_URL', SITEURL)
 ACCOUNT_LOGOUT_REDIRECT_URL =  os.getenv('LOGOUT_REDIRECT_URL', SITEURL)
 
+AVATAR_GRAVATAR_SSL = ast.literal_eval(os.getenv('AVATAR_GRAVATAR_SSL', 'True'))
+
 # Backend
 DATABASES = {
     'default': {
@@ -299,9 +301,17 @@ PYCSW = {
     }
 }
 
+# -- START Client Hooksets Setup
+
+GEONODE_CLIENT_LAYER_PREVIEW_LIBRARY = os.getenv('GEONODE_CLIENT_LAYER_PREVIEW_LIBRARY', 'mapstore')
+
 MAPBOX_ACCESS_TOKEN = os.environ.get('MAPBOX_ACCESS_TOKEN', None)
 BING_API_KEY = os.environ.get('BING_API_KEY', None)
 GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', None)
+
+# Choose thumbnail generator -- this is the default generator
+THUMBNAIL_GENERATOR = "geonode.layers.utils.create_gs_thumbnail_geonode"
+THUMBNAIL_GENERATOR_DEFAULT_BG = r"https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png"
 
 MAP_BASELAYERS = [{
     "source": {"ptype": "gxp_olsource"},
@@ -343,6 +353,167 @@ if 'geonode.geoserver' in INSTALLED_APPS:
     baselayers = MAP_BASELAYERS
     MAP_BASELAYERS = [LOCAL_GEOSERVER]
     MAP_BASELAYERS.extend(baselayers)
+
+if GEONODE_CLIENT_LAYER_PREVIEW_LIBRARY == 'mapstore':
+    GEONODE_CLIENT_HOOKSET = os.getenv('GEONODE_CLIENT_HOOKSET', 'geonode_mapstore_client.hooksets.MapStoreHookSet')
+
+    if 'geonode_mapstore_client' not in INSTALLED_APPS:
+        INSTALLED_APPS += (
+            'mapstore2_adapter',
+            'geonode_mapstore_client',)
+
+    # This must be set to True in case you run the client in DEBUG mode with `npm run start`
+    MAPSTORE_DEBUG = False
+
+    def get_geonode_catalogue_service():
+        if PYCSW:
+            pycsw_config = PYCSW["CONFIGURATION"]
+            if pycsw_config:
+                    pycsw_catalogue = {
+                        ("%s" % pycsw_config['metadata:main']['identification_title']): {
+                            "url": CATALOGUE['default']['URL'],
+                            "type": "csw",
+                            "title": pycsw_config['metadata:main']['identification_title'],
+                            "autoload": True
+                         }
+                    }
+                    return pycsw_catalogue
+        return None
+
+    GEONODE_CATALOGUE_SERVICE = get_geonode_catalogue_service()
+
+    MAPSTORE_CATALOGUE_SERVICES = {
+        "Demo WMS Service": {
+            "url": "https://demo.geo-solutions.it/geoserver/wms",
+            "type": "wms",
+            "title": "Demo WMS Service",
+            "autoload": False
+         },
+        "Demo WMTS Service": {
+            "url": "https://demo.geo-solutions.it/geoserver/gwc/service/wmts",
+            "type": "wmts",
+            "title": "Demo WMTS Service",
+            "autoload": False
+        }
+    }
+
+    MAPSTORE_CATALOGUE_SELECTED_SERVICE = "Demo WMS Service"
+
+    if GEONODE_CATALOGUE_SERVICE:
+        MAPSTORE_CATALOGUE_SERVICES[GEONODE_CATALOGUE_SERVICE.keys()[0]] = GEONODE_CATALOGUE_SERVICE[GEONODE_CATALOGUE_SERVICE.keys()[0]]
+        MAPSTORE_CATALOGUE_SELECTED_SERVICE = GEONODE_CATALOGUE_SERVICE.keys()[0]
+
+        MAPSTORE_BASELAYERS = [
+            {
+                "type": "bing",
+                "title": "Bing Aerial",
+                "name": "AerialWithLabels",
+                "source": "bing",
+                "group": "background",
+                "apiKey": "{{apiKey}}",
+                "visibility": True
+            },
+            {
+                "type": "bing",
+                "title": "Bing RoadOnDemand",
+                "name": "RoadOnDemand",
+                "source": "bing",
+                "group": "background",
+                "apiKey": "{{apiKey}}",
+                "thumbURL": "%sstatic/img/bing_road_on_demand.png" % SITEURL,
+                "visibility": False
+            },
+            {
+                "type": "bing",
+                "title": "Bing AerialWithLabelsOnDemand",
+                "name": "AerialWithLabelsOnDemand",
+                "source": "bing",
+                "group": "background",
+                "apiKey": "{{apiKey}}",
+                "thumbURL": "%sstatic/img/bing_aerial_w_labels.png" % SITEURL,
+                "visibility": False
+            },
+            {
+                "type": "bing",
+                "title": "Bing CanvasDark",
+                "name": "CanvasDark",
+                "source": "bing",
+                "group": "background",
+                "apiKey": "{{apiKey}}",
+                "thumbURL": "%sstatic/img/bing_canvas_dark.png" % SITEURL,
+                "visibility": False
+            },
+            {
+                "type": "tileprovider",
+                "title": "Stamen Watercolor",
+                "provider": "Stamen.Watercolor",
+                "name": "Stamen.Watercolor",
+                "source": "Stamen",
+                "group": "background",
+                "thumbURL": "https://stamen-tiles-c.a.ssl.fastly.net/watercolor/0/0/0.jpg",
+                "visibility": False
+            },
+            {
+                "type": "tileprovider",
+                "title": "Stamen Terrain",
+                "provider": "Stamen.Terrain",
+                "name": "Stamen.Terrain",
+                "source": "Stamen",
+                "group": "background",
+                "thumbURL": "https://stamen-tiles-d.a.ssl.fastly.net/terrain/0/0/0.png",
+                "visibility": False
+            },
+            {
+                "type": "tileprovider",
+                "title": "Stamen Toner",
+                "provider": "Stamen.Toner",
+                "name": "Stamen.Toner",
+                "source": "Stamen",
+                "group": "background",
+                "thumbURL": "https://stamen-tiles-d.a.ssl.fastly.net/toner/0/0/0.png",
+                "visibility": False
+            },
+            {
+                "type": "osm",
+                "title": "Open Street Map",
+                "name": "mapnik",
+                "source": "osm",
+                "group": "background",
+                "visibility": False
+            },
+            {
+                "type": "tileprovider",
+                "title": "OpenTopoMap",
+                "provider": "OpenTopoMap",
+                "name": "OpenTopoMap",
+                "source": "OpenTopoMap",
+                "group": "background",
+                "visibility": False
+            },
+            {
+                "type": "wms",
+                "title": "Sentinel-2 cloudless - https://s2maps.eu",
+                "format": "image/png8",
+                "id": "s2cloudless",
+                "name": "s2cloudless:s2cloudless",
+                "url": "https://maps.geo-solutions.it/geoserver/wms",
+                "group": "background",
+                "thumbURL": "%sstatic/mapstorestyle/img/s2cloudless-s2cloudless.png" % SITEURL,
+                "visibility": False
+            },
+            {
+                "source": "ol",
+                "group": "background",
+                "id": "none",
+                "name": "empty",
+                "title": "Empty Background",
+                "type": "empty",
+                "visibility": False,
+                "args": ["Empty Background", {"visibility": False}]
+            }
+        ]
+
+# -- END Client Hooksets Setup
 
 LOGGING = {
     'version': 1,
