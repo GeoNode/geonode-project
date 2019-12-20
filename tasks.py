@@ -65,6 +65,8 @@ def update(ctx):
         "media_root": os.environ.get('MEDIA_ROOT', '/mnt/volumes/statics/uploaded/'),
         "geoip_path": os.environ.get('GEOIP_PATH', '/mnt/volumes/statics/geoip.db'),
         "monitoring": os.environ.get('MONITORING_ENABLED', True),
+        "monitoring_host_name": os.environ.get('MONITORING_HOST_NAME', 'geonode'),
+        "monitoring_service_name": os.environ.get('MONITORING_SERVICE_NAME', 'local-geonode'),
         "monitoring_data_ttl": os.environ.get('MONITORING_DATA_TTL', 7),
         "gs_loc": os.environ.get('GEOSERVER_LOCATION', 'http://geoserver:8080/geoserver/'),
         "gs_web_ui_loc": os.environ.get('GEOSERVER_WEB_UI_LOCATION',
@@ -87,9 +89,9 @@ def update(ctx):
     ctx.run("echo export MONITORING_ENABLED=\
 {monitoring} >> {override_fn}".format(**envs), pty=True)
     ctx.run("echo export MONITORING_HOST_NAME=\
-{geonode_docker_host} >> {override_fn}".format(**envs), pty=True)
+{monitoring_host_name} >> {override_fn}".format(**envs), pty=True)
     ctx.run("echo export MONITORING_SERVICE_NAME=\
-local-geonode >> {override_fn}".format(**envs), pty=True)
+{monitoring_service_name} >> {override_fn}".format(**envs), pty=True)
     ctx.run("echo export MONITORING_DATA_TTL=\
 {monitoring_data_ttl} >> {override_fn}".format(**envs), pty=True)
     ctx.run("echo export GEOSERVER_LOCATION=\
@@ -426,15 +428,15 @@ def _prepare_monitoring_fixture():
         {
             "fields": {
                 "active": True,
-                "ip": "{0}".format(os.environ['MONITORING_HOST_NAME']),
-                "name": "geonode"
+                "ip": "{0}".format(socket.gethostbyname('geonode')),
+                "name": "{0}".format(os.environ['MONITORING_HOST_NAME'])
             },
             "model": "monitoring.host",
             "pk": 1
         },
         {
             "fields": {
-                "name": "local-geonode",
+                "name": "{0}".format(os.environ['MONITORING_SERVICE_NAME']),
                 "url": "{0}://{1}/".format(net_scheme, net_loc),
                 "notes": "",
                 "last_check": d,
