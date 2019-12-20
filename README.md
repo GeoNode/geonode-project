@@ -55,7 +55,7 @@ To setup your project using a local python virtual environment, follow these ins
 
     ```bash
     pip install -r requirements.txt --upgrade
-    pip install -e .
+    pip install -e . --upgrade
 
     # Install GDAL Utilities for Python
     pip install pygdal=="`gdal-config --version`.*"
