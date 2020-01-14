@@ -29,25 +29,24 @@ echo DOCKER_ENV=$DOCKER_ENV
 
 if [ -z ${DOCKER_ENV} ] || [ ${DOCKER_ENV} = "development" ]
 then
-
     echo "Executing standard Django server $cmd for Development"
-
 else
-
     if [ ${IS_CELERY} = "true" ]  || [ ${IS_CELERY} = "True" ]
     then
-
         cmd=$CELERY_CMD
         echo "Executing Celery server $cmd for Production"
-
     else
 
         /usr/local/bin/invoke prepare >> /usr/src/{{project_name}}/invoke.log
         echo "prepare task done"
 
-        if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
+        if [ ${IS_FIRST_START} = "true" ] || [ ${IS_FIRST_START} = "True" ] || ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
+            /usr/local/bin/invoke updategeoip >> /usr/src/{{project_name}}/invoke.log
+            echo "updategeoip task done"
             /usr/local/bin/invoke fixtures >> /usr/src/{{project_name}}/invoke.log
             echo "fixture task done"
+            /usr/local/bin/invoke monitoringfixture >> /usr/src/{{project_name}}/invoke.log
+            echo "monitoringfixture task done"
             /usr/local/bin/invoke initialized >> /usr/src/{{project_name}}/invoke.log
             echo "initialized"
         fi
@@ -55,22 +54,16 @@ else
         echo "refresh static data"
         /usr/local/bin/invoke statics >> /usr/src/{{project_name}}/invoke.log
         echo "static data refreshed"
-        /usr/local/bin/invoke updategeoip >> /usr/src/{{project_name}}/invoke.log
-        echo "updategeoip task done"
         /usr/local/bin/invoke waitforgeoserver >> /usr/src/{{project_name}}/invoke.log
         echo "waitforgeoserver task done"
         /usr/local/bin/invoke geoserverfixture >> /usr/src/{{project_name}}/invoke.log
         echo "geoserverfixture task done"
-        /usr/local/bin/invoke monitoringfixture >> /usr/src/{{project_name}}/invoke.log
-        echo "monitoringfixture task done"
         /usr/local/bin/invoke updateadmin >> /usr/src/{{project_name}}/invoke.log
         echo "updateadmin task done"
 
         cmd=$UWSGI_CMD
         echo "Executing UWSGI server $cmd for Production"
-
     fi
-
 fi
 echo 'got command ${cmd}'
 exec $cmd

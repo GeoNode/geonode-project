@@ -217,6 +217,7 @@ def fixtures(ctx):
     ctx.run("python manage.py set_all_layers_metadata -d \
 --settings={0}".format(_localsettings()), pty=True)
 
+
 @task
 def collectstatic(ctx):
     print "************************static artifacts******************************"
@@ -235,8 +236,11 @@ def monitoringfixture(ctx):
     print "*******************monitoring fixture********************************"
     ctx.run("rm -rf /tmp/default_monitoring_apps_docker.json", pty=True)
     _prepare_monitoring_fixture()
-    ctx.run("django-admin.py loaddata /tmp/default_monitoring_apps_docker.json \
+    try:
+        ctx.run("django-admin.py loaddata /tmp/default_monitoring_apps_docker.json \
 --settings={0}".format(_localsettings()), pty=True)
+    except BaseException as e:
+        print "ERROR installing monitoring fixture: " + str(e)
 
 
 @task
