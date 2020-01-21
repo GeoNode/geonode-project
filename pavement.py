@@ -55,8 +55,6 @@ from geonode.settings import (INSTALLED_APPS,
                               OGC_SERVER,
                               ASYNC_SIGNALS)
 
-_django_11 = django.VERSION[0] == 1 and django.VERSION[1] >= 11 and django.VERSION[2] >= 2
-
 assert sys.version_info >= (2, 6), \
     SystemError("GeoNode Build requires python 2.6 or better")
 
@@ -816,11 +814,8 @@ def test_integration(options):
     name = options.get('name', 'geonode.tests.integration')
     settings = options.get('settings', '')
     if not settings and name == 'geonode.upload.tests.integration':
-        if _django_11:
-            sh("cp geonode/upload/tests/test_settings.py geonode/")
-            settings = 'geonode.test_settings'
-        else:
-            settings = 'geonode.upload.tests.test_settings'
+        sh("cp geonode/upload/tests/test_settings.py geonode/")
+        settings = 'geonode.test_settings'
 
     success = False
     try:
@@ -848,10 +843,7 @@ def test_integration(options):
             sh('sleep 30')
             settings = 'REUSE_DB=1 %s' % settings
 
-        live_server_option = '--liveserver=localhost:8000'
-        if _django_11:
-            live_server_option = ''
-
+        live_server_option = ''
         info("GeoNode is now available, running the tests now.")
         sh(('%s python -W ignore manage.py test %s'
             ' %s --noinput %s' % (settings, name, _keepdb, live_server_option)))
