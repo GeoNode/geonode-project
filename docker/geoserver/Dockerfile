@@ -83,7 +83,7 @@ COPY entrypoint.sh /usr/local/tomcat/tmp
 
 RUN apt-get update \
     && apt-get -y upgrade \
-    && apt-get install -y python python-pip python-dev \
+    && apt-get install -y python python3-pip python3-dev \
     && chmod +x /usr/local/tomcat/tmp/set_geoserver_auth.sh \
     && chmod +x /usr/local/tomcat/tmp/setup_auth.sh \
     && chmod +x /usr/local/tomcat/tmp/entrypoint.sh \

@@ -1,4 +1,4 @@
-FROM python:2.7.16-stretch
+FROM python:3.7.6-stretch
 MAINTAINER GeoNode development team
 
 RUN mkdir -p /usr/src/{{project_name}}
@@ -10,13 +10,12 @@ RUN apt-get update && apt-get install -y \
 		gettext \
 		postgresql-client libpq-dev \
 		sqlite3 \
-                python-gdal python-psycopg2 \
-                python-imaging python-lxml \
-                python-dev libgdal-dev \
-                python-ldap \
+                python3-gdal python3-psycopg2 \
+                python3-pil python3-lxml \
+                python3-dev libgdal-dev \
                 libmemcached-dev libsasl2-dev zlib1g-dev \
-                python-pylibmc \
-                uwsgi uwsgi-plugin-python \
+                python3-pylibmc \
+                uwsgi uwsgi-plugin-python3 \
 	--no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 

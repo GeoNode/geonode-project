@@ -40,7 +40,7 @@ To setup your project using a local python virtual environment, follow these ins
     ```bash
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
     mkvirtualenv my_geonode
-    pip install Django==1.11.25
+    pip install Django==2.2.9
 
     django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample -n monitoring-cron -n Dockerfile my_geonode
 
@@ -93,7 +93,7 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
     ```bash
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
     mkvirtualenv my_geonode
-    pip install Django==1.11.25
+    pip install Django==2.2.9
 
     django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample -n monitoring-cron -n Dockerfile my_geonode
 
