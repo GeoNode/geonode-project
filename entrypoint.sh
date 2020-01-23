@@ -40,7 +40,7 @@ else
         /usr/local/bin/invoke prepare >> /usr/src/{{project_name}}/invoke.log
         echo "prepare task done"
 
-        if [ ${IS_FIRST_START} = "true" ] || [ ${IS_FIRST_START} = "True" ] || ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
+        if [ ${IS_FIRST_START} = "true" ] || [ ${IS_FIRST_START} = "True" ] || [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
             /usr/local/bin/invoke updategeoip >> /usr/src/{{project_name}}/invoke.log
             echo "updategeoip task done"
             /usr/local/bin/invoke fixtures >> /usr/src/{{project_name}}/invoke.log
