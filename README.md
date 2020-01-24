@@ -179,7 +179,7 @@ Step 3. Set up a free account on github or bitbucket and make a copy of the repo
 You may want to configure your requirements.txt, if you are using additional or custom versions of python packages. For example
 
 ```python
-Django==1.11.25
+Django==2.2.9
 git+git://github.com/<your organization>/geonode.git@<your branch>
 ```
 
