@@ -8,7 +8,12 @@ import datetime
 import docker
 import socket
 
-from urlparse import urlparse
+try:
+    from urllib.parse import urlparse
+    from urllib.request import urlopen, Request
+except ImportError:
+    from urllib2 import urlopen, Request
+    from urlparse import urlparse
 from invoke import run, task
 
 BOOTSTRAP_IMAGE_CHEIP = 'codenvy/che-ip:nightly'
