@@ -21,7 +21,12 @@
 # Django settings for the GeoNode project.
 import ast
 import os
-from urlparse import urlparse, urlunparse
+try:
+    from urllib.parse import urlparse, urlunparse
+    from urllib.request import urlopen, Request
+except ImportError:
+    from urllib2 import urlopen, Request
+    from urlparse import urlparse, urlunparse
 # Load more settings from a file called local_settings.py if it exists
 try:
     from {{ project_name }}.local_settings import *

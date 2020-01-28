@@ -19,30 +19,32 @@
 #########################################################################
 
 import os
-try: # for pip >= 10
+try:  # for pip >= 10
     from pip._internal.req import parse_requirements
-    from pip._internal.download import PipSession
-except ImportError: # for pip <= 9.0.3
+    pip_session = 'hack'
+except ImportError:  # for pip <= 9.0.3
     from pip.req import parse_requirements
     from pip.download import PipSession
+    pip_session = PipSession()
 from distutils.core import setup
 
 from setuptools import find_packages
 
 # Parse requirements.txt to get the list of dependencies
 inst_req = parse_requirements('requirements.txt',
-                              session=PipSession())
+                              session=pip_session)
+
 REQUIREMENTS = [str(r.req) for r in inst_req]
 
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(
-    name="{{ project_name }}",
+    name="my_geonode",
     version="2.10.1",
     author="",
     author_email="",
-    description="{{ project_name }}, based on GeoNode",
+    description="my_geonode, based on GeoNode",
     long_description=(read('README.md')),
     # Full list of classifiers can be found at:
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -50,8 +52,8 @@ setup(
         'Development Status :: 1 - Planning',
     ],
     license="GPL",
-    keywords="{{ project_name }} geonode django",
-    url='https://github.com/{{ project_name }}/{{ project_name }}',
+    keywords="my_geonode geonode django",
+    url='https://github.com/my_geonode/my_geonode',
     packages=find_packages(),
     install_requires=REQUIREMENTS,
     dependency_links=[
