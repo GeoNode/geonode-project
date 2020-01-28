@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import logging
 import os
@@ -6,7 +6,7 @@ import os
 import docker
 
 client = docker.from_env()
-# print client.info()
+# print(client.info())
 # TODO avoid this script can fail and fall in the loop where the geoserver
 # service is not available and consequently the nginx too which has geoserver
 # as a reference link
@@ -40,6 +40,6 @@ else:
     pass
 finally:
     try:
-        print nginx_base_url
+        print(nginx_base_url)
     except NameError as ne:
-        print "http://geonode:80"
+        print("http://geonode:80")
