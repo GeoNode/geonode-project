@@ -15,11 +15,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      #- /srv/docker/geoserver/geoserver:/geoserver_data/data
-    volumes_from:
-      # reference to the service which has the volume
-      # with the preloaded geoserver_data_dir
-      - data_dir_conf # service for geoserver data volume
+      - /geoserver_data/data
     environment:
       - DOCKERHOST
       - GEONODE_HOST_IP
