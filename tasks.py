@@ -387,7 +387,6 @@ def _geoserver_info_provision(url):
     <newPassword>{0}</newPassword>
 </userPassword>""".format(os.getenv('GEOSERVER_ADMIN_PASSWORD', 'geoserver'))
 
-    print(data())
     response = cat.http_request(cat.service_url + '/security/self/password', method="PUT", data=data, headers=headers)
     print("Response Code: %s" % response.status_code)
     if response.status_code == 200:
