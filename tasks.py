@@ -41,6 +41,9 @@ def update(ctx):
     print("Public Hostname or IP is {0}".format(pub_ip))
     pub_port = _geonode_public_port()
     print("Public PORT is {0}".format(pub_port))
+    pub_protocol = 'https' if pub_port == '443' else 'http'
+    if pub_protocol == 'https' or pub_port == '80':
+        pub_port = None
     db_url = _update_db_connstring()
     geodb_url = _update_geodb_connstring()
     service_ready = False
@@ -48,7 +51,7 @@ def update(ctx):
         try:
             socket.gethostbyname('geonode')
             service_ready = True
-        except BaseException:
+        except Exception:
             time.sleep(10)
 
     override_env = "$HOME/.override_env"
@@ -60,9 +63,10 @@ def update(ctx):
     envs = {
         "local_settings": "{0}".format(_localsettings()),
         "siteurl": os.environ.get('SITEURL',
-                                  'http://{0}:{1}/'.format(pub_ip, pub_port) if pub_port else 'http://{0}/'.format(pub_ip)),
+                                  '{0}://{1}:{2}/'.format(pub_protocol, pub_ip, pub_port) if pub_port else '{0}://{1}/'.format(pub_protocol, pub_ip)),
         "geonode_docker_host": "{0}".format(socket.gethostbyname('geonode')),
-        "public_fqdn": "{0}:{1}".format(pub_ip, pub_port),
+        "public_protocol": pub_protocol,
+        "public_fqdn": "{0}{1}".format(pub_ip, ':' + pub_port if pub_port else ''),
         "public_host": "{0}".format(pub_ip),
         "dburl": os.environ.get('DATABASE_URL', db_url),
         "geodburl": os.environ.get('GEODATABASE_URL', geodb_url),
@@ -244,7 +248,7 @@ def monitoringfixture(ctx):
     try:
         ctx.run("django-admin.py loaddata /tmp/default_monitoring_apps_docker.json \
 --settings={0}".format(_localsettings()), pty=True)
-    except BaseException as e:
+    except Exception as e:
         print("ERROR installing monitoring fixture: " + str(e))
 
 
