@@ -3,12 +3,17 @@ MAINTAINER GeoNode development team
 
 RUN mkdir -p /usr/src/{{project_name}}
 
+# Enable postgresql-client-11.2
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+
 # This section is borrowed from the official Django image but adds GDAL and others
 RUN apt-get update && apt-get install -y \
 		gcc \
                 zip \
 		gettext \
-		postgresql-client libpq-dev \
+		postgresql-client-11 libpq-dev \
 		sqlite3 \
                 python3-gdal python3-psycopg2 \
                 python3-pil python3-lxml \
