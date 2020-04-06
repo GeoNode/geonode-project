@@ -764,6 +764,7 @@ def start_geoserver(options):
             sh((
                 '%(javapath)s -Xms512m -Xmx2048m -server -XX:+UseConcMarkSweepGC -XX:MaxPermSize=512m'
                 ' -DGEOSERVER_DATA_DIR=%(data_dir)s'
+                ' -DGEOSERVER_CSRF_DISABLED=true'
                 ' -Dgeofence.dir=%(geofence_dir)s'
                 # ' -Dgeofence-ovr=geofence-datasource-ovr.properties'
                 # workaround for JAI sealed jar issue and jetty classloader
