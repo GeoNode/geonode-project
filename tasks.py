@@ -185,7 +185,7 @@ def migrations(ctx):
 def statics(ctx):
     print("**************************statics*******************************")
     ctx.run('mkdir -p /mnt/volumes/statics/{static,uploads}')
-    ctx.run("python manage.py collectstatic --noinput --clear --settings={0}".format(
+    ctx.run("python manage.py collectstatic --noinput --settings={0}".format(
         _localsettings()
     ), pty=True)
 
