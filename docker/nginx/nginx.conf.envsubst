@@ -22,16 +22,16 @@ http {
     # even if not used (HTTP_HOST empty), we must keep it as it's used for internal API calls between django and geoserver
     # TODO : do not use unencrypted connection even on LAN, but is it possible to have browser not complaining about unknown authority ?
     server {
-        listen              80;
+        listen              $HTTP_PORT;
         server_name         $HTTP_HOST 127.0.0.1 geonode;
 
         include sites-enabled/*.conf;
     }
 
-    # Default server closes the connection (we can connect use only HTTP_HOST and HTTPS HOST)
+    # Default server closes the connection (we can connect only using HTTP_HOST and HTTPS_HOST)
     server {
-        listen          80 default_server;
-        listen          443;
+        listen          $HTTP_PORT default_server;
+        listen          $HTTPS_PORT;
         server_name     _;
         return          444;
     }
