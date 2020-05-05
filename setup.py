@@ -43,7 +43,7 @@ from setuptools import find_packages
 
 # Parse requirements.txt to get the list of dependencies
 inst_req = parse_requirements("requirements.txt", session=PipSession())
-REQUIREMENTS = [str(r.req if hasattr(r, 'req') else r.requirement)
+REQUIREMENTS = [str(r.req) if hasattr(r, 'req') else r.requirement if not r.is_editable else ''
                 for r in inst_req]
 
 def read(*rnames):
