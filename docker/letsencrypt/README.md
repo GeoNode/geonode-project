@@ -1,4 +1,4 @@
-ervice for SPCGeonode
+# Letsencrypt service for Geonode
 
 This service generates SSL certificates to be used by Nginx.
 
@@ -13,4 +13,3 @@ To avoid hitting Let's Encrypt very low rate limits when developping or doing te
 ## Autoissued
 
 An auto-issued certificate is also generate to be used on the LAN if needed. It is also renewed every now and then using the same cron process than above.
-
