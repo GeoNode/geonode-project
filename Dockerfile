@@ -44,7 +44,7 @@ RUN chmod +x /usr/src/{{project_name}}/tasks.py \
     && chmod +x /usr/src/{{project_name}}/entrypoint.sh
 
 # Upgrade pip
-RUN pip install pip --upgrade
+RUN pip install pip==20.1
 
 # app-specific requirements
 RUN pip install --upgrade --no-cache-dir --src /usr/src -r requirements.txt
