@@ -1,0 +1,92 @@
+export DEBUG=True
+
+export SECRET_KEY="myv-y4#7j-d*p-__@j#*3z@!y24fz8%^z2v6atuy4bo9vqr1_a"
+
+export SITEURL=http://localhost:8000/
+export ALLOWED_HOSTS="['localhost',]"
+
+export GEONODE_INSTANCE_NAME=geonode
+export DJANGO_SETTINGS_MODULE={{project_name}}.settings
+export GEONODE_DATABASE=geonode
+export GEONODE_DATABASE_PASSWORD=geonode
+export GEONODE_GEODATABASE=geonode_data
+export GEONODE_GEODATABASE_PASSWORD=geonode_data
+
+export DATABASE_URL=postgres://geonode:geonode@localhost:5432/{{project_name}}
+export GEODATABASE_URL=postgis://geonode:geonode@localhost:5432/{{project_name}}_data
+export DEFAULT_BACKEND_DATASTORE=datastore
+
+export GEOSERVER_WEB_UI_LOCATION=http://localhost:8080/geoserver/
+export GEOSERVER_PUBLIC_LOCATION=http://localhost:8080/geoserver/
+export GEOSERVER_LOCATION=http://localhost:8080/geoserver/
+export GEOSERVER_ADMIN_USER=admin
+export GEOSERVER_ADMIN_PASSWORD=geoserver
+
+export OGC_REQUEST_TIMEOUT=30
+export OGC_REQUEST_MAX_RETRIES=1
+export OGC_REQUEST_BACKOFF_FACTOR=0.3
+export OGC_REQUEST_POOL_MAXSIZE=10
+export OGC_REQUEST_POOL_CONNECTIONS=10
+
+export DEFAULT_BACKEND_UPLOADER=geonode.importer
+export TIME_ENABLED=True
+export MOSAIC_ENABLED=False
+
+export ADMIN_PASSWORD=admin
+export ADMIN_EMAIL=admin@localhost
+
+export EMAIL_ENABLE=False
+export DJANGO_EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+export DJANGO_EMAIL_HOST=localhost
+export DJANGO_EMAIL_PORT=25
+export DJANGO_EMAIL_HOST_USER=
+export DJANGO_EMAIL_HOST_PASSWORD=
+export DJANGO_EMAIL_USE_TLS=False
+export DEFAULT_FROM_EMAIL="GeoNode <no-reply@geonode.org>"
+
+export LOCKDOWN_GEONODE=False
+export CORS_ORIGIN_ALLOW_ALL=True
+export SESSION_EXPIRED_CONTROL_ENABLED=True
+export DEFAULT_ANONYMOUS_VIEW_PERMISSION=True
+export DEFAULT_ANONYMOUS_DOWNLOAD_PERMISSION=True
+
+export ACCOUNT_OPEN_SIGNUP=True
+export ACCOUNT_EMAIL_REQUIRED=True
+export ACCOUNT_APPROVAL_REQUIRED=False
+export ACCOUNT_CONFIRM_EMAIL_ON_GET=True
+export ACCOUNT_EMAIL_VERIFICATION='optional'
+export ACCOUNT_EMAIL_CONFIRMATION_EMAIL=False
+export ACCOUNT_EMAIL_CONFIRMATION_REQUIRED=False
+
+export OAUTH2_API_KEY=
+export OAUTH2_CLIENT_ID=Jrchz2oPY3akmzndmgUTYrs9gczlgoV20YPSvqaV
+export OAUTH2_CLIENT_SECRET=rCnp5txobUo83EpQEblM8fVj3QT5zb5qRfxNsuPzCqZaiRyIoxM4jdgMiZKFfePBHYXCLd7B8NlkfDBY9HKeIQPcy5Cp08KQNpRHQbjpLItDHv12GvkSeXp6OxaUETv3
+
+export API_LOCKDOWN=False
+export TASTYPIE_APIKEY=
+
+export CACHE_BUSTING_STATIC_ENABLED=False
+export CACHE_BUSTING_MEDIA_ENABLED=False
+
+export MAX_DOCUMENT_SIZE=2
+export CLIENT_RESULTS_LIMIT=5
+export API_LIMIT_PER_PAGE=1000
+export ALLOWED_DOCUMENT_TYPES="['doc', 'docx', 'gif', 'jpg', 'jpeg', 'ods', 'odt', 'odp', 'pdf', 'png','ppt', 'pptx', 'rar', 'sld', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'gz', 'qml']"
+
+export GEONODE_CLIENT_LAYER_PREVIEW_LIBRARY=mapstore
+export MAPBOX_ACCESS_TOKEN=
+export BING_API_KEY=
+export GOOGLE_API_KEY=
+
+export MONITORING_ENABLED=True
+export MONITORING_DATA_TTL=365
+export USER_ANALYTICS_ENABLED=True
+export USER_ANALYTICS_GZIP=False
+export MONITORING_SERVICE_NAME=local-geonode
+export MONITORING_HOST_NAME=geonode
+
+export MODIFY_TOPICCATEGORY=True
+export AVATAR_GRAVATAR_SSL=True
+export EXIF_ENABLED=False
+export CREATE_LAYER=False
+export FAVORITE_ENABLED=False
