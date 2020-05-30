@@ -47,6 +47,8 @@ else
             echo "fixture task done"
             /usr/local/bin/invoke monitoringfixture >> /usr/src/{{project_name}}/invoke.log
             echo "monitoringfixture task done"
+            /usr/local/bin/invoke updateadmin >> /usr/src/{{project_name}}/invoke.log
+            echo "updateadmin task done"
             /usr/local/bin/invoke initialized >> /usr/src/{{project_name}}/invoke.log
             echo "initialized"
         fi
@@ -58,8 +60,6 @@ else
         echo "waitforgeoserver task done"
         /usr/local/bin/invoke geoserverfixture >> /usr/src/{{project_name}}/invoke.log
         echo "geoserverfixture task done"
-        /usr/local/bin/invoke updateadmin >> /usr/src/{{project_name}}/invoke.log
-        echo "updateadmin task done"
 
         cmd=$UWSGI_CMD
         echo "Executing UWSGI server $cmd for Production"
