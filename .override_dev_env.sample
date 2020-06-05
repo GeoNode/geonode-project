@@ -42,6 +42,7 @@ export DJANGO_EMAIL_PORT=25
 export DJANGO_EMAIL_HOST_USER=
 export DJANGO_EMAIL_HOST_PASSWORD=
 export DJANGO_EMAIL_USE_TLS=False
+export DJANGO_EMAIL_USE_SSL=False
 export DEFAULT_FROM_EMAIL="GeoNode <no-reply@geonode.org>"
 
 export LOCKDOWN_GEONODE=False
