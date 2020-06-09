@@ -99,5 +99,8 @@ sed -i -e 's/localhost/rabbitmq/g' ${GEOSERVER_DATA_DIR}/notifier/notifier.xml
 # exclude wrong dependencies
 sed -i -e 's/xom-\*\.jar/xom-\*\.jar,bcprov\*\.jar/g' /usr/local/tomcat/conf/catalina.properties
 
+# enable geofence-datasource to Postgis
+cp /usr/local/tomcat/tmp/datasource-ovr.properties ${GEOSERVER_DATA_DIR}/geofence/geofence-datasource-ovr.properties
+
 # start tomcat
 exec env JAVA_OPTS="${JAVA_OPTS}" catalina.sh run
