@@ -53,4 +53,9 @@ RUN pip install --upgrade -e .
 # Install pygdal (after requirements for numpy 1.16)
 RUN pip install pygdal==$(gdal-config --version).*
 
+# Install "geonode-contribs" apps
+RUN cd /usr/src; git clone https://github.com/GeoNode/geonode-contribs.git -b master
+# Install logstash and centralized dashboard dependencies
+RUN cd /usr/src/geonode-contribs/geonode-logstash; pip install --upgrade -e .
+
 ENTRYPOINT service cron restart && /usr/src/{{project_name}}/entrypoint.sh
