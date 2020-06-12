@@ -27,6 +27,12 @@ RUN if [ "$JAI_IMAGEIO" = true ]; then \
     mv /tmp/marlin-0.9.3-Unsafe.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/ ; \
     fi
 
+RUN wget --no-check-certificate https://build.geo-solutions.it/geonode/geoserver/latest/postgis-jdbc-1.3.3/postgis-jdbc-1.3.3.jar && \
+    wget --no-check-certificate https://build.geo-solutions.it/geonode/geoserver/latest/hibernate-spatial-postgis-1.1.3.1/hibernate-spatial-postgis-1.1.3.1.jar && \
+    rm /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/hibernate-spatial-h2-geodb-1.1.3.1.jar && \
+    mv hibernate-spatial-postgis-1.1.3.1.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/ && \
+    mv postgis-jdbc-1.3.3.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/
+
 ###########docker host###############
 # Set DOCKERHOST variable if DOCKER_HOST exists
 ARG DOCKERHOST=${DOCKERHOST}
@@ -80,6 +86,7 @@ COPY requirements.txt /usr/local/tomcat/tmp
 COPY get_dockerhost_ip.py /usr/local/tomcat/tmp
 COPY get_nginxhost_ip.py /usr/local/tomcat/tmp
 COPY entrypoint.sh /usr/local/tomcat/tmp
+COPY datasource-ovr.properties /usr/local/tomcat/tmp
 
 RUN apt-get update \
     && apt-get -y upgrade \
@@ -92,6 +99,6 @@ RUN apt-get update \
     && chmod +x /usr/local/tomcat/tmp/get_dockerhost_ip.py \
     && chmod +x /usr/local/tomcat/tmp/get_nginxhost_ip.py
 
-ENV JAVA_OPTS="-Djava.awt.headless=true -XX:MaxPermSize=512m -XX:PermSize=256m -Xms512m -Xmx2048m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -Duser.timezone=GMT -Dorg.geotools.shapefile.datetime=true -DGEOSERVER_CSRF_DISABLED=true"
+ENV JAVA_OPTS="-Djava.awt.headless=true -XX:MaxPermSize=512m -XX:PermSize=256m -Xms512m -Xmx2048m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -Duser.timezone=GMT -Dorg.geotools.shapefile.datetime=false -DGEOSERVER_CSRF_DISABLED=true -Xbootclasspath/a:/usr/local/tomcat/webapps/geoserver/WEB-INF/lib/marlin-0.9.3-Unsafe.jar -Dsun.java2d.renderer=org.marlin.pisces.MarlinRenderingEngine"
 
 CMD ["/usr/local/tomcat/tmp/entrypoint.sh"]

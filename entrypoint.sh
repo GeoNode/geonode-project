@@ -65,5 +65,5 @@ else
         echo "Executing UWSGI server $cmd for Production"
     fi
 fi
-echo 'got command ${cmd}'
+echo "got command $cmd"
 exec $cmd

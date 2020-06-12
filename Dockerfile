@@ -1,10 +1,10 @@
-FROM python:3.7.6-stretch
+FROM python:3.8.3-buster
 MAINTAINER GeoNode development team
 
 RUN mkdir -p /usr/src/{{project_name}}
 
 # Enable postgresql-client-11.2
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 
@@ -14,12 +14,13 @@ RUN apt-get update && apt-get install -y \
                 zip \
 		gettext \
 		postgresql-client-11 libpq-dev \
-		sqlite3 \
-                python3-gdal python3-psycopg2 \
-                python3-pil python3-lxml \
+		sqlite3 spatialite-bin libsqlite3-mod-spatialite \
+                python3-gdal python3-psycopg2 python3-ldap \
+                python3-pil python3-lxml python3-pylibmc \
                 python3-dev libgdal-dev \
-                libmemcached-dev libsasl2-dev zlib1g-dev \
-                python3-pylibmc \
+                libxml2 libxml2-dev libxslt1-dev zlib1g-dev libjpeg-dev \
+                libmemcached-dev libsasl2-dev \
+                libldap2-dev libsasl2-dev \
                 uwsgi uwsgi-plugin-python3 \
 	--no-install-recommends && rm -rf /var/lib/apt/lists/*
 
@@ -52,5 +53,10 @@ RUN pip install --upgrade -e .
 
 # Install pygdal (after requirements for numpy 1.16)
 RUN pip install pygdal==$(gdal-config --version).*
+
+# Install "geonode-contribs" apps
+RUN cd /usr/src; git clone https://github.com/GeoNode/geonode-contribs.git -b master
+# Install logstash and centralized dashboard dependencies
+RUN cd /usr/src/geonode-contribs/geonode-logstash; pip install --upgrade -e .
 
 ENTRYPOINT service cron restart && /usr/src/{{project_name}}/entrypoint.sh
