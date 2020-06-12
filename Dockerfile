@@ -1,10 +1,10 @@
-FROM python:3.7.6-stretch
+FROM python:3.8.3-buster
 MAINTAINER GeoNode development team
 
 RUN mkdir -p /usr/src/{{project_name}}
 
 # Enable postgresql-client-11.2
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 
@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y \
 		gettext \
 		postgresql-client-11 libpq-dev \
 		sqlite3 spatialite-bin libsqlite3-mod-spatialite \
-                python3-gdal python3-psycopg2 \
+                python3-gdal python3-psycopg2 python3-ldap \
                 python3-pil python3-lxml python3-pylibmc \
                 python3-dev libgdal-dev \
                 libxml2 libxml2-dev libxslt1-dev zlib1g-dev libjpeg-dev \
