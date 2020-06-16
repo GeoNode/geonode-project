@@ -7,9 +7,9 @@ export ALLOWED_HOSTS="['localhost',]"
 
 export GEONODE_INSTANCE_NAME=geonode
 export DJANGO_SETTINGS_MODULE={{project_name}}.settings
-export GEONODE_DATABASE=geonode
+export GEONODE_DATABASE={{project_name}}
 export GEONODE_DATABASE_PASSWORD=geonode
-export GEONODE_GEODATABASE=geonode_data
+export GEONODE_GEODATABASE={{project_name}}_data
 export GEONODE_GEODATABASE_PASSWORD=geonode_data
 
 export DATABASE_URL=postgres://geonode:geonode@localhost:5432/{{project_name}}
@@ -47,6 +47,7 @@ export DEFAULT_FROM_EMAIL="GeoNode <no-reply@geonode.org>"
 
 export LOCKDOWN_GEONODE=False
 export CORS_ORIGIN_ALLOW_ALL=True
+export X_FRAME_OPTIONS=ALLOW-FROM ALL
 export SESSION_EXPIRED_CONTROL_ENABLED=True
 export DEFAULT_ANONYMOUS_VIEW_PERMISSION=True
 export DEFAULT_ANONYMOUS_DOWNLOAD_PERMISSION=True
@@ -54,8 +55,8 @@ export DEFAULT_ANONYMOUS_DOWNLOAD_PERMISSION=True
 export ACCOUNT_OPEN_SIGNUP=True
 export ACCOUNT_EMAIL_REQUIRED=True
 export ACCOUNT_APPROVAL_REQUIRED=False
-export ACCOUNT_CONFIRM_EMAIL_ON_GET=True
-export ACCOUNT_EMAIL_VERIFICATION='optional'
+export ACCOUNT_CONFIRM_EMAIL_ON_GET=False
+export ACCOUNT_EMAIL_VERIFICATION=optional
 export ACCOUNT_EMAIL_CONFIRMATION_EMAIL=False
 export ACCOUNT_EMAIL_CONFIRMATION_REQUIRED=False
 
@@ -82,12 +83,14 @@ export GOOGLE_API_KEY=
 export MONITORING_ENABLED=True
 export MONITORING_DATA_TTL=365
 export USER_ANALYTICS_ENABLED=True
-export USER_ANALYTICS_GZIP=False
+export USER_ANALYTICS_GZIP=True
+export CENTRALIZED_DASHBOARD_ENABLED=False
 export MONITORING_SERVICE_NAME=local-geonode
 export MONITORING_HOST_NAME=geonode
 
 export MODIFY_TOPICCATEGORY=True
 export AVATAR_GRAVATAR_SSL=True
-export EXIF_ENABLED=False
-export CREATE_LAYER=False
-export FAVORITE_ENABLED=False
+export AVATAR_PROVIDERS='avatar.providers.PrimaryAvatarProvider','avatar.providers.GravatarAvatarProvider','avatar.providers.DefaultAvatarProvider'
+export EXIF_ENABLED=True
+export CREATE_LAYER=True
+export FAVORITE_ENABLED=True
