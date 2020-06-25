@@ -128,11 +128,6 @@ services:
   #   depends_on:
   #     - db
   #     - rabbitmq
-  #     - data-dir-conf
-  #   volumes:
-  #     - statics:/mnt/volumes/statics
-  #     - geoserver-data-dir:/geoserver_data/data
-  #     - backup-restore:/backup_restore
   #   env_file:
   #     - .env
   #   environment:
