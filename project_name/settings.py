@@ -136,11 +136,10 @@ if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstas
     }
 
 # LDAP settings
-# For using LDAP auth uncomment following lines:
-#if 'geonode_ldap' not in INSTALLED_APPS:
-#  INSTALLED_APPS += ('geonode_ldap',)
+# For using LDAP authentication uncomment following lines:
+# if 'geonode_ldap' not in INSTALLED_APPS:
+#   INSTALLED_APPS += ('geonode_ldap',)
 
-# and add your
-# specific LDAP configuration to your settings and .env as explained here:
+# and add your specific LDAP configuration to this file and in .env 
+# as explained here:
 # https://docs.geonode.org/en/master/advanced/contrib/#configuration
-# after this line
