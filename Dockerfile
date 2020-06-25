@@ -45,7 +45,7 @@ RUN chmod +x /usr/src/{{project_name}}/tasks.py \
     && chmod +x /usr/src/{{project_name}}/entrypoint.sh
 
 # Upgrade pip
-RUN pip install pip==20.1
+RUN pip install pip==20.1.1
 
 # app-specific requirements
 RUN pip install --upgrade --no-cache-dir --src /usr/src -r requirements.txt
@@ -53,6 +53,9 @@ RUN pip install --upgrade -e .
 
 # Install pygdal (after requirements for numpy 1.16)
 RUN pip install pygdal==$(gdal-config --version).*
+
+# Install celery-monitor app
+RUN pip install flower==0.9.4
 
 # Install "geonode-contribs" apps
 RUN cd /usr/src; git clone https://github.com/GeoNode/geonode-contribs.git -b master
