@@ -89,8 +89,50 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery beat --app=geonode.celery_app:app -l INFO -f /var/log/celery.log
+      CELERY_CMD: celery worker -A geonode.celery_app -c 4 -P threads -l INFO -f /var/log/celery.log
       IS_CELERY: 'True'
+
+  celerybeat:
+    restart: unless-stopped
+    build: .
+    container_name: celerybeat4${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    # tty: true
+    labels:
+      org.geonode.component: celerybeat
+      org.geonode.instance.name: geonode
+    depends_on:
+      - db
+      - rabbitmq
+      - data-dir-conf
+    volumes:
+      - statics:/mnt/volumes/statics
+      - geoserver-data-dir:/geoserver_data/data
+      - backup-restore:/backup_restore
+    env_file:
+      - .env
+    environment:
+      CELERY_CMD: celery beat -A geonode.celery_app -l INFO -f /var/log/celery.log
+      IS_CELERY: 'True'
+
+  # - Uncomment to enable Flower celery monitor
+  # celerymonitor:
+  #   restart: unless-stopped
+  #   build: .
+  #   container_name: celerymonitor4${COMPOSE_PROJECT_NAME}
+  #   stdin_open: true
+  #   # tty: true
+  #   labels:
+  #     org.geonode.component: celerymonitor
+  #     org.geonode.instance.name: geonode
+  #   depends_on:
+  #     - db
+  #     - rabbitmq
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     CELERY_CMD: celery flower --auto_refresh=True --debug=False -A geonode.celery_app --broker=${BROKER_URL} --basic_auth=admin:${ADMIN_PASSWORD} --address=0.0.0.0 --port=5555
+  #     IS_CELERY: 'True'
 
   geonode:
     image: geonode/nginx:geoserver
