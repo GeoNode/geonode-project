@@ -10,10 +10,10 @@ export DJANGO_SETTINGS_MODULE={{project_name}}.settings
 export GEONODE_DATABASE={{project_name}}
 export GEONODE_DATABASE_PASSWORD=geonode
 export GEONODE_GEODATABASE={{project_name}}_data
-export GEONODE_GEODATABASE_PASSWORD=geonode_data
+export GEONODE_GEODATABASE_PASSWORD=geonode
 
-export DATABASE_URL=postgres://geonode:geonode@localhost:5432/{{project_name}}
-export GEODATABASE_URL=postgis://geonode:geonode@localhost:5432/{{project_name}}_data
+export DATABASE_URL=postgres://{{project_name}}:geonode@localhost:5432/{{project_name}}
+export GEODATABASE_URL=postgis://{{project_name}}_data:geonode@localhost:5432/{{project_name}}_data
 export DEFAULT_BACKEND_DATASTORE=datastore
 
 export GEOSERVER_WEB_UI_LOCATION=http://localhost:8080/geoserver/
@@ -56,9 +56,10 @@ export ACCOUNT_OPEN_SIGNUP=True
 export ACCOUNT_EMAIL_REQUIRED=True
 export ACCOUNT_APPROVAL_REQUIRED=False
 export ACCOUNT_CONFIRM_EMAIL_ON_GET=False
-export ACCOUNT_EMAIL_VERIFICATION=optional
+export ACCOUNT_EMAIL_VERIFICATION=none
 export ACCOUNT_EMAIL_CONFIRMATION_EMAIL=False
 export ACCOUNT_EMAIL_CONFIRMATION_REQUIRED=False
+export ACCOUNT_AUTHENTICATION_METHOD=username_email
 
 export OAUTH2_API_KEY=
 export OAUTH2_CLIENT_ID=Jrchz2oPY3akmzndmgUTYrs9gczlgoV20YPSvqaV
