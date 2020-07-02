@@ -134,3 +134,9 @@ if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstas
         'task': 'geonode_logstash.tasks.dispatch_metrics',
         'schedule': 3600.0,
     }
+
+if LDAP_ENABLED and 'geonode_ldap' not in INSTALLED_APPS:
+    INSTALLED_APPS += ('geonode_ldap',)
+
+# Add your specific LDAP configuration after this comment:
+# https://docs.geonode.org/en/master/advanced/contrib/#configuration
