@@ -135,6 +135,7 @@ if CENTRALIZED_DASHBOARD_ENABLED and USER_ANALYTICS_ENABLED and 'geonode_logstas
         'schedule': 3600.0,
     }
 
+LDAP_ENABLED = ast.literal_eval(os.getenv('LDAP_ENABLED', 'False'))
 if LDAP_ENABLED and 'geonode_ldap' not in INSTALLED_APPS:
     INSTALLED_APPS += ('geonode_ldap',)
 
