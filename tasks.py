@@ -479,8 +479,7 @@ def _prepare_monitoring_fixture():
         {
             "fields": {
                 "name": "{0}".format(os.environ['MONITORING_SERVICE_NAME']),
-                # "url": "{0}://{1}/".format(net_scheme, net_loc),
-                "url": "http://geonode/",
+                "url": "{0}://{1}/".format(net_scheme, net_loc),
                 "notes": "",
                 "last_check": d,
                 "active": True,
@@ -494,8 +493,7 @@ def _prepare_monitoring_fixture():
         {
             "fields": {
                 "name": "geoserver-hostgeonode",
-                # "url": "{0}://{1}/".format(net_scheme, net_loc),
-                "url": "http://geonode/",
+                "url": "{0}://{1}/".format(net_scheme, net_loc),
                 "notes": "",
                 "last_check": d,
                 "active": True,
@@ -509,8 +507,7 @@ def _prepare_monitoring_fixture():
         {
             "fields": {
                 "name": "geoserver-hostgeoserver",
-                # "url": "{0}".format(os.environ['GEOSERVER_LOCATION']),
-                "url": "http://geoserver:8080/geoserver/",
+                "url": "{0}".format(os.environ['GEOSERVER_LOCATION']),
                 "notes": "",
                 "last_check": d,
                 "active": True,
@@ -524,7 +521,6 @@ def _prepare_monitoring_fixture():
         {
             "fields": {
                 "name": "default-geoserver",
-                # "url": "{0}".format(os.environ['GEOSERVER_LOCATION']),
                 "url": "http://geoserver:8080/geoserver/",
                 "notes": "",
                 "last_check": d,
