@@ -90,33 +90,28 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery worker --app=geonode.celery_app:app -l DEBUG -c 4 -P threads -f /var/log/celery.log
-      IS_CELERY: 'True'
-
-  celerybeat:
-    restart: unless-stopped
-    build: .
-    container_name: celerybeat4${COMPOSE_PROJECT_NAME}
-    stdin_open: true
-    # tty: true
-    labels:
-      org.geonode.component: celerybeat
-      org.geonode.instance.name: geonode
-    depends_on:
-      - db
-      - rabbitmq
-      - data-dir-conf
-    volumes:
-      - statics:/mnt/volumes/statics
-      - geoserver-data-dir:/geoserver_data/data
-      - backup-restore:/backup_restore
-    env_file:
-      - .env
-    environment:
       CELERY_CMD: celery beat --app=geonode.celery_app:app -l DEBUG -f /var/log/celery.log
       IS_CELERY: 'True'
 
-  # - Uncomment to enable Flower celery monitor
+  # - Uncomment to enable celery monitor
+  # celeryworker:
+  #   restart: unless-stopped
+  #   build: .
+  #   container_name: celeryworker4${COMPOSE_PROJECT_NAME}
+  #   stdin_open: true
+  #   # tty: true
+  #   labels:
+  #     org.geonode.component: celeryworker
+  #     org.geonode.instance.name: geonode
+  #   depends_on:
+  #     - db
+  #     - rabbitmq
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     CELERY_CMD: celery worker --app=geonode.celery_app:app -l DEBUG -c 4 -P threads -f /var/log/celery.log
+  #     IS_CELERY: 'True'
+  #
   # celerymonitor:
   #   restart: unless-stopped
   #   build: .
