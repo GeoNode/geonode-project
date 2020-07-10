@@ -118,7 +118,7 @@ LOGGING = {
         "pycsw": {
             "handlers": ["console"], "level": "ERROR", },
         "celery": {
-            "handlers": ["console"], "level": "ERROR", },
+            "handlers": ["console"], "level": "DEBUG", },
         "mapstore2_adapter.plugins.serializers": {
             "handlers": ["console"], "level": "DEBUG", },
         "geonode_logstash.logstash": {

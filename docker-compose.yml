@@ -90,7 +90,7 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery worker -A geonode.celery_app -c 4 -P threads -l INFO -f /var/log/celery.log
+      CELERY_CMD: celery worker --app=geonode.celery_app:app -l DEBUG -c 4 -P threads -f /var/log/celery.log
       IS_CELERY: 'True'
 
   celerybeat:
@@ -113,7 +113,7 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery beat -A geonode.celery_app -l INFO -f /var/log/celery.log
+      CELERY_CMD: celery beat --app=geonode.celery_app:app -l DEBUG -f /var/log/celery.log
       IS_CELERY: 'True'
 
   # - Uncomment to enable Flower celery monitor
@@ -132,7 +132,7 @@ services:
   #   env_file:
   #     - .env
   #   environment:
-  #     CELERY_CMD: celery flower --auto_refresh=True --debug=False -A geonode.celery_app --broker=${BROKER_URL} --basic_auth=admin:${ADMIN_PASSWORD} --address=0.0.0.0 --port=5555
+  #     CELERY_CMD: celery flower --auto_refresh=True --debug=False -A geonode.celery_app --broker=${BROKER_URL} --basic_auth=${ADMIN_USERNAME}:${ADMIN_PASSWORD} --address=0.0.0.0 --port=5555
   #     IS_CELERY: 'True'
 
   geonode:
