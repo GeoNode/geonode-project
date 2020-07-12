@@ -223,8 +223,8 @@ def fixtures(ctx):
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("python manage.py set_all_layers_alternate \
 --settings={0}".format(_localsettings()), pty=True)
-    ctx.run("python manage.py set_all_layers_metadata -d \
---settings={0}".format(_localsettings()), pty=True)
+#     ctx.run("python manage.py set_all_layers_metadata -d \
+# --settings={0}".format(_localsettings()), pty=True)
 
 
 @task
