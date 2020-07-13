@@ -90,8 +90,7 @@ services:
     env_file:
       - .env
     environment:
-      # CELERY_CMD: celery beat --app=geonode.celery_app:app -l DEBUG -f /var/log/celery.log
-      CELERY_CMD: celery worker --beat --app=geonode.celery_app:app -l DEBUG -f /var/log/celery.log
+      CELERY_CMD: celery beat --app=geonode.celery_app:app -l DEBUG -f /var/log/celery.log
       IS_CELERY: 'True'
 
   # - Uncomment to enable celery monitor
