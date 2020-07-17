@@ -2,4 +2,4 @@
 # from Pypi:
 #GeoNode==3.0
 -e git+https://github.com/GeoNode/geonode.git#egg=GeoNode
-setuptools==49.2.0
+setuptools>=49.2.0
