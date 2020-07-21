@@ -39,10 +39,14 @@ fi
 if [ -z "${HTTPS_PORT}" ]; then
         HTTPS_PORT=443
 fi
+if [ -z "${JENKINS_HTTP_PORT}" ]; then
+        JENKINS_HTTP_PORT=9080
+fi
 
 echo "Replacing environement variables"
 envsubst '\$HTTP_PORT \$HTTPS_PORT \$HTTP_HOST \$HTTPS_HOST \$RESOLVER' < /etc/nginx/nginx.conf.envsubst > /etc/nginx/nginx.conf
 envsubst '\$HTTP_PORT \$HTTPS_PORT \$HTTP_HOST \$HTTPS_HOST \$RESOLVER' < /etc/nginx/nginx.https.available.conf.envsubst > /etc/nginx/nginx.https.available.conf
+envsubst '\$JENKINS_HTTP_PORT' < /etc/nginx/sites-enabled/geonode.conf.envsubst > /etc/nginx/sites-enabled/geonode.conf
 
 echo "Enabling or not https configuration"
 if [ -z "${HTTPS_HOST}" ]; then 

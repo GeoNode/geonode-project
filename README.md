@@ -10,6 +10,7 @@ GeoNode template project. Generates a django project with GeoNode support.
 -  [Run the instance in development mode](#run-the-instance-in-development-mode)
 -  [Run the instance on a public site](#run-the-instance-on-a-public-site)
 -  [Stop the Docker Images](#stop-the-docker-images)
+-  [Backup and Restore from Docker Images](#backup-and-restore-the-docker-images)
 -  [Recommended: Track your changes](#recommended-track-your-changes)
 -  [Hints: Configuring `requirements.txt`](#hints-configuring-requirementstxt)
 
@@ -152,6 +153,54 @@ docker-compose stop
 
 ```bash
 docker system prune -a
+```
+
+## Backup and Restore from Docker Images
+
+### Run a Backup
+
+```bash
+SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/backup.sh $BKP_FOLDER_NAME
+```
+
+- BKP_FOLDER_NAME:
+  Default value = backup_restore
+  Shared Backup Folder name.
+  The scripts assume it is located on "root" e.g.: /$BKP_FOLDER_NAME/
+
+- SOURCE_URL:
+  Source Server URL, the one generating the "backup" file.
+
+- TARGET_URL:
+  Target Server URL, the one which must be synched.
+
+e.g.:
+
+```bash
+docker exec -it django4{{project_name}} sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/backup.sh $BKP_FOLDER_NAME'
+```
+
+### Run a Restore
+
+```bash
+SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/restore.sh $BKP_FOLDER_NAME
+```
+
+- BKP_FOLDER_NAME:
+  Default value = backup_restore
+  Shared Backup Folder name.
+  The scripts assume it is located on "root" e.g.: /$BKP_FOLDER_NAME/
+
+- SOURCE_URL:
+  Source Server URL, the one generating the "backup" file.
+
+- TARGET_URL:
+  Target Server URL, the one which must be synched.
+
+e.g.:
+
+```bash
+docker exec -it django4{{project_name}} sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/restore.sh $BKP_FOLDER_NAME'
 ```
 
 ## Recommended: Track your changes

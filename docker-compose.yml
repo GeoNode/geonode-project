@@ -174,7 +174,25 @@ services:
     volumes:
       - geoserver-data-dir:/geoserver_data/data
 
+  jenkins:
+    image: jenkins/jenkins:lts
+    # image: istresearch/jenkins:latest
+    container_name: jenkins4${COMPOSE_PROJECT_NAME}
+    user: jenkins
+    ports:
+      - '${JENKINS_HTTP_PORT}:${JENKINS_HTTP_PORT}'
+      - '${JENKINS_HTTPS_PORT}:8443'
+      - '50000:50000'
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - backup-restore:/backup_restore
+      # - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - 'JENKINS_OPTS=--httpPort=${JENKINS_HTTP_PORT} --httpsPort=${JENKINS_HTTPS_PORT} --prefix=/jenkins'
+
 volumes:
+  jenkins_data:
+    driver: local
   statics:
     name: ${COMPOSE_PROJECT_NAME}-statics
   nginx-confd:

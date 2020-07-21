@@ -1,0 +1,23 @@
+version: '2.2'
+services:
+  jenkins:
+    image: 'jenkins/jenkins:lts'
+    labels:
+      kompose.service.type: nodeport
+    ports:
+      - '${JENKINS_HTTP_PORT}:8080'
+      - '${JENKINS_HTTPS_PORT}:8443'
+      - '50000:50000'
+    volumes:
+      - 'jenkins_data:/var/jenkins_home'
+      - backup-restore:/backup_restore
+    env_file:
+      - .env
+    environment:
+      - 'JENKINS_OPTS=--httpPort=8080 --httpsPort=8443'
+
+volumes:
+  jenkins_data:
+    driver: local
+  backup-restore:
+    name: ${COMPOSE_PROJECT_NAME}-backup-restore
