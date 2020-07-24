@@ -181,12 +181,12 @@ services:
     user: jenkins
     ports:
       - '${JENKINS_HTTP_PORT}:${JENKINS_HTTP_PORT}'
-      - '${JENKINS_HTTPS_PORT}:8443'
+      - '${JENKINS_HTTPS_PORT}:${JENKINS_HTTPS_PORT}'
       - '50000:50000'
+    # network_mode: "host"
     volumes:
       - jenkins_data:/var/jenkins_home
       - backup-restore:/backup_restore
-      # - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - 'JENKINS_OPTS=--httpPort=${JENKINS_HTTP_PORT} --httpsPort=${JENKINS_HTTPS_PORT} --prefix=/jenkins'
 
