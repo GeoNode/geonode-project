@@ -77,6 +77,7 @@ def update(ctx):
         "monitoring_host_name": os.environ.get('MONITORING_HOST_NAME', 'geonode'),
         "monitoring_service_name": os.environ.get('MONITORING_SERVICE_NAME', 'local-geonode'),
         "monitoring_data_ttl": os.environ.get('MONITORING_DATA_TTL', 7),
+        "geoip_path": os.environ.get('GEOIP_PATH', '/mnt/volumes/statics/geoip.db'),
         "geonode_geodb_passwd": os.environ.get('GEONODE_GEODATABASE_PASSWORD', 'geonode_data'),
         "default_backend_datastore": os.environ.get('DEFAULT_BACKEND_DATASTORE', 'datastore'),
         "geonode_db_passwd": os.environ.get('GEONODE_DATABASE_PASSWORD', 'geonode'),
@@ -110,6 +111,8 @@ def update(ctx):
 {monitoring_service_name} >> {override_fn}".format(**envs), pty=True)
     ctx.run("echo export MONITORING_DATA_TTL=\
 {monitoring_data_ttl} >> {override_fn}".format(**envs), pty=True)
+    ctx.run("echo export GEOIP_PATH=\
+{geoip_path} >> {override_fn}".format(**envs), pty=True)
     ctx.run("echo export GEONODE_GEODATABASE_PASSWORD=\
 {geonode_geodb_passwd} >> {override_fn}".format(**envs), pty=True)
     ctx.run("echo export DEFAULT_BACKEND_DATASTORE=\
