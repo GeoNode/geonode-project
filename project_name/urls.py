@@ -22,14 +22,17 @@ from django.conf.urls import url, include
 from django.views.generic import TemplateView
 
 from geonode.urls import urlpatterns
+from geonode.monitoring import register_url_event
 
 urlpatterns += [
 ## include your urls here
 
 ]
 
+homepage = register_url_event()(TemplateView.as_view(template_name='site_index.html'))
+
 urlpatterns = [
-   url(r'^/?$',
-       TemplateView.as_view(template_name='site_index.html'),
-       name='home'),
+    url(r'^/?$',
+        homepage,
+        name='home'),
  ] + urlpatterns
