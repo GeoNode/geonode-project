@@ -54,6 +54,7 @@ location /jenkins {
     # Using a variable is a trick to let Nginx start even if upstream host is not up yet
     # (see https://sandro-keil.de/blog/2017/07/24/let-nginx-start-if-upstream-host-is-unavailable-or-down/)
     set $upstream jenkins:$JENKINS_HTTP_PORT;
+    # set $upstream $HTTP_HOST$HTTPS_HOST:$JENKINS_HTTP_PORT;
 
     proxy_set_header Host $http_host;
     proxy_set_header X-Real-IP $remote_addr;
