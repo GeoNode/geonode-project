@@ -90,7 +90,7 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
     source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
     mkvirtualenv --python=/usr/bin/python3 {{ project_name }}
-    pip install Django==2.2.12
+    pip install Django==2.2.15
 
     django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile {{ project_name }}
 
