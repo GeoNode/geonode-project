@@ -52,7 +52,7 @@ services:
       - db
       - elasticsearch
       - rabbitmq
-    command: celery worker --app={{project_name}}.celeryapp:app -B -l INFO
+    command: celery --app={{project_name}}.celeryapp:app worker -B -l INFO
     volumes:
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
