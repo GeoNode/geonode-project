@@ -82,7 +82,7 @@ def update(ctx):
         "default_backend_datastore": os.environ.get('DEFAULT_BACKEND_DATASTORE', 'datastore'),
         "geonode_db_passwd": os.environ.get('GEONODE_DATABASE_PASSWORD', 'geonode'),
         "geonode_geodb": os.environ.get('GEONODE_GEODATABASE', 'geonode_data'),
-        "db_url": os.environ.get('DATABASE_URL', 'postgres://geonode:geonode@db:5432/geonode'),
+        "db_url": os.environ.get('DATABASE_URL', 'postgis://geonode:geonode@db:5432/geonode'),
         "geodb_url": os.environ.get('GEODATABASE_URL', 'postgis://geonode:geonode@db:5432/geonode_data'),
         "geonode_db": os.environ.get('GEONODE_DATABASE', 'geonode'),
         "gs_loc": os.environ.get('GEOSERVER_LOCATION', 'http://geoserver:8080/geoserver/'),
@@ -317,7 +317,7 @@ def _update_db_connstring():
     user = os.getenv('GEONODE_DATABASE', 'geonode')
     pwd = os.getenv('GEONODE_DATABASE_PASSWORD', 'geonode')
     dbname = os.getenv('GEONODE_DATABASE', 'geonode')
-    connstr = 'postgres://{0}:{1}@db:5432/{2}'.format(
+    connstr = 'postgis://{0}:{1}@db:5432/{2}'.format(
         user,
         pwd,
         dbname
