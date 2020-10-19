@@ -39,8 +39,8 @@ RUN chmod +x /usr/src/{{project_name}}/tasks.py \
 
 # Prepraing dependencies
 RUN apt-get update && apt-get install -y devscripts build-essential debhelper pkg-kde-tools sharutils
-RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj
-RUN cd /tmp/proj && debuild -i -us -uc -b && dpkg -i ../*.deb
+# RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj
+# RUN cd /tmp/proj && debuild -i -us -uc -b && dpkg -i ../*.deb
 
 # Install pip packages
 RUN pip install pip --upgrade
