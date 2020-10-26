@@ -37,6 +37,9 @@ RUN chmod +x /usr/bin/wait-for-databases
 RUN chmod +x /usr/src/{{project_name}}/tasks.py \
     && chmod +x /usr/src/{{project_name}}/entrypoint.sh
 
+COPY celery.sh /usr/bin/celery-commands
+RUN chmod +x /usr/bin/celery-commands
+
 # Prepraing dependencies
 RUN apt-get update && apt-get install -y devscripts build-essential debhelper pkg-kde-tools sharutils
 # RUN git clone https://salsa.debian.org/debian-gis-team/proj.git /tmp/proj

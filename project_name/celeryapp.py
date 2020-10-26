@@ -33,6 +33,9 @@ app.config_from_object('django.conf:settings', namespace="CELERY")
 app.autodiscover_tasks()
 
 
-@app.task(bind=True)
+@app.task(
+    bind=True,
+    name='{{project_name}}.debug_task',
+    queue='default')
 def debug_task(self):
     print("Request: {!r}".format(self.request))

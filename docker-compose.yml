@@ -93,45 +93,8 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery -A geonode.celery_app:app beat -s celerybeat-schedule.db -l DEBUG -f /var/log/celery.log
+      CELERY_CMD: celery-commands
       IS_CELERY: 'True'
-
-  # - Uncomment to enable celery monitor
-  # celeryworker:
-  #   restart: unless-stopped
-  #   build: .
-  #   container_name: celeryworker4${COMPOSE_PROJECT_NAME}
-  #   stdin_open: true
-  #   # tty: true
-  #   labels:
-  #     org.geonode.component: celeryworker
-  #     org.geonode.instance.name: geonode
-  #   depends_on:
-  #     - db
-  #     - rabbitmq
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     CELERY_CMD: celery -A geonode.celery_app:app worker -l DEBUG -c 4 -P threads -f /var/log/celery.log
-  #     IS_CELERY: 'True'
-  #
-  # celerymonitor:
-  #   restart: unless-stopped
-  #   build: .
-  #   container_name: celerymonitor4${COMPOSE_PROJECT_NAME}
-  #   stdin_open: true
-  #   # tty: true
-  #   labels:
-  #     org.geonode.component: celerymonitor
-  #     org.geonode.instance.name: geonode
-  #   depends_on:
-  #     - db
-  #     - rabbitmq
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     CELERY_CMD: celery flower --auto_refresh=True --debug=False -A geonode.celery_app --broker=${BROKER_URL} --basic_auth=${ADMIN_USERNAME}:${ADMIN_PASSWORD} --address=0.0.0.0 --port=5555
-  #     IS_CELERY: 'True'
 
   geonode:
     image: geonode/nginx:geoserver
