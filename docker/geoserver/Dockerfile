@@ -11,7 +11,7 @@ ENV GEOSERVER_DATA_DIR="/geoserver_data/data"
 # Download and install GeoServer
 #
 RUN cd /usr/local/tomcat/webapps \
-    && wget --no-check-certificate --progress=bar:force:noscroll https://build.geo-solutions.it/geonode/geoserver/latest/geoserver-${GEOSERVER_VERSION}.war \
+    && wget --no-check-certificate --progress=bar:force:noscroll https://www.dropbox.com/s/bdl6p64cuh4xu33/geoserver-${GEOSERVER_VERSION}.war?dl=1 -O geoserver-${GEOSERVER_VERSION}.war \
     && unzip -q geoserver-${GEOSERVER_VERSION}.war -d geoserver \
     && rm geoserver-${GEOSERVER_VERSION}.war \
     && mkdir -p $GEOSERVER_DATA_DIR
@@ -28,8 +28,8 @@ RUN if [ "$JAI_IMAGEIO" = true ]; then \
     mv /tmp/marlin-0.9.3-Unsafe.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/ ; \
     fi
 
-RUN wget --no-check-certificate https://build.geo-solutions.it/geonode/geoserver/latest/postgis-jdbc-1.3.3/postgis-jdbc-1.3.3.jar && \
-    wget --no-check-certificate https://build.geo-solutions.it/geonode/geoserver/latest/hibernate-spatial-postgis-1.1.3.1/hibernate-spatial-postgis-1.1.3.1.jar && \
+RUN wget --no-check-certificate https://www.dropbox.com/s/psolxleimaft0t7/postgis-jdbc-1.3.3.jar?dl=1 -O postgis-jdbc-1.3.3.jar && \
+    wget --no-check-certificate https://www.dropbox.com/s/m9dpmfvp8p4iv2p/hibernate-spatial-postgis-1.1.3.1.jar?dl=1 -O hibernate-spatial-postgis-1.1.3.1.jar && \
     rm /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/hibernate-spatial-h2-geodb-1.1.3.1.jar && \
     mv hibernate-spatial-postgis-1.1.3.1.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/ && \
     mv postgis-jdbc-1.3.3.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/
