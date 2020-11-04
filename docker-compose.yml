@@ -93,7 +93,7 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery -A geonode.celery_app:app worker -B -E --statedb=worker.state --loglevel=INFO --concurrency=10 -n worker1@%h -f /var/log/celery.log
+      CELERY_CMD: celery -A geonode.celery_app:app worker -B -E --statedb=/mnt/volumes/statics/worker.state --loglevel=INFO --concurrency=10 -n worker1@%h -f /var/log/celery.log
       IS_CELERY: 'True'
 
   geonode:

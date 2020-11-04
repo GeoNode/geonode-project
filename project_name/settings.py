@@ -19,8 +19,9 @@
 #########################################################################
 
 # Django settings for the GeoNode project.
-import ast
 import os
+import ast
+
 try:
     from urllib.parse import urlparse, urlunparse
     from urllib.request import urlopen, Request
