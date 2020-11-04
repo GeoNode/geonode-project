@@ -155,7 +155,7 @@ def setup_geoserver(options):
         return
     if on_travis and not options.get('force_exec', False):
         """Will make use of the docker container for the Integration Tests"""
-        pass
+        return
     else:
         download_dir = path('downloaded')
         if not download_dir.exists():
@@ -615,33 +615,15 @@ def start_django(options):
     foreground = '' if options.get('foreground', False) else '&'
     sh('%s python -W ignore manage.py runserver %s %s' % (settings, bind, foreground))
 
-    celery_queues = [
-        "default",
-        "geonode",
-        "cleanup",
-        "update",
-        "email",
-        # Those queues are directly managed by messages.consumer
-        # "broadcast",
-        # "email.events",
-        # "all.geoserver",
-        # "geoserver.events",
-        # "geoserver.data",
-        # "geoserver.catalog",
-        # "notifications.events",
-        # "geonode.layer.viewer"
-    ]
     if 'django_celery_beat' not in INSTALLED_APPS:
-        sh("{} celery -A geonode.celery_app:app worker --statedb=worker.state -Q {} -B -E -l INFO {}".format(
+        sh("{} celery -A geonode.celery_app:app worker -B -E --statedb=worker.state --loglevel=INFO --concurrency=10 -n worker1@%h {}".format(
             settings,
-            ",".join(celery_queues),
             foreground
         ))
     else:
-        sh("{} celery -A geonode.celery_app:app worker -Q {} -B -E -l INFO {} {}".format(
+        sh("{} celery -A geonode.celery_app:app worker -l DEBUG {} {}".format(
             settings,
-            ",".join(celery_queues),
-            "--scheduler django_celery_beat.schedulers:DatabaseScheduler",
+            "-s django_celery_beat.schedulers:DatabaseScheduler",
             foreground
         ))
 
@@ -1216,8 +1198,6 @@ def kill(arg1, arg2):
 
         # Give it a little more time
         time.sleep(1)
-    else:
-        pass
 
     if running:
         raise Exception('Could not stop %s: '
