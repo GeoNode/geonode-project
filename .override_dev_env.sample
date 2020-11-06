@@ -74,7 +74,6 @@ export CACHE_BUSTING_MEDIA_ENABLED=False
 export MAX_DOCUMENT_SIZE=2
 export CLIENT_RESULTS_LIMIT=5
 export API_LIMIT_PER_PAGE=1000
-export ALLOWED_DOCUMENT_TYPES="['doc', 'docx', 'gif', 'jpg', 'jpeg', 'ods', 'odt', 'odp', 'pdf', 'png','ppt', 'pptx', 'rar', 'sld', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'gz', 'qml']"
 
 export GEONODE_CLIENT_LAYER_PREVIEW_LIBRARY=mapstore
 export MAPBOX_ACCESS_TOKEN=
