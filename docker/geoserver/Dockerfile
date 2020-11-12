@@ -87,14 +87,12 @@ COPY requirements.txt /usr/local/tomcat/tmp
 COPY get_dockerhost_ip.py /usr/local/tomcat/tmp
 COPY get_nginxhost_ip.py /usr/local/tomcat/tmp
 COPY entrypoint.sh /usr/local/tomcat/tmp
-COPY datasource-ovr.properties /usr/local/tomcat/tmp
+COPY ./templates /templates
 COPY multidump.sh /usr/local/tomcat/tmp
 COPY multidump-alt.sh /usr/local/tomcat/tmp
 
 RUN apt-get update \
-    && apt-get -y upgrade \
-    && apt-get install -y openjdk-8-jdk \
-    && apt-get install -y python3 python3-pip python3-dev \
+    && apt-get install -y openjdk-8-jdk python3 python3-pip python3-dev \
     && chmod +x /usr/local/tomcat/tmp/set_geoserver_auth.sh \
     && chmod +x /usr/local/tomcat/tmp/setup_auth.sh \
     && chmod +x /usr/local/tomcat/tmp/entrypoint.sh \
@@ -102,6 +100,8 @@ RUN apt-get update \
     && pip3 install -r requirements.txt \
     && chmod +x /usr/local/tomcat/tmp/get_dockerhost_ip.py \
     && chmod +x /usr/local/tomcat/tmp/get_nginxhost_ip.py
+
+RUN pip install j2cli
 
 ENV JAVA_OPTS="-Djava.awt.headless=true -XX:+UnlockDiagnosticVMOptions -XX:+LogVMOutput -XX:LogFile=/var/log/jvm.log -XX:MaxPermSize=512m -XX:PermSize=256m -Xms512m -Xmx2048m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -Duser.timezone=GMT -Dorg.geotools.shapefile.datetime=false -DGEOSERVER_CSRF_DISABLED=true -DPRINT_BASE_URL=http://geoserver:8080/geoserver/pdf -Xbootclasspath/a:/usr/local/tomcat/webapps/geoserver/WEB-INF/lib/marlin-0.9.3-Unsafe.jar -Dsun.java2d.renderer=org.marlin.pisces.MarlinRenderingEngine"
 
