@@ -99,8 +99,20 @@ sed -i -e 's/localhost/rabbitmq/g' ${GEOSERVER_DATA_DIR}/notifier/notifier.xml
 # exclude wrong dependencies
 sed -i -e 's/xom-\*\.jar/xom-\*\.jar,bcprov\*\.jar/g' /usr/local/tomcat/conf/catalina.properties
 
-# enable geofence-datasource to Postgis
-cp /usr/local/tomcat/tmp/datasource-ovr.properties ${GEOSERVER_DATA_DIR}/geofence/geofence-datasource-ovr.properties
+# J2 templating for this docker image we should also do it for other configuration files in /usr/local/tomcat/tmp
+
+declare -a geoserver_datadir_template_dirs=("geofence")
+
+for template in in ${geoserver_datadir_template_dirs[*]}; do
+    if [ "$template" == "geofence" ]; then
+      cp -R /templates/$template/* ${GEOSERVER_DATA_DIR}/geofence
+    fi
+    for f in $(find ${GEOSERVER_DATA_DIR}/geofence/ -type f -name "*.j2"); do
+        echo -e "Evaluating template\n\tSource: $f\n\tDest: ${f%.j2}"
+        j2 $f > ${f%.j2}
+        rm -f $f
+    done
+done
 
 # start tomcat
 exec env JAVA_OPTS="${JAVA_OPTS}" catalina.sh run
