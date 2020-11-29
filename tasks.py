@@ -210,6 +210,21 @@ def prepare(ctx):
             client_secret=os.environ['OAUTH2_CLIENT_SECRET'],
             oauth_config=oauth_config
         ), pty=True)
+    ctx.run(
+        'sed -i "s|<userAuthorizationUri>.*</userAuthorizationUri>|<userAuthorizationUri>{new_ext_ip}o/authorize/</userAuthorizationUri>|g" {oauth_config}'.format(
+            new_ext_ip=os.environ['SITEURL'],
+            oauth_config=oauth_config
+        ), pty=True)
+    ctx.run(
+        'sed -i "s|<redirectUri>.*</redirectUri>|<redirectUri>{new_ext_ip}geoserver/index.html</redirectUri>|g" {oauth_config}'.format(
+            new_ext_ip=os.environ['SITEURL'],
+            oauth_config=oauth_config
+        ), pty=True)
+    ctx.run(
+        'sed -i "s|<logoutUri>.*</logoutUri>|<logoutUri>{new_ext_ip}account/logout/</logoutUri>|g" {oauth_config}'.format(
+            new_ext_ip=os.environ['SITEURL'],
+            oauth_config=oauth_config
+        ), pty=True)
 
 
 @task
