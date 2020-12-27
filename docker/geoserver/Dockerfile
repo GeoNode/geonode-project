@@ -92,6 +92,7 @@ COPY multidump.sh /usr/local/tomcat/tmp
 COPY multidump-alt.sh /usr/local/tomcat/tmp
 
 RUN apt-get update \
+    && apt-get install -y procps less \
     && apt-get install -y openjdk-8-jdk python3 python3-pip python3-dev \
     && chmod +x /usr/local/tomcat/tmp/set_geoserver_auth.sh \
     && chmod +x /usr/local/tomcat/tmp/setup_auth.sh \
