@@ -1,2 +1,2 @@
--e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client
--e git+https://github.com/GeoNode/geonode.git@master#egg=GeoNode
+-e git+https://github.com/GeoNode/geonode-mapstore-client.git@2.1.x#egg=django_geonode_mapstore_client
+-e git+https://github.com/GeoNode/geonode.git@3.2.x#egg=GeoNode
