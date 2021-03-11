@@ -31,7 +31,7 @@ services:
       - /geoserver_data/data
 
   postgis:
-    image: geonode/postgis
+    image: geonode/postgis:13
     ports:
       - "25432:5432"
     volumes:
