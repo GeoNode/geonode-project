@@ -1,6 +1,5 @@
 version: '2.2'
 services:
-
   db:
     image: geonode/postgis:13
     restart: unless-stopped
@@ -76,7 +75,8 @@ services:
 
   celery:
     restart: unless-stopped
-    build: .
+    #build: .
+    image: ${COMPOSE_PROJECT_NAME}_django:latest
     container_name: celery4${COMPOSE_PROJECT_NAME}
     stdin_open: true
     # tty: true
@@ -84,6 +84,7 @@ services:
       org.geonode.component: celery
       org.geonode.instance.name: geonode
     depends_on:
+      - django
       - db
       - rabbitmq
       - data-dir-conf
@@ -96,7 +97,7 @@ services:
     env_file:
       - .env
     environment:
-      CELERY_CMD: celery -A geonode.celery_app:app worker --without-gossip --without-mingle -Ofair -B -E --statedb=/mnt/volumes/statics/worker.state -s /mnt/volumes/statics/celerybeat-schedule --loglevel=INFO --concurrency=10 -n worker1@%h -f /var/log/celery.log
+      CELERY_CMD: celery-cmd
       IS_CELERY: 'True'
 
   geonode:
@@ -109,9 +110,9 @@ services:
     labels:
         org.geonode.component: nginx
         org.geonode.instance.name: geonode
-    depends_on:
-      - django
-      - geoserver
+    # depends_on:
+    #   - django
+    #   - geoserver
     ports:
       - "80:80"
       - "443:443"
