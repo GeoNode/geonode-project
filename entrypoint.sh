@@ -3,6 +3,17 @@
 # Exit script in case of error
 set -e
 
+INVOKE_LOG_STDOUT=${INVOKE_LOG_STDOUT:-FALSE}
+invoke () {
+    if [ $INVOKE_LOG_STDOUT = 'true' ] || [ $INVOKE_LOG_STDOUT = 'True' ]
+    then
+        /usr/local/bin/invoke $@
+    else
+        /usr/local/bin/invoke $@ > /usr/src/{{project_name}}/invoke.log 2>&1
+    fi
+    echo "$@ tasks done"
+}
+
 # Start cron && memcached services
 service cron restart
 service memcached restart
@@ -12,10 +23,11 @@ echo "-----------------------------------------------------"
 echo "STARTING DJANGO ENTRYPOINT $(date)"
 echo "-----------------------------------------------------"
 
-/usr/local/bin/invoke update > /usr/src/{{project_name}}/invoke.log 2>&1
+invoke update
 
 source $HOME/.bashrc
 source $HOME/.override_env
+
 
 echo DOCKER_API_VERSION=$DOCKER_API_VERSION
 echo POSTGRES_USER=$POSTGRES_USER
@@ -30,12 +42,9 @@ echo MONITORING_HOST_NAME=$MONITORING_HOST_NAME
 echo MONITORING_SERVICE_NAME=$MONITORING_SERVICE_NAME
 echo MONITORING_DATA_TTL=$MONITORING_DATA_TTL
 
-/usr/local/bin/invoke waitfordbs > /usr/src/{{project_name}}/invoke.log 2>&1
-echo "waitfordbs task done"
+invoke waitfordbs
 
-echo "running migrations"
-/usr/local/bin/invoke migrations > /usr/src/{{project_name}}/invoke.log 2>&1
-echo "migrations task done"
+invoke migrations
 
 cmd="$@"
 
@@ -51,29 +60,19 @@ else
         echo "Executing Celery server $cmd for Production"
     else
 
-        /usr/local/bin/invoke prepare > /usr/src/{{project_name}}/invoke.log 2>&1
-        echo "prepare task done"
+        invoke prepare
 
         if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
-            /usr/local/bin/invoke updategeoip > /usr/src/{{project_name}}/invoke.log 2>&1
-            echo "updategeoip task done"
-            /usr/local/bin/invoke fixtures > /usr/src/{{project_name}}/invoke.log 2>&1
-            echo "fixture task done"
-            /usr/local/bin/invoke monitoringfixture > /usr/src/{{project_name}}/invoke.log 2>&1
-            echo "monitoringfixture task done"
-            /usr/local/bin/invoke initialized > /usr/src/{{project_name}}/invoke.log 2>&1
-            echo "initialized"
+            invoke updategeoip
+            invoke fixtures
+            invoke monitoringfixture
+            invoke initialized
         fi
 
-        echo "refresh static data"
-        /usr/local/bin/invoke statics > /usr/src/{{project_name}}/invoke.log 2>&1
-        echo "static data refreshed"
-        /usr/local/bin/invoke waitforgeoserver > /usr/src/{{project_name}}/invoke.log 2>&1
-        echo "waitforgeoserver task done"
-        /usr/local/bin/invoke geoserverfixture > /usr/src/{{project_name}}/invoke.log 2>&1
-        echo "geoserverfixture task done"
-        /usr/local/bin/invoke updateadmin > /usr/src/{{project_name}}/invoke.log 2>&1
-        echo "updateadmin task done"
+        invoke statics
+        invoke waitforgeoserver
+        invoke geoserverfixture
+        invoke updateadmin
 
         cmd=$UWSGI_CMD
         echo "Executing UWSGI server $cmd for Production"
