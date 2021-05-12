@@ -73,4 +73,8 @@ RUN cd /usr/src; git clone https://github.com/GeoNode/geonode-contribs.git -b ma
 RUN cd /usr/src/geonode-contribs/geonode-logstash; pip install --upgrade  -e . \
     cd /usr/src/geonode-contribs/ldap; pip install --upgrade  -e .
 
-ENTRYPOINT /usr/src/{{project_name}}/entrypoint.sh
+# Export ports
+EXPOSE 8000
+
+# We provide no command or entrypoint as this image can be used to serve the django project or run celery tasks
+# ENTRYPOINT /usr/src/{{project_name}}/entrypoint.sh

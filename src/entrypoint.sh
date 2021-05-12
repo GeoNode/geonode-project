@@ -28,7 +28,6 @@ invoke update
 source $HOME/.bashrc
 source $HOME/.override_env
 
-
 echo DOCKER_API_VERSION=$DOCKER_API_VERSION
 echo POSTGRES_USER=$POSTGRES_USER
 echo POSTGRES_PASSWORD=$POSTGRES_PASSWORD
@@ -52,11 +51,27 @@ echo DOCKER_ENV=$DOCKER_ENV
 
 if [ -z ${DOCKER_ENV} ] || [ ${DOCKER_ENV} = "development" ]
 then
-    echo "Executing standard Django server $cmd for Development"
+
+    invoke prepare
+    invoke fixtures
+
+    if [ ${IS_CELERY} = "true" ] || [ ${IS_CELERY} = "True" ]
+    then
+
+        echo "Executing Celery server $cmd for Development"
+
+    else
+
+        invoke devrequirements
+        invoke statics
+
+        echo "Executing standard Django server $cmd for Development"
+
+    fi
+
 else
     if [ ${IS_CELERY} = "true" ]  || [ ${IS_CELERY} = "True" ]
     then
-        cmd=$CELERY_CMD
         echo "Executing Celery server $cmd for Production"
     else
 
@@ -74,7 +89,6 @@ else
         invoke geoserverfixture
         invoke updateadmin
 
-        cmd=$UWSGI_CMD
         echo "Executing UWSGI server $cmd for Production"
     fi
 fi
