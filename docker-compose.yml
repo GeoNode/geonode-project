@@ -50,7 +50,7 @@ services:
 
   django:
     restart: unless-stopped
-    build: .
+    build: ./src
     container_name: django4${COMPOSE_PROJECT_NAME}
     stdin_open: true
     # tty: true
@@ -75,7 +75,7 @@ services:
 
   celery:
     restart: unless-stopped
-    #build: .
+    #build: ./src
     image: ${COMPOSE_PROJECT_NAME}_django:latest
     container_name: celery4${COMPOSE_PROJECT_NAME}
     stdin_open: true
