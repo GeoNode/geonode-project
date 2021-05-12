@@ -47,21 +47,21 @@ RUN pip install pylibmc \
 COPY src /usr/src/{{project_name}}/
 WORKDIR /usr/src/{{project_name}}
 
-COPY monitoring-cron /etc/cron.d/monitoring-cron
+COPY src/monitoring-cron /etc/cron.d/monitoring-cron
 RUN chmod 0644 /etc/cron.d/monitoring-cron
 RUN crontab /etc/cron.d/monitoring-cron
 RUN touch /var/log/cron.log
 RUN service cron start
 
-COPY wait-for-databases.sh /usr/bin/wait-for-databases
+COPY src/wait-for-databases.sh /usr/bin/wait-for-databases
 RUN chmod +x /usr/bin/wait-for-databases
 RUN chmod +x /usr/src/{{project_name}}/tasks.py \
     && chmod +x /usr/src/{{project_name}}/entrypoint.sh
 
-COPY celery.sh /usr/bin/celery-commands
+COPY src/celery.sh /usr/bin/celery-commands
 RUN chmod +x /usr/bin/celery-commands
 
-COPY celery-cmd /usr/bin/celery-cmd
+COPY src/celery-cmd /usr/bin/celery-cmd
 RUN chmod +x /usr/bin/celery-cmd
 
 RUN pip install --upgrade --no-cache-dir  --src /usr/src -r requirements.txt
