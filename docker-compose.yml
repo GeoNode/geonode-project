@@ -9,7 +9,7 @@ x-common-django:
   env_file:
     - .env
   volumes:
-    # - '.:/usr/src/geonode'
+    # - '.:/usr/src/{{project_name}}'
     - statics:/mnt/volumes/statics
     - geoserver-data-dir:/geoserver_data/data
     - backup-restore:/backup_restore
@@ -33,7 +33,7 @@ services:
       start_period: 60s
     environment:
       - IS_CELERY=False
-    entrypoint: ["/usr/src/geonode/entrypoint.sh"]
+    entrypoint: ["/usr/src/{{project_name}}/entrypoint.sh"]
     command: "uwsgi --ini /usr/src/{{project_name}}/uwsgi.ini"
 
   # Celery worker that executes celery tasks created by Django.
