@@ -4,7 +4,7 @@ services:
 # Common Django template for GeoNode and Celery services below
 x-common-django:
   &default-common-django
-  image: geonode/geonode:latest
+  image: ${COMPOSE_PROJECT_NAME}_django:latest
   restart: on-failure
   env_file:
     - .env
@@ -22,7 +22,7 @@ services:
   django:
     << : *default-common-django
     build:
-      context: ./src
+      context: ./
       dockerfile: Dockerfile
     container_name: django4${COMPOSE_PROJECT_NAME}
     healthcheck:
