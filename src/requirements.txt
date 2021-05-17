@@ -1,2 +1,3 @@
 -e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client
+-e git+https://github.com/GeoNode/dynamic-rest.git@v2.0.1#egg=dynamic-rest
 -e git+https://github.com/GeoNode/geonode.git@master#egg=GeoNode
