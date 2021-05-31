@@ -43,8 +43,6 @@ echo MONITORING_DATA_TTL=$MONITORING_DATA_TTL
 
 invoke waitfordbs
 
-invoke migrations
-
 cmd="$@"
 
 echo DOCKER_ENV=$DOCKER_ENV
@@ -52,6 +50,7 @@ echo DOCKER_ENV=$DOCKER_ENV
 if [ -z ${DOCKER_ENV} ] || [ ${DOCKER_ENV} = "development" ]
 then
 
+    invoke migrations
     invoke prepare
     invoke fixtures
 
@@ -75,6 +74,7 @@ else
         echo "Executing Celery server $cmd for Production"
     else
 
+        invoke migrations
         invoke prepare
 
         if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
