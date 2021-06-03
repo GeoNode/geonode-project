@@ -56,6 +56,39 @@ WSGI_APPLICATION = "{}.wsgi.application".format(PROJECT_NAME)
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = os.getenv('LANGUAGE_CODE', "en")
 
+# Add Keycloak as an Identity provider
+# Instructions as per: https://github.com/GeoNode/geonode-contribs/blob/master/django-geonode-keycloak/README.md
+if os.getenv('KEYCLOAK_URL', None):
+    # Add All Auth dependencies for Keycloak
+    ## https://github.com/GeoNode/geonode-contribs/blob/master/django-geonode-keycloak/README.md#django-allauth
+    ## Following: https://number1.co.za/using-keycloak-as-the-identity-provider-for-users-on-django-and-django-admin/
+    INSTALLED_APPS += (
+      'allauth.socialaccount.providers.keycloak',
+    )
+
+    SOCIALACCOUNT_PROVIDERS = {
+      'keycloak': {
+        'KEYCLOAK_URL': os.getenv('KEYCLOAK_URL', None),
+        'KEYCLOAK_REALM': os.getenv('KEYCLOAK_REALM', None)
+      }
+    }
+
+if os.getenv('KEYCLOAK_CLIENT', None)
+    # Add keycloakrole app for user and role synchronization
+    ## From https://github.com/GeoNode/geonode-contribs/blob/master/django-geonode-keycloak/README.md#-settingspy
+    INSTALLED_APPS += (
+        'keycloakrole',
+    )
+    # Keycloak client data
+    KEYCLOAK_CLIENT = os.getenv('KEYCLOAK_CLIENT', None)
+    KEYCLOAK_PUB_CLIENT = os.getenv('KEYCLOAK_PUB_CLIENT', None)
+    KEYCLOAK_CLIENT_ID = os.getenv('KEYCLOAK_CLIENT_ID', None)
+    KEYCLOAK_CLIENT_SECRET = os.getenv('KEYCLOAK_CLIENT_SECRET', None)
+    KEYCLOAK_GRANT_TYPE = 'client_credentials'
+    KEYCLOAK_SCOPE = 'openid roles'
+    KEYCLOAK_REALM =  os.getenv('KEYCLOAK_REALM', None)
+    KEYCLOAK_HOST_URL = os.getenv('KEYCLOAK_HOST_URL', None)
+
 if PROJECT_NAME not in INSTALLED_APPS:
     INSTALLED_APPS += (PROJECT_NAME,)
 

@@ -36,3 +36,9 @@ urlpatterns = [
         homepage,
         name='home'),
  ] + urlpatterns
+
+# FROM https://github.com/GeoNode/geonode-contribs/blob/master/django-geonode-keycloak/README.md#-urlpy
+if os.getenv('KEYCLOAK_CLIENT', None):
+    urlpatterns = [
+        url(r'^keycloakrole/', include('keycloakrole.urls', namespace='keycloakrole')),
+    ] + urlpatterns
