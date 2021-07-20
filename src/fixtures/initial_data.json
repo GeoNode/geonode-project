@@ -4853,7 +4853,6 @@
             "name": "TOPBAR_MENU"
         }
     },
-    ,
     {
         "model": "base.menuplaceholder",
         "pk": 2,
