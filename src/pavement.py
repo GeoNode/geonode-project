@@ -609,29 +609,23 @@ def start_django(options):
     """
     settings = options.get('settings', '')
     if settings and 'DJANGO_SETTINGS_MODULE' not in settings:
-        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
+        settings = f'DJANGO_SETTINGS_MODULE={settings}'
     bind = options.get('bind', '0.0.0.0:8000')
     port = bind.split(":")[1]
     foreground = '' if options.get('foreground', False) else '&'
-    sh('%s python -W ignore manage.py runserver %s %s' % (settings, bind, foreground))
-
-    if 'django_celery_beat' not in INSTALLED_APPS:
-        sh("{} celery -A geonode.celery_app:app worker --without-gossip --without-mingle -Ofair -B -E --statedb=worker.state -s celerybeat-schedule --loglevel=INFO --concurrency=10 -n worker1@%h {}".format(
-            settings,
-            foreground
-        ))
-    else:
-        sh("{} celery -A geonode.celery_app:app worker -l DEBUG {} {}".format(
-            settings,
-            "-s django_celery_beat.schedulers:DatabaseScheduler",
-            foreground
-        ))
+    sh(f'{settings} python -W ignore manage.py runserver {bind} {foreground}')
 
     if ASYNC_SIGNALS:
-        sh('%s python -W ignore manage.py runmessaging %s' % (settings, foreground))
+        scheduler = '--statedb=worker.state -s celerybeat-schedule'
+        if 'django_celery_beat' in INSTALLED_APPS:
+            scheduler = '-s django_celery_beat.schedulers:DatabaseScheduler'
+        sh(f"{settings} celery -A geonode.celery_app:app worker --without-gossip --without-mingle -Ofair -B -E \
+            {scheduler} --loglevel=DEBUG \
+            --concurrency=2 -n worker1@%h -f celery.log {foreground}")
+        sh(f'{settings} python -W ignore manage.py runmessaging {foreground}')
 
     # wait for Django to start
-    started = waitfor("http://localhost:" + port)
+    started = waitfor(f"http://localhost:{port}")
     if not started:
         info('Django never started properly or timed out.')
         sys.exit(1)
