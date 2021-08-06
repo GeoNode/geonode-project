@@ -240,9 +240,9 @@ def fixtures(ctx):
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("python manage.py loaddata /usr/src/{{project_name}}/fixtures/initial_data.json \
 --settings={0}".format(_localsettings()), pty=True)
-    ctx.run("python manage.py set_all_layers_alternate \
+    ctx.run("python manage.py set_all_datasets_alternate \
 --settings={0}".format(_localsettings()), pty=True)
-#     ctx.run("python manage.py set_all_layers_metadata -d \
+#     ctx.run("python manage.py set_all_datasets_metadata -d \
 # --settings={0}".format(_localsettings()), pty=True)
 
 
