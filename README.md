@@ -38,7 +38,8 @@ To setup your project using a local python virtual environment, follow these ins
 
     ```bash
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
-    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    export VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+    source $(whereis virtualenvwrapper.sh | cut -f 2 -d " ")
     mkvirtualenv --python=/usr/bin/python3 {{ project_name }}
     pip install Django==2.2.12
 
@@ -88,7 +89,8 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
     ```bash
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
-    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    export VIRTUALENVWRAPPER_PYTHON='/usr/bin/python3'
+    source $(whereis virtualenvwrapper.sh | cut -f 2 -d " ")
     mkvirtualenv --python=/usr/bin/python3 {{ project_name }}
     pip install Django==2.2.15
 
