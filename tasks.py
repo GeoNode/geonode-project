@@ -95,7 +95,7 @@ def update(ctx):
         "static_root": os.environ.get('STATIC_ROOT', '/mnt/volumes/statics/static/'),
         "media_root": os.environ.get('MEDIA_ROOT', '/mnt/volumes/statics/uploaded/'),
         "geoip_path": os.environ.get('GEOIP_PATH', '/mnt/volumes/statics/geoip.db'),
-        "monitoring": os.environ.get('MONITORING_ENABLED', True),
+        "monitoring": os.environ.get('MONITORING_ENABLED', False),
         "monitoring_host_name": os.environ.get('MONITORING_HOST_NAME', 'geonode'),
         "monitoring_service_name": os.environ.get('MONITORING_SERVICE_NAME', 'local-geonode'),
         "monitoring_data_ttl": os.environ.get('MONITORING_DATA_TTL', 7),
@@ -186,8 +186,9 @@ def update(ctx):
 def migrations(ctx):
     print("**************************migrations*******************************")
     ctx.run(f"python manage.py migrate --noinput --settings={_localsettings()}", pty=True)
-    ctx.run(f"python manage.py updategeoip --settings={_localsettings()}", pty=True)
     try:
+        if os.environ.get('MONITORING_ENABLED', False):
+            ctx.run(f"python manage.py updategeoip --settings={_localsettings()}", pty=True)
         ctx.run(f"python manage.py rebuild_index --noinput --settings={_localsettings()}", pty=True)
     except Exception:
         pass
@@ -274,8 +275,8 @@ def monitoringfixture(ctx):
 @task
 def updategeoip(ctx):
     print("**************************update geoip*******************************")
-    ctx.run(f"django-admin.py updategeoip \
---settings={_localsettings()}", pty=True)
+    if os.environ.get('MONITORING_ENABLED', False):
+        ctx.run(f"django-admin.py updategeoip --settings={_localsettings()}", pty=True)
 
 
 @task
