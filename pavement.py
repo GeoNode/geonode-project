@@ -327,7 +327,9 @@ def static(options):
 def setup(options):
     """Get dependencies and prepare a GeoNode development environment."""
 
-    updategeoip(options)
+    if MONITORING_ENABLED:
+        updategeoip(options)
+
     info(('GeoNode development environment successfully set up.'
           'If you have not set up an administrative account,'
           ' please do so now. Use "paver start" to start up the server.'))
@@ -405,11 +407,12 @@ def updategeoip(options):
     """
     Update geoip db
     """
-    settings = options.get('settings', '')
-    if settings and 'DJANGO_SETTINGS_MODULE' not in settings:
-        settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
+    if MONITORING_ENABLED:
+        settings = options.get('settings', '')
+        if settings and 'DJANGO_SETTINGS_MODULE' not in settings:
+            settings = 'DJANGO_SETTINGS_MODULE=%s' % settings
 
-    sh("%s python -W ignore manage.py updategeoip -o" % settings)
+        sh("%s python -W ignore manage.py updategeoip -o" % settings)
 
 
 @task
