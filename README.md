@@ -225,3 +225,14 @@ You may want to configure your requirements.txt, if you are using additional or 
 Django==3.2
 git+git://github.com/<your organization>/geonode.git@<your branch>
 ```
+
+## Increasing PostgreSQL Max connections
+
+In case you need to increase the PostgreSQL Max Connections , you can modify
+the **POSTGRESQL_MAX_CONNECTIONS** variable in **.env** file as below:
+
+```
+POSTGRESQL_MAX_CONNECTIONS=200
+```
+
+In this case PostgreSQL will run accepting 200 maximum connections.
