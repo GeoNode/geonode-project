@@ -24,7 +24,7 @@ Available at
 
 ## Create a custom project
 
-**NOTE**: *You can call your geonode project whatever you like following the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``{{ project_name }}`` with whatever you would like to name your project.*
+**NOTE**: *You can call your geonode project whatever you like **except 'geonode'**. Follow the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``{{ project_name }}`` with whatever you would like to name your project.*
 
 ### Using a Python virtual environment
 
