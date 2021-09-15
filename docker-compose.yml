@@ -85,7 +85,7 @@ services:
 
   # Geoserver backend
   geoserver:
-    image: geonode/geoserver:2.18.2
+    image: geonode/geoserver:2.19.x
     build: ./docker/geoserver/
     container_name: geoserver4${COMPOSE_PROJECT_NAME}
     healthcheck:
@@ -105,7 +105,7 @@ services:
     restart: on-failure
 
   data-dir-conf:
-    image: geonode/geoserver_data:2.18.2
+    image: geonode/geoserver_data:2.19.x
     container_name: gsconf4${COMPOSE_PROJECT_NAME}
     command: /bin/true
     volumes:
