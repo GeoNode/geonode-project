@@ -21,13 +21,6 @@ VOLUME $GEOSERVER_DATA_DIR
 # added by simonelanucara https://github.com/simonelanucara
 # Optionally add JAI, ImageIO and Marlin Render for improved Geoserver performance
 WORKDIR /tmp
- 
-# ARG JAI_IMAGEIO=true
-# RUN if [ "$JAI_IMAGEIO" = true ]; then \
-#     # marlin plugin
-#     wget https://github.com/bourgesl/marlin-renderer/releases/download/v0_9_3/marlin-0.9.3-Unsafe.jar && \
-#     mv /tmp/marlin-0.9.3-Unsafe.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/ ; \
-#     fi
 
 RUN wget --no-check-certificate https://repo1.maven.org/maven2/org/postgis/postgis-jdbc/1.3.3/postgis-jdbc-1.3.3.jar -O postgis-jdbc-1.3.3.jar && \
     wget --no-check-certificate https://maven.geo-solutions.it/org/hibernatespatial/hibernate-spatial-postgis/1.1.3.2/hibernate-spatial-postgis-1.1.3.2.jar -O hibernate-spatial-postgis-1.1.3.2.jar && \
