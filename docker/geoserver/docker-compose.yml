@@ -3,7 +3,7 @@ version: '2.2'
 services:
 
   geoserver:
-    image: geonode/geoserver:2.18.2
+    image: geonode/geoserver:2.19.x
     build:
       context: .
       args:
@@ -24,7 +24,7 @@ services:
       - DJANGO_URL=http://localhost/
 
   data_dir_conf:
-    image: geonode/geoserver_data:2.18.2
+    image: geonode/geoserver_data:2.19.x
     container_name: geoserver_data_dir # named data container
     command: /bin/true
     volumes:
