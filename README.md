@@ -28,10 +28,12 @@ Available at
 ### Set Environment Variables
 Create a .env file using the available .env_sample
 
-Generate a SECRET_KEY with
-```
-python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
-```
+Assign values to the following variables in the .env:
+- OAUTH2_CLIENT_ID
+- OAUTH2_CLIENT_SECRET
+- SECRET_KEY
+- DEFAULT_FROM_EMAIL
+
 ### Using a Python virtual environment
 
 **NOTE**: *Skip this part if you want to run the project using Docker instead*
