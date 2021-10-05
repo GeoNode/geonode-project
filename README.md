@@ -31,7 +31,7 @@ Create a .env file using the available .env_sample
 Assign values to the following variables in the .env:
 - OAUTH2_CLIENT_ID
 - OAUTH2_CLIENT_SECRET
-- SECRET_KEY
+- SECRET_KEY (a random one will be generated at project creation)
 - DEFAULT_FROM_EMAIL
 
 ### Using a Python virtual environment
