@@ -25,6 +25,14 @@ Available at
 ## Create a custom project
 
 **NOTE**: *You can call your geonode project whatever you like **except 'geonode'**. Follow the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``{{ project_name }}`` with whatever you would like to name your project.*
+### Set Environment Variables
+Create a .env file using the available .env_sample
+
+Assign values to the following variables in the .env:
+- OAUTH2_CLIENT_ID
+- OAUTH2_CLIENT_SECRET
+- SECRET_KEY (a random one will be generated at project creation)
+- DEFAULT_FROM_EMAIL
 
 ### Using a Python virtual environment
 
