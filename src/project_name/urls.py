@@ -18,9 +18,6 @@
 #
 #########################################################################
 
-from django.conf.urls import url, include
-from django.views.generic import TemplateView
-
 from geonode.urls import urlpatterns
 
 '''
