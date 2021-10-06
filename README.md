@@ -25,14 +25,6 @@ Available at
 ## Create a custom project
 
 **NOTE**: *You can call your geonode project whatever you like **except 'geonode'**. Follow the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``{{ project_name }}`` with whatever you would like to name your project.*
-### Set Environment Variables
-Create a .env file using the available .env_sample
-
-Assign values to the following variables in the .env:
-- OAUTH2_CLIENT_ID
-- OAUTH2_CLIENT_SECRET
-- SECRET_KEY (a random one will be generated at project creation)
-- DEFAULT_FROM_EMAIL
 ### Using a Python virtual environment
 
 **NOTE**: *Skip this part if you want to run the project using Docker instead*
@@ -78,8 +70,16 @@ To setup your project using a local python virtual environment, follow these ins
     ./paver_dev.sh sync
     ./paver_dev.sh start
     ```
+3. Set Environment Variables
+    Create a .env file using the available .env.sample
 
-3. Access GeoNode from browser
+    Assign values to the following variables in the .env:
+    - OAUTH2_CLIENT_ID
+    - OAUTH2_CLIENT_SECRET
+    - SECRET_KEY (a random one will be generated at project creation)
+    - DEFAULT_FROM_EMAIL
+
+4. Access GeoNode from browser
 
     **NOTE**: default admin user is ``admin`` (with pw: ``admin``)
 
@@ -103,8 +103,16 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
     cd {{ project_name }}
     ```
+2. Set Environment Variables
+    Create a .env file using the available .env.sample
 
-2. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
+    Assign values to the following variables in the .env:
+    - OAUTH2_CLIENT_ID
+    - OAUTH2_CLIENT_SECRET
+    - SECRET_KEY (a random one will be generated at project creation)
+    - DEFAULT_FROM_EMAIL
+
+3. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
 
     ```bash
     docker-compose build --no-cache
@@ -117,7 +125,7 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
     before running `docker-compose up`
 
-3. Access the site on http://localhost/
+4. Access the site on http://localhost/
 
 ## Run the instance in development mode
 
