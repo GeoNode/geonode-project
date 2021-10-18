@@ -5,7 +5,7 @@ services:
 x-common-django:
   &default-common-django
   image: ${COMPOSE_PROJECT_NAME}_django:latest
-  restart: on-failure
+  restart: unless-stopped
   env_file:
     - .env
   volumes:
@@ -67,7 +67,7 @@ services:
       - nginx-confd:/etc/nginx
       - nginx-certificates:/geonode-certificates
       - statics:/mnt/volumes/statics
-    restart: on-failure
+    restart: unless-stopped
 
   # Gets and installs letsencrypt certificates
   letsencrypt:
@@ -81,7 +81,7 @@ services:
       - LETSENCRYPT_MODE=${LETSENCRYPT_MODE}
     volumes:
       - nginx-certificates:/geonode-certificates
-    restart: on-failure
+    restart: unless-stopped
 
   # Geoserver backend
   geoserver:
@@ -102,7 +102,7 @@ services:
       - backup-restore:/backup_restore
       - data:/data
       - tmp:/tmp
-    restart: on-failure
+    restart: unless-stopped
 
   data-dir-conf:
     image: geonode/geoserver_data:2.19.x
@@ -123,7 +123,7 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
       - dbbackups:/pg_backups
-    restart: on-failure
+    restart: unless-stopped
     # uncomment to enable remote connections to postgres
     #ports:
     #  - "5432:5432"
@@ -134,7 +134,7 @@ services:
     container_name: rabbitmq4${COMPOSE_PROJECT_NAME}
     volumes:
       - rabbitmq:/var/lib/rabbitmq
-    restart: on-failure
+    restart: unless-stopped
 
   jenkins:
     image: jenkins/jenkins:lts
@@ -152,6 +152,7 @@ services:
       - data:/data
     environment:
       - 'JENKINS_OPTS=--httpPort=${JENKINS_HTTP_PORT} --httpsPort=${JENKINS_HTTPS_PORT} --prefix=/jenkins'
+    restart: unless-stopped
 
 volumes:
   jenkins_data:
