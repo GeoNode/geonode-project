@@ -157,8 +157,6 @@ volumes:
     driver: local
   statics:
     name: ${COMPOSE_PROJECT_NAME}-statics
-  nginx-confd:
-    name: ${COMPOSE_PROJECT_NAME}-nginxconfd
   nginx-certificates:
     name: ${COMPOSE_PROJECT_NAME}-nginxcerts
   geoserver-data-dir:
