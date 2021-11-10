@@ -131,9 +131,10 @@ services:
     restart: on-failure
     volumes:
       - nginx-certificates:/geonode-certificates/
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
-
+ 
   data-dir-conf:
     image: geonode/geoserver_data:2.18.x
     restart: on-failure
