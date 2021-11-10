@@ -131,7 +131,6 @@ services:
     restart: on-failure
     volumes:
       - nginx-certificates:/geonode-certificates/
-      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
  
