@@ -78,6 +78,7 @@ do
                 echo "Configuration valid, we reload..."
                 envsubst '\$HTTP_PORT \$HTTPS_PORT \$HTTP_HOST \$HTTPS_HOST \$RESOLVER \$CERT_PATH' < /etc/nginx/nginx.https.available.conf.envsubst > /etc/nginx/nginx.https.available.conf
                 nginx -s reload
+                rm /geonode-certificates/RELOAD_NGINX
         else
                 echo "Configuration not valid, we do not reload."
         fi
