@@ -133,7 +133,7 @@ services:
       - nginx-certificates:/geonode-certificates/
     env_file:
       - .env
-
+ 
   data-dir-conf:
     image: geonode/geoserver_data:2.18.x
     restart: on-failure
