@@ -57,6 +57,7 @@ target/
 downloaded/
 uploaded/
 static_root/
+geoserver/
 development.db
 development.db-journal
 local_settings.py
