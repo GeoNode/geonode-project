@@ -251,3 +251,43 @@ POSTGRESQL_MAX_CONNECTIONS=200
 ```
 
 In this case PostgreSQL will run accepting 200 maximum connections.
+
+## Test project generation and docker-compose build Vagrant usage
+
+Testing with [vagrant](https://www.vagrantup.com/docs) is very simple, a build and restart to ensure services repartition on
+startup is done by issuing:
+
+```bash
+vagrant plugin install vagrant-reload
+#choose what to test
+cp Vagrantfile.compose Vagrantfile
+vagrant up
+# check services are up upon reboot
+vagrant ssh geonode-compose -c 'docker ps'
+vagrant destroy -f
+cp Vagrantfile.stack Vagrantfile
+vagrant up
+# check services are up upon reboot
+vagrant ssh geonode-compose -c 'docker service ls'
+vagrant destroy -f
+```
+
+for direct deveolpment on geonode-project after first `vagrant up` to rebuild after changes to project, you can do `vagrant reload` like this:
+
+```bash
+vagrant up
+```
+
+What vagrant does (swarm or comnpose cases):
+
+- starts a vm for test on docker swarm:
+    - configures a GeoNode project from template every time from your working directory (so you can develop directly on geonode-project).
+    - rebuilds everytime everything with cache [1] to avoid banning from docker hub with no login.
+    - starts, reboots.
+
+- starts a vm for test on plain docker service with docker-compose:
+    - configures a GeoNode project from template every time from your working directory (so you can develop directly on geonode-project).
+    - rebuilds everytime everything with cache [1] to avoid banning from docker hub with no login.
+    - starts, reboots.
+
+[1] to achieve `docker-compose build --no-cache` just destroy vagrant boxes `vagrant destroy -f`

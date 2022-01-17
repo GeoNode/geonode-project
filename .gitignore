@@ -63,3 +63,5 @@ local_settings.py
 
 .idea/
 .vscode/
+.vagrant/
+Vagrantfile
