@@ -408,8 +408,8 @@ def sync(options):
     sh(f"{settings} python -W ignore manage.py makemigrations --noinput")
     sh(f"{settings} python -W ignore manage.py migrate --noinput")
     sh(f"{settings} python -W ignore manage.py loaddata sample_admin.json")
-    sh(f"{settings} python -W ignore manage.py loaddata geonode/base/fixtures/default_oauth_apps.json")
-    sh(f"{settings} python -W ignore manage.py loaddata geonode/base/fixtures/initial_data.json")
+    sh(f"{settings} python -W ignore manage.py loaddata default_oauth_apps.json")
+    sh(f"{settings} python -W ignore manage.py loaddata initial_data.json")
     sh(f"{settings} python -W ignore manage.py set_all_datasets_alternate")
     sh(f"{settings} python -W ignore manage.py collectstatic --noinput")
 
