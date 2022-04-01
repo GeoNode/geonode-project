@@ -39,7 +39,7 @@ To setup your project using a local python virtual environment, follow these ins
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
     source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
     mkvirtualenv --python=/usr/bin/python3 {{ project_name }}
-    pip install Django==3.2
+    pip install Django==3.2.12
 
     django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile {{ project_name }}
 
@@ -53,6 +53,7 @@ To setup your project using a local python virtual environment, follow these ins
     (see [Hints: Configuring `requirements.txt`](#hints-configuring-requirementstxt))
 
     ```bash
+    cd src
     pip install -r requirements.txt --upgrade
     pip install -e . --upgrade
 
@@ -60,15 +61,17 @@ To setup your project using a local python virtual environment, follow these ins
     pip install pygdal=="`gdal-config --version`.*"
 
     # Dev scripts
-    mv .override_dev_env.sample .override_dev_env
+    mv ../.override_dev_env.sample ../.override_dev_env
     mv manage_dev.sh.sample manage_dev.sh
     mv paver_dev.sh.sample paver_dev.sh
 
+    source ../.override_dev_env
+
     # Using the Default Settings
-    ./paver_dev.sh reset
-    ./paver_dev.sh setup
-    ./paver_dev.sh sync
-    ./paver_dev.sh start
+    sh ./paver_dev.sh reset
+    sh ./paver_dev.sh setup
+    sh ./paver_dev.sh sync
+    sh ./paver_dev.sh start
     ```
 3. Set Environment Variables
     Create a .env file using the available .env.sample
