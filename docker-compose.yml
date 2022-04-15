@@ -100,7 +100,7 @@ services:
       - tmp:/tmp
     restart: unless-stopped
   data-dir-conf:
-    image: lpasquali/geoserver_data:2.20.4
+    image: geonode/geoserver_data:2.20.4
     container_name: gsconf4${COMPOSE_PROJECT_NAME}
     command: /bin/true
     volumes:
