@@ -95,7 +95,7 @@ services:
   # Geoserver backend
   geoserver:
     deploy: *default-common-swarm-deploy
-    image: geonode/geoserver:2.19.x
+    image: geonode/geoserver:2.20.4
     build: ./docker/geoserver/
     env_file:
       - .env
@@ -115,7 +115,7 @@ services:
       - tmp:/tmp
 
   data-dir-conf:
-    image: geonode/geoserver_data:2.19.x
+    image: geonode/geoserver_data:2.20.4
     command: /bin/true
     volumes:
       - geoserver-data-dir:/geoserver_data/data
