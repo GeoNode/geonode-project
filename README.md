@@ -257,22 +257,55 @@ In this case PostgreSQL will run accepting 200 maximum connections.
 
 ## Test project generation and docker-compose build Vagrant usage
 
-Testing with [vagrant](https://www.vagrantup.com/docs) is very simple, a build and restart to ensure services repartition on
-startup is done by issuing:
+Testing with [vagrant](https://www.vagrantup.com/docs) works like this:
+What vagrant does:
+
+Starts a vm for test on docker swarm:
+    - configures a GeoNode project from template every time from your working directory (so you can develop directly on geonode-project).
+    - exposes service on localhost port 8888
+    - rebuilds everytime everything with cache [1] to avoid banning from docker hub with no login.
+    - starts, reboots to check if docker services come up correctly after reboot.
 
 ```bash
 vagrant plugin install vagrant-reload
-#choose what to test
-cp Vagrantfile.compose Vagrantfile
+#test things for docker-compose
 vagrant up
 # check services are up upon reboot
 vagrant ssh geonode-compose -c 'docker ps'
+```
+
+Test geonode on [http://localhost:8888/](http://localhost:8888/)
+
+To clean up things and delete the vagrant box:
+
+```bash
 vagrant destroy -f
-cp Vagrantfile.stack Vagrantfile
+```
+
+## Test project generation and Docker swarm build on vagrant
+
+What vagrant does:
+
+Starts a vm for test on docker swarm:
+    - configures a GeoNode project from template every time from your working directory (so you can develop directly on geonode-project).
+    - exposes service on localhost port 8888
+    - rebuilds everytime everything with cache [1] to avoid banning from docker hub with no login.
+    - starts, reboots to check if docker services come up correctly after reboot.
+
+To test on a docker swarm enable vagrant box:
+
+```bash
 vagrant up
+VAGRANT_VAGRANTFILE=Vagrantfile.stack vagrant up
 # check services are up upon reboot
-vagrant ssh geonode-compose -c 'docker service ls'
-vagrant destroy -f
+VAGRANT_VAGRANTFILE=Vagrantfile.stack vagrant ssh geonode-compose -c 'docker service ls'
+```
+
+Test geonode on [http://localhost:8888/](http://localhost:8888/)
+Again, to clean up things and delete the vagrant box:
+
+```bash
+VAGRANT_VAGRANTFILE=Vagrantfile.stack vagrant destroy -f
 ```
 
 for direct deveolpment on geonode-project after first `vagrant up` to rebuild after changes to project, you can do `vagrant reload` like this:
@@ -283,14 +316,10 @@ vagrant up
 
 What vagrant does (swarm or comnpose cases):
 
-- starts a vm for test on docker swarm:
-    - configures a GeoNode project from template every time from your working directory (so you can develop directly on geonode-project).
-    - rebuilds everytime everything with cache [1] to avoid banning from docker hub with no login.
-    - starts, reboots.
-
-- starts a vm for test on plain docker service with docker-compose:
+Starts a vm for test on plain docker service with docker-compose:
     - configures a GeoNode project from template every time from your working directory (so you can develop directly on geonode-project).
     - rebuilds everytime everything with cache [1] to avoid banning from docker hub with no login.
     - starts, reboots.
 
 [1] to achieve `docker-compose build --no-cache` just destroy vagrant boxes `vagrant destroy -f`
+
