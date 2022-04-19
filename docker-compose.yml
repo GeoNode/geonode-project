@@ -1,5 +1,4 @@
 version: '3.4'
-services:
 
 # Common Django template for GeoNode and Celery services below
 x-common-django:
@@ -84,7 +83,7 @@ services:
 
   # Geoserver backend
   geoserver:
-    image: geonode/geoserver:2.19.x
+    image: geonode/geoserver:2.19.6
     build: ./docker/geoserver/
     container_name: geoserver4${COMPOSE_PROJECT_NAME}
     healthcheck:
@@ -103,7 +102,7 @@ services:
       - tmp:/tmp
     restart: unless-stopped
   data-dir-conf:
-    image: geonode/geoserver_data:2.19.x
+    image: geonode/geoserver_data:2.19.6
     container_name: gsconf4${COMPOSE_PROJECT_NAME}
     command: /bin/true
     volumes:
