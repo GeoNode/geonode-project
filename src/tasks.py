@@ -253,12 +253,6 @@ def collectstatic(ctx):
 
 
 @task
-def geoserverfixture(ctx):
-    print("********************geoserver fixture********************************")
-    _geoserver_info_provision(f"{os.environ['GEOSERVER_LOCATION']}rest/")
-
-
-@task
 def monitoringfixture(ctx):
     print("*******************monitoring fixture********************************")
     ctx.run("rm -rf /tmp/default_monitoring_apps_docker.json", pty=True)
@@ -399,32 +393,6 @@ def _geonode_public_port():
     elif gn_pub_port in ('80', '443'):
         gn_pub_port = None
     return gn_pub_port
-
-
-def _geoserver_info_provision(url):
-    from django.conf import settings
-    from geoserver.catalog import Catalog
-    print("Setting GeoServer Admin Password...")
-    cat = Catalog(
-        url,
-        username=settings.OGC_SERVER_DEFAULT_USER,
-        password=settings.OGC_SERVER_DEFAULT_PASSWORD
-    )
-    headers = {
-        "Content-type": "application/xml",
-        "Accept": "application/xml"
-    }
-    data = f"""<?xml version="1.0" encoding="UTF-8"?>
-<userPassword>
-    <newPassword>{(os.getenv('GEOSERVER_ADMIN_PASSWORD', 'geoserver'))}</newPassword>
-</userPassword>"""
-
-    response = cat.http_request(f"{cat.service_url}/security/self/password", method="PUT", data=data, headers=headers)
-    print(f"Response Code: {response.status_code}")
-    if response.status_code == 200:
-        print("GeoServer admin password updated SUCCESSFULLY!")
-    else:
-        logger.warning(f"WARNING: GeoServer admin password *NOT* updated: code [{response.status_code}]")
 
 
 def _prepare_oauth_fixture():
