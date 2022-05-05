@@ -256,10 +256,10 @@ def collectstatic(ctx):
 --settings={_localsettings()}", pty=True)
 
 
-@task
-def geoserverfixture(ctx):
-    print("********************geoserver fixture********************************")
-    _geoserver_info_provision(f"{os.environ['GEOSERVER_LOCATION']}rest/")
+# @task
+# def geoserverfixture(ctx):
+#     print("********************geoserver fixture********************************")
+#     _geoserver_info_provision(f"{os.environ['GEOSERVER_LOCATION']}rest/")
 
 
 @task
