@@ -73,7 +73,7 @@ if md5sum -c /$BKP_FOLDER_NAME/$NEW_UUID/$BKP_FILE_NAME.md5; then
         # The MD5 sum matched
         ./manage.sh restore -l -n -f --backup-file /$BKP_FOLDER_NAME/$BKP_FILE_NAME.zip --recovery-file /$BKP_FOLDER_NAME/$NEW_UUID/$RECOVERY_FILE_NAME.zip
         ./manage.sh migrate_baseurl -f --source-address=$SOURCE_URL --target-address=$TARGET_URL
-        ./manage.sh set_all_layers_metadata -d -i
+        ./manage.sh set_all_datasets_metadata -d -i
     else
         # The MD5 sum didn't match
         echo "-----------------------------------------------------"

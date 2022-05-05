@@ -195,8 +195,12 @@ def migrations(ctx):
 @task
 def statics(ctx):
     print("**************************statics*******************************")
-    ctx.run('mkdir -p /mnt/volumes/statics/{static,uploads}')
-    ctx.run(f"python manage.py collectstatic --noinput --settings={_localsettings()}", pty=True)
+    try:
+        ctx.run('mkdir -p /mnt/volumes/statics/{static,uploads}')
+        ctx.run(f"python manage.py collectstatic --noinput --settings={_localsettings()}", pty=True)
+    except Exception:
+        import traceback
+        traceback.print_exc()
 
 
 @task
@@ -239,9 +243,9 @@ def fixtures(ctx):
 --settings={0}".format(_localsettings()), pty=True)
     ctx.run("python manage.py loaddata /usr/src/{{project_name}}/fixtures/initial_data.json \
 --settings={0}".format(_localsettings()), pty=True)
-    ctx.run("python manage.py set_all_layers_alternate \
+    ctx.run("python manage.py set_all_datasets_alternate \
 --settings={0}".format(_localsettings()), pty=True)
-#     ctx.run("python manage.py set_all_layers_metadata -d \
+#     ctx.run("python manage.py set_all_datasets_metadata -d \
 # --settings={0}".format(_localsettings()), pty=True)
 
 
@@ -250,6 +254,12 @@ def collectstatic(ctx):
     print("************************static artifacts******************************")
     ctx.run(f"django-admin.py collectstatic --noinput \
 --settings={_localsettings()}", pty=True)
+
+
+@task
+def geoserverfixture(ctx):
+    print("********************geoserver fixture********************************")
+    _geoserver_info_provision(f"{os.environ['GEOSERVER_LOCATION']}rest/")
 
 
 @task
@@ -393,6 +403,32 @@ def _geonode_public_port():
     elif gn_pub_port in ('80', '443'):
         gn_pub_port = None
     return gn_pub_port
+
+
+def _geoserver_info_provision(url):
+    from django.conf import settings
+    from geoserver.catalog import Catalog
+    print("Setting GeoServer Admin Password...")
+    cat = Catalog(
+        url,
+        username=settings.OGC_SERVER_DEFAULT_USER,
+        password=settings.OGC_SERVER_DEFAULT_PASSWORD
+    )
+    headers = {
+        "Content-type": "application/xml",
+        "Accept": "application/xml"
+    }
+    data = f"""<?xml version="1.0" encoding="UTF-8"?>
+<userPassword>
+    <newPassword>{(os.getenv('GEOSERVER_ADMIN_PASSWORD', 'geoserver'))}</newPassword>
+</userPassword>"""
+
+    response = cat.http_request(f"{cat.service_url}/security/self/password", method="PUT", data=data, headers=headers)
+    print(f"Response Code: {response.status_code}")
+    if response.status_code == 200:
+        print("GeoServer admin password updated SUCCESSFULLY!")
+    else:
+        logger.warning(f"WARNING: GeoServer admin password *NOT* updated: code [{response.status_code}]")
 
 
 def _prepare_oauth_fixture():
