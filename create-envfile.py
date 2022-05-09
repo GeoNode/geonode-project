@@ -17,13 +17,17 @@ formatter = logging.Formatter("%(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-_chars = string.ascii_letters + \
-    string.digits + \
-    string.punctuation.replace("\"", '').replace("'", '').replace("`", '')
 
-_chars_as_list = list(_chars)
-random.shuffle(_chars_as_list)
-_chars = ''.join(_chars_as_list)
+def shuffle(chars):
+	chars_as_list = list(chars)
+	random.shuffle(chars_as_list)
+	return ''.join(chars_as_list)
+
+_simple_chars = shuffle(string.ascii_letters + string.digits)
+_strong_chars = shuffle(string.ascii_letters + \
+    string.digits + \
+    string.punctuation.replace("\"", '').replace("'", '').replace("`", ''))
+
 
 def generate_env_file(parser):
     ################################################################
@@ -106,7 +110,7 @@ def generate_env_file(parser):
             f"http://{args.hostname}" if not args.https else f"https://{args.hostname}"
         )
         _vals_to_replace["http_host"] = "" if args.https else args.hostname
-        _vals_to_replace["secret_key"] = args.secret_key or "".join(random.choice(_chars) for _ in range(50))
+        _vals_to_replace["secret_key"] = args.secret_key or "".join(random.choice(_strong_chars) for _ in range(50))
         _vals_to_replace["letsencrypt_mode"] = (
             "disabled" if not args.https else "production"
         )
@@ -115,7 +119,7 @@ def generate_env_file(parser):
         return {**_jsfile, **_vals_to_replace}
 
     for key, val in _get_vals_to_replace(args).items():
-        _val = val or "".join(random.choice(_chars) for _ in range(15))
+        _val = val or "".join(random.choice(_simple_chars) for _ in range(15))
         if isinstance(val, bool) or key == 'email':
             _val = str(val)
         _sample_file = re.sub(
