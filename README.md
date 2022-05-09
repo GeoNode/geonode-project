@@ -85,9 +85,10 @@ To setup your project follow these instructions:
         --clientsecret abc123 
       ```
 
-**\*\*NOTE\*\***: *Skip this part if you want to run the project using Docker instead* see [Start your server using Docker](#start-your-server-using-docker)
+### Start your server
+*Skip this part if you want to run the project using Docker instead* see [Start your server using Docker](#start-your-server-using-docker)
 
-3. Setup the Python Dependencies
+1. Setup the Python Dependencies
 
     **NOTE**: *Important: modify your `requirements.txt` file, by adding the `GeoNode` branch before continue!*
 
@@ -115,7 +116,7 @@ To setup your project follow these instructions:
     sh ./paver_dev.sh start
     ```
 
-4. Access GeoNode from browser
+2. Access GeoNode from browser
 
     **NOTE**: default admin user is ``admin`` (with pw: ``admin``)
 
