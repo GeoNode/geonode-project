@@ -119,7 +119,7 @@ def generate_env_file(parser):
         if isinstance(val, bool) or key == 'email':
             _val = str(val)
         _sample_file = re.sub(
-            "{{" + key + "}}",
+            "{" + key + "}",
             lambda _: _val,
             _sample_file,
         )
