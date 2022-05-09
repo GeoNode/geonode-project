@@ -115,7 +115,7 @@ def generate_env_file(parser):
         _vals_to_replace["letsencrypt_mode"] = (
             "disabled" if not args.https else "production"
         )
-        _vals_to_replace["debug"] = False if args.env_type in ["prod", "dev"] else True
+        _vals_to_replace["debug"] = False if args.env_type in ["prod", "test"] else True
         _vals_to_replace["email"] = args.email or ""
         return {**_jsfile, **_vals_to_replace}
 
