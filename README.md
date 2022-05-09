@@ -73,7 +73,7 @@ To setup your project follow these instructions:
       Example USAGE
 
       ```bash
-      python build_env.py localhost -f /opt/core/geonode-project/file.json \
+      python create-envfile.py localhost -f /opt/core/geonode-project/file.json \
         --https \
         --email random@email.com \
         --geonodepwd gn_password \
