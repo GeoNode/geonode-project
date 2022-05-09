@@ -17,6 +17,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+_chars = string.ascii_letters + string.digits + string.punctuation.replace("\"", '').replace("'", '').replace("`", '')
 
 def generate_env_file(parser):
     ################################################################
@@ -99,7 +100,7 @@ def generate_env_file(parser):
             f"http://{args.hostname}" if not args.https else f"https://{args.hostname}"
         )
         _vals_to_replace["http_host"] = "" if args.https else args.hostname
-        _vals_to_replace["secret_key"] = args.secret_key or "".join(random.choice(string.ascii_letters) for _ in range(50))
+        _vals_to_replace["secret_key"] = args.secret_key or "".join(random.choice(_chars) for _ in range(50))
         _vals_to_replace["letsencrypt_mode"] = (
             "disabled" if not args.https else "production"
         )
@@ -107,10 +108,12 @@ def generate_env_file(parser):
         return {**_jsfile, **_vals_to_replace}
 
     for key, val in _get_vals_to_replace(args).items():
+        _val = val or "".join(random.choice(_chars) for _ in range(15))
+        if key == 'debug':
+            _val = str(val)
         _sample_file = re.sub(
             "{{" + key + "}}",
-            lambda _: val
-            or "".join(random.choice(string.ascii_letters) for _ in range(15)),
+            lambda _: _val,
             _sample_file,
         )
 
