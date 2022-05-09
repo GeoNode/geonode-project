@@ -109,7 +109,7 @@ def generate_env_file(parser):
 
     for key, val in _get_vals_to_replace(args).items():
         _val = val or "".join(random.choice(_chars) for _ in range(15))
-        if key == 'debug':
+        if isinstance(val, bool):
             _val = str(val)
         _sample_file = re.sub(
             "{{" + key + "}}",
