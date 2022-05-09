@@ -13,7 +13,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 logger = logging.getLogger()
 handler = logging.StreamHandler(sys.stdout)
 logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+formatter = logging.Formatter("%(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -126,14 +126,12 @@ def generate_env_file(parser):
 
     with open(f"{dir_path}/.env", "w+") as output_env:
         output_env.write(_sample_file)
-
+    logger.info(f".env file created: {dir_path}/.env")
 
 if __name__ == "__main__":
-    logger.info(f"Creation of file started at: {datetime.now()}")
     parser = argparse.ArgumentParser(
         prog="ENV file builder",
         description="Tool for generate environment file automatically. The information can be passed or via CLI or via JSON file ( --file /path/env.json)",
         usage="python build_env.py localhost -f /path/to/json/file.json",
     )
     generate_env_file(parser)
-    logger.info(f"Creation of file finished at: {datetime.now()}")
