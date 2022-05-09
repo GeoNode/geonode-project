@@ -17,7 +17,13 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-_chars = string.ascii_letters + string.digits + string.punctuation.replace("\"", '').replace("'", '').replace("`", '')
+_chars = string.ascii_letters + \
+    string.digits + \
+    string.punctuation.replace("\"", '').replace("'", '').replace("`", '')
+
+_chars_as_list = list(_chars)
+random.shuffle(_chars_as_list)
+_chars = ''.join(_chars_as_list)
 
 def generate_env_file(parser):
     ################################################################
