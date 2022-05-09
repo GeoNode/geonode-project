@@ -56,6 +56,7 @@ def generate_env_file(parser):
     parser.add_argument("--geodbpwd", help="Geodatabase user password")
     parser.add_argument("--clientid", help="Oauth2 client id")
     parser.add_argument("--clientsecret", help="Oauth2 client secret")
+    parser.add_argument("--secret_key", help="Django Secret Key")
 
     parser.add_argument(
         "--env_type",
@@ -98,6 +99,7 @@ def generate_env_file(parser):
             f"http://{args.hostname}" if not args.https else f"https://{args.hostname}"
         )
         _vals_to_replace["http_host"] = "" if args.https else args.hostname
+        _vals_to_replace["secret_key"] = args.secret_key or "".join(random.choice(string.ascii_letters) for _ in range(50))
         _vals_to_replace["letsencrypt_mode"] = (
             "disabled" if not args.https else "production"
         )
