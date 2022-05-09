@@ -106,14 +106,50 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
     cd {{ project_name }}
     ```
-2. Set Environment Variables
-    Create a .env file using the available .env.sample
 
-    Assign values to the following variables in the .env:
-    - OAUTH2_CLIENT_ID
-    - OAUTH2_CLIENT_SECRET
-    - SECRET_KEY (a random one will be generated at project creation)
-    - DEFAULT_FROM_EMAIL
+1. Create the .env file
+
+    Is possible to automatically create the env_file using the create-envfile.py script.
+
+    The script accept different parameters to create the file, in detail:
+
+    **required**:
+  
+    - hostname: e.g. master.demo.geonode.org
+
+    **optional:**
+
+    - *https*: (boolean), default value is False
+    - *email*: - Admin email (this is required if https is set to True since a valid email is required by Letsencrypt certbot)
+    - *geonodepwd*: GeoNode admin password (required inside the .env)
+    - *geoserverpwd*: Geoserver admin password (required inside the .env)
+    - *pgpwd*: PostgreSQL password (required inside the .env)
+    - *dbpwd*: GeoNode DB user password (required inside the .env)
+    - *geodbpwd*: Geodatabase user password (required inside the .env)
+    - *clientid*: Oauth2 client id (required inside the .env)
+    - *clientsecret*: Oauth2 client secret (required inside the .env)
+    - *secret key*: Django secret key (required inside the .env)
+    - *sample_file*: absolute path to a env_sample file used to create the env_file. If not provided, the one inside the GeoNode project is used.
+    - *file*: absolute path to a json file that contains all the above configuration
+
+  **NOTE:**
+  - if the same configuration is passed in the json file and as an argument, the CLI one will overwrite the one in the JSON file
+  - If some value is not provided, a random string is used
+
+  Example USAGE
+
+  ```bash
+  python build_env.py localhost -f /opt/core/geonode-project/file.json \
+    --https \
+    --email random@email.com \
+    --geonodepwd gn_password \
+    --geoserverpwd gs_password \
+    --pgpwd pg_password \
+    --dbpwd db_password \
+    --geodbpwd _db_password \
+    --clientid 12345 \
+    --clientsecret abc123 
+  ```
 
 3. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
 
