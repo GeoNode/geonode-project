@@ -86,6 +86,23 @@ To setup your project follow these instructions:
         --clientsecret abc123 
       ```
 
+      Example JSON expected:
+
+      ```JSON
+      {
+        "hostname": "value",
+        "https": "value",
+        "email": "value",
+        "geonodepwd": "value",
+        "geoserverpwd": "value",
+        "pgpwd": "value",
+        "dbpwd": "value",
+        "geodbpwd": "value",
+        "clientid": "value",
+        "clientsecret": "value"
+      } 
+      ```
+
 ### Start your server
 *Skip this part if you want to run the project using Docker instead* see [Start your server using Docker](#start-your-server-using-docker)
 
