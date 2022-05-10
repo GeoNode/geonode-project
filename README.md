@@ -47,12 +47,7 @@ To setup your project follow these instructions:
 
     The script accepts several parameters to create the file, in detail:
 
-    **required**:
-  
-    - hostname: e.g. master.demo.geonode.org
-
-    **optional:**
-
+    - *hostname*: e.g. master.demo.geonode.org, default localhost
     - *https*: (boolean), default value is False
     - *email*: Admin email (this is required if https is set to True since a valid email is required by Letsencrypt certbot)
     - *emv_type*: `prod`, `test` or `dev`. It will set the `DEBUG` variable to `False` (`prod`, `test`) or `True` (`dev`)
@@ -74,7 +69,8 @@ To setup your project follow these instructions:
       Example USAGE
 
       ```bash
-      python create-envfile.py localhost -f /opt/core/geonode-project/file.json \
+      python create-envfile.py -f /opt/core/geonode-project/file.json \
+        --hostname localhost \
         --https \
         --email random@email.com \
         --geonodepwd gn_password \

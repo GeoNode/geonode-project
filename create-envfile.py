@@ -48,14 +48,12 @@ _strong_chars = shuffle(string.ascii_letters + \
 
 
 def generate_env_file(parser):
-    ################################################################
-    #######                     Required                    ########
-    ################################################################
-    parser.add_argument("hostname", help="host name")
-
-    ################################################################
-    #######                 Optional                        ########
-    ################################################################
+    parser.add_argument(
+        "-hn",
+        "--hostname",
+        help=f"Host name, default localhost",
+        default="localhost",
+    )
 
     # expected path as a value
     parser.add_argument(
