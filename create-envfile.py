@@ -121,7 +121,7 @@ def generate_env_file(parser):
                 _jsfile = json.load(_json_file)
 
         _vals_to_replace = {
-            key: val for key, val in vars(args).items() if key not in _config and val is not None
+            key: val for key, val in vars(args).items() if key not in _config
         }
 
         _vals_to_replace["http_host"] = "" if _jsfile.get("https", None) or args.https else args.hostname
@@ -141,7 +141,7 @@ def generate_env_file(parser):
         if _vals_to_replace.get("https_host") and not _vals_to_replace["email"]:
             raise Exception("With HTTPS enabled, the email parameter is required")
 
-        return {**_jsfile, **_vals_to_replace}
+        return {**_vals_to_replace, **_jsfile}
 
     for key, val in _get_vals_to_replace(args).items():
         _val = val or "".join(random.choice(_simple_chars) for _ in range(15))
