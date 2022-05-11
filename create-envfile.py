@@ -140,8 +140,18 @@ def generate_env_file(parser):
 
         if _vals_to_replace.get("https_host") and not _vals_to_replace["email"]:
             raise Exception("With HTTPS enabled, the email parameter is required")
+        
+        _updated_vals = _vals_to_replace.copy()
+        for key, val in _updated_vals.items():
+            if key in _jsfile and val:
+                _jsfile[key] = val
+            elif key in _jsfile and _jsfile[key]:
+                _vals_to_replace.pop(key)
+                continue
+            else:
+                _jsfile[key] = _vals_to_replace.pop(key)
 
-        return {**_vals_to_replace, **_jsfile}
+        return {**_jsfile, **_vals_to_replace}
 
     for key, val in _get_vals_to_replace(args).items():
         _val = val or "".join(random.choice(_simple_chars) for _ in range(15))
