@@ -27,11 +27,11 @@ SCRIPT
 
 $script2 = <<-'SCRIPT'
 #!/bin/bash
-if [ -d "/home/vagrant/antani" ]; then
-    cd /home/vagrant/antani
+if [ -d "/home/vagrant/testproject" ]; then
+    cd /home/vagrant/testproject
     docker-compose down
     cd ..
-    rm -rf /home/vagrant/antani
+    rm -rf /home/vagrant/testproject
     docker volume prune -f
 fi
 rm -rf /home/vagrant/geonode-project
@@ -63,7 +63,7 @@ Vagrant.configure(2) do |config|
         config.vm.provision "shell", inline: $script1, privileged: false
         config.vm.provision "shell", inline: $script2, run: 'always', privileged: true
         config.vm.provision "file", source: $geonode_source_path, destination: "$HOME/geonode-project", run: 'always'
-        config.vm.provision :shell, path: "antani-vagrant-compose.sh", run: 'always', privileged: false
+        config.vm.provision :shell, path: "testproject-vagrant-compose.sh", run: 'always', privileged: false
         config.vm.provision "shell", inline: $script3, run: 'always', privileged: false
         end
     end
