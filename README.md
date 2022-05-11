@@ -25,15 +25,10 @@ Available at
 ## Create a custom project
 
 **NOTE**: *You can call your geonode project whatever you like **except 'geonode'**. Follow the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``{{ project_name }}`` with whatever you would like to name your project.*
-### Using a Python virtual environment
 
-**NOTE**: *Skip this part if you want to run the project using Docker instead*
+To setup your project follow these instructions:
 
-(see [Start your server using Docker](#start-your-server-using-docker))
-
-To setup your project using a local python virtual environment, follow these instructions:
-
-1. Prepare the Environment
+1. Generate the project
 
     ```bash
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
@@ -46,7 +41,68 @@ To setup your project using a local python virtual environment, follow these ins
     cd {{ project_name }}
     ```
 
-2. Setup the Python Dependencies
+2. Create the .env file
+
+    An `.env` file is requird to run the application. It can be created from the `.env.sample` either manually or with the create-envfile.py script.
+
+    The script accepts several parameters to create the file, in detail:
+
+    - *hostname*: e.g. master.demo.geonode.org, default localhost
+    - *https*: (boolean), default value is False
+    - *email*: Admin email (this is required if https is set to True since a valid email is required by Letsencrypt certbot)
+    - *emv_type*: `prod`, `test` or `dev`. It will set the `DEBUG` variable to `False` (`prod`, `test`) or `True` (`dev`)
+    - *geonodepwd*: GeoNode admin password (required inside the .env)
+    - *geoserverpwd*: Geoserver admin password (required inside the .env)
+    - *pgpwd*: PostgreSQL password (required inside the .env)
+    - *dbpwd*: GeoNode DB user password (required inside the .env)
+    - *geodbpwd*: Geodatabase user password (required inside the .env)
+    - *clientid*: Oauth2 client id (required inside the .env)
+    - *clientsecret*: Oauth2 client secret (required inside the .env)
+    - *secret key*: Django secret key (required inside the .env)
+    - *sample_file*: absolute path to a env_sample file used to create the env_file. If not provided, the one inside the GeoNode project is used.
+    - *file*: absolute path to a json file that contains all the above configuration
+
+     **NOTE:**
+    - if the same configuration is passed in the json file and as an argument, the CLI one will overwrite the one in the JSON file
+    - If some value is not provided, a random string is used
+
+      Example USAGE
+
+      ```bash
+      python create-envfile.py -f /opt/core/geonode-project/file.json \
+        --hostname localhost \
+        --https \
+        --email random@email.com \
+        --geonodepwd gn_password \
+        --geoserverpwd gs_password \
+        --pgpwd pg_password \
+        --dbpwd db_password \
+        --geodbpwd _db_password \
+        --clientid 12345 \
+        --clientsecret abc123 
+      ```
+
+      Example JSON expected:
+
+      ```JSON
+      {
+        "hostname": "value",
+        "https": "value",
+        "email": "value",
+        "geonodepwd": "value",
+        "geoserverpwd": "value",
+        "pgpwd": "value",
+        "dbpwd": "value",
+        "geodbpwd": "value",
+        "clientid": "value",
+        "clientsecret": "value"
+      }
+      ```
+
+### Start your server
+*Skip this part if you want to run the project using Docker instead* see [Start your server using Docker](#start-your-server-using-docker)
+
+1. Setup the Python Dependencies
 
     **NOTE**: *Important: modify your `requirements.txt` file, by adding the `GeoNode` branch before continue!*
 
@@ -73,16 +129,8 @@ To setup your project using a local python virtual environment, follow these ins
     sh ./paver_dev.sh sync
     sh ./paver_dev.sh start
     ```
-3. Set Environment Variables
-    Create a .env file using the available .env.sample
 
-    Assign values to the following variables in the .env:
-    - OAUTH2_CLIENT_ID
-    - OAUTH2_CLIENT_SECRET
-    - SECRET_KEY (a random one will be generated at project creation)
-    - DEFAULT_FROM_EMAIL
-
-4. Access GeoNode from browser
+2. Access GeoNode from browser
 
     **NOTE**: default admin user is ``admin`` (with pw: ``admin``)
 
@@ -90,32 +138,12 @@ To setup your project using a local python virtual environment, follow these ins
     http://localhost:8000/
     ```
 
-## Start your server using Docker
+### Start your server using Docker
 
 You need Docker 1.12 or higher, get the latest stable official release for your platform.
+Once you have the project configured run the following command from the root folder of the project.
 
-1. Prepare the Environment
-
-    ```bash
-    git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
-    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
-    mkvirtualenv --python=/usr/bin/python3 {{ project_name }}
-    pip install Django==3.2
-
-    django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile {{ project_name }}
-
-    cd {{ project_name }}
-    ```
-2. Set Environment Variables
-    Create a .env file using the available .env.sample
-
-    Assign values to the following variables in the .env:
-    - OAUTH2_CLIENT_ID
-    - OAUTH2_CLIENT_SECRET
-    - SECRET_KEY (a random one will be generated at project creation)
-    - DEFAULT_FROM_EMAIL
-
-3. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
+1. Run `docker-compose` to start it up (get a cup of coffee or tea while you wait)
 
     ```bash
     docker-compose build --no-cache
@@ -128,7 +156,7 @@ You need Docker 1.12 or higher, get the latest stable official release for your 
 
     before running `docker-compose up`
 
-4. Access the site on http://localhost/
+2. Access the site on http://localhost/
 
 ## Run the instance in development mode
 
@@ -322,4 +350,3 @@ Starts a vm for test on plain docker service with docker-compose:
     - starts, reboots.
 
 [1] to achieve `docker-compose build --no-cache` just destroy vagrant boxes `vagrant destroy -f`
-
