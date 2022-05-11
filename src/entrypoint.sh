@@ -9,7 +9,7 @@ invoke () {
     then
         /usr/local/bin/invoke $@
     else
-        /usr/local/bin/invoke $@ >> /usr/src/geonode_proj/celery.log 2>&1
+        /usr/local/bin/invoke $@ >> /usr/src/{{project_name}}/celery.log 2>&1
     fi
     echo "$@ tasks done"
 }
