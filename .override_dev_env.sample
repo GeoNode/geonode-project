@@ -69,7 +69,6 @@ export API_LOCKDOWN=False
 export TASTYPIE_APIKEY=
 
 export CACHE_BUSTING_STATIC_ENABLED=False
-export CACHE_BUSTING_MEDIA_ENABLED=False
 
 export MAX_DOCUMENT_SIZE=2
 export CLIENT_RESULTS_LIMIT=5
@@ -94,3 +93,6 @@ export AVATAR_PROVIDERS='avatar.providers.PrimaryAvatarProvider','avatar.provide
 export EXIF_ENABLED=True
 export CREATE_LAYER=True
 export FAVORITE_ENABLED=True
+
+export DEFAULT_MAX_UPLOAD_SIZE=5368709120
+export DEFAULT_MAX_PARALLEL_UPLOADS_PER_USER=5
