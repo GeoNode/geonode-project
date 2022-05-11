@@ -9,11 +9,7 @@ invoke () {
     then
         /usr/local/bin/invoke $@
     else
-        if [ $IS_CELERY = 'true'] || [ $IS_CELERY = 'True' ]
-        then
-            /usr/local/bin/invoke $@ >> /usr/src/geonode_proj/celery.log 2>&1
-        else
-            /usr/local/bin/invoke $@ >> /usr/src/{{project_name}}/invoke.log 2>&1
+        /usr/local/bin/invoke $@ >> /usr/src/geonode_proj/celery.log 2>&1
     fi
     echo "$@ tasks done"
 }
