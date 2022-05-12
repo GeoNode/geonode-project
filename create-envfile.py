@@ -119,20 +119,38 @@ def generate_env_file(parser):
         if args.file:
             with open(args.file) as _json_file:
                 _jsfile = json.load(_json_file)
+
         _vals_to_replace = {
             key: val for key, val in vars(args).items() if key not in _config
         }
+
+        _vals_to_replace["http_host"] = "" if _jsfile.get("https", None) or args.https else args.hostname
+        _vals_to_replace["https_host"] = "" if not _jsfile.get("https", None) or args.https else args.hostname
+
         _vals_to_replace["geoserver_ui"] = (
-            f"http://{args.hostname}" if not args.https else f"https://{args.hostname}"
+            f"http://{args.hostname}" if not _vals_to_replace.get("https_host") else f"https://{args.hostname}"
         )
-        _vals_to_replace["http_host"] = "" if args.https else args.hostname
-        _vals_to_replace["https_host"] = "" if not args.https else args.hostname
+
         _vals_to_replace["secret_key"] = args.secret_key or "".join(random.choice(_strong_chars) for _ in range(50))
         _vals_to_replace["letsencrypt_mode"] = (
-            "disabled" if not args.https else "production"
+            "disabled" if not _vals_to_replace.get("https_host") else "production"
         )
-        _vals_to_replace["debug"] = False if args.env_type in ["prod", "test"] else True
-        _vals_to_replace["email"] = args.email or ""
+        _vals_to_replace["debug"] = False if (_jsfile.get("env_type", "prod") or args.env_type )in ["prod", "test"] else True
+        _vals_to_replace["email"] = args.email or _jsfile.get("email", "")
+
+        if _vals_to_replace.get("https_host") and not _vals_to_replace["email"]:
+            raise Exception("With HTTPS enabled, the email parameter is required")
+        
+        _updated_vals = _vals_to_replace.copy()
+        for key, val in _updated_vals.items():
+            if key in _jsfile and val:
+                _jsfile[key] = val
+            elif key in _jsfile and _jsfile[key]:
+                _vals_to_replace.pop(key)
+                continue
+            else:
+                _jsfile[key] = _vals_to_replace.pop(key)
+
         return {**_jsfile, **_vals_to_replace}
 
     for key, val in _get_vals_to_replace(args).items():
