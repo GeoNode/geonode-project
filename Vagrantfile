@@ -27,11 +27,11 @@ SCRIPT
 
 $script2 = <<-'SCRIPT'
 #!/bin/bash
-if [ -d "/home/vagrant/testproject" ]; then
-    cd /home/vagrant/testproject
+if [ -d "/home/vagrant/generated-project" ]; then
+    cd /home/vagrant/generated-project
     docker-compose down
     cd ..
-    rm -rf /home/vagrant/testproject
+    rm -rf /home/vagrant/generated-project
     docker volume prune -f
 fi
 rm -rf /home/vagrant/geonode-project
@@ -50,7 +50,7 @@ Vagrant.configure(2) do |config|
 
 
     boxes.each do | key, value |
-        config.vm.network "forwarded_port", guest: 80, host: 8888
+        config.vm.network "forwarded_port", guest: 80, host: 8000
         config.vm.provider "virtualbox" do |v|
             v.memory = 8132
             v.cpus = 4
@@ -63,7 +63,7 @@ Vagrant.configure(2) do |config|
         config.vm.provision "shell", inline: $script1, privileged: false
         config.vm.provision "shell", inline: $script2, run: 'always', privileged: true
         config.vm.provision "file", source: $geonode_source_path, destination: "$HOME/geonode-project", run: 'always'
-        config.vm.provision :shell, path: "testproject-vagrant-compose.sh", run: 'always', privileged: false
+        config.vm.provision :shell, path: "generated-project-vagrant-compose.sh", run: 'always', privileged: false
         config.vm.provision "shell", inline: $script3, run: 'always', privileged: false
         end
     end
