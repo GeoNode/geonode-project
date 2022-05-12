@@ -50,7 +50,7 @@ Vagrant.configure(2) do |config|
 
 
     boxes.each do | key, value |
-        config.vm.network "forwarded_port", guest: 80, host: 8888
+        config.vm.network "forwarded_port", guest: 80, host: 8000
         config.vm.provider "virtualbox" do |v|
             v.memory = 8132
             v.cpus = 4
