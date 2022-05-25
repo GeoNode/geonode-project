@@ -124,7 +124,7 @@ def generate_env_file(parser):
         _vals_to_replace = {
             key: _jsfile.get(key, val) for key, val in vars(args).items() if key not in _config
         }
-        tcp = 'https' if ast.literal_eval(_jsfile.get("https", f"{args.https}")) else 'http'
+        tcp = 'https' if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize()) else 'http'
 
         _vals_to_replace["http_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'http' else ""
         _vals_to_replace["https_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'https' else ""
