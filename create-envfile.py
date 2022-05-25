@@ -25,6 +25,7 @@ import random
 import re
 import string
 import sys
+import ast
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -121,35 +122,21 @@ def generate_env_file(parser):
                 _jsfile = json.load(_json_file)
 
         _vals_to_replace = {
-            key: val for key, val in vars(args).items() if key not in _config
+            key: _jsfile.get(key, val) for key, val in vars(args).items() if key not in _config
         }
+        tcp = 'https' if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize()) else 'http'
 
-        _vals_to_replace["http_host"] = "" if _jsfile.get("https", None) or args.https else args.hostname
-        _vals_to_replace["https_host"] = "" if not _jsfile.get("https", None) or args.https else args.hostname
+        _vals_to_replace["http_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'http' else ""
+        _vals_to_replace["https_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'https' else ""
 
-        _vals_to_replace["geoserver_ui"] = (
-            f"http://{args.hostname}" if not _vals_to_replace.get("https_host") else f"https://{args.hostname}"
-        )
+        _vals_to_replace["geoserver_ui"] = f"{tcp}://{_jsfile.get('hostname', args.hostname)}"
+        _vals_to_replace["secret_key"] = _jsfile.get("secret_key",args.secret_key) or "".join(random.choice(_strong_chars) for _ in range(50))
+        _vals_to_replace["letsencrypt_mode"] = "disabled" if not _vals_to_replace.get("https_host") else "production"
+        _vals_to_replace["debug"] = False if _jsfile.get("env_type", args.env_type) in ["prod", "test"] else True
+        _vals_to_replace["email"] = _jsfile.get("email", args.email)
 
-        _vals_to_replace["secret_key"] = args.secret_key or "".join(random.choice(_strong_chars) for _ in range(50))
-        _vals_to_replace["letsencrypt_mode"] = (
-            "disabled" if not _vals_to_replace.get("https_host") else "production"
-        )
-        _vals_to_replace["debug"] = False if (_jsfile.get("env_type", "prod") or args.env_type )in ["prod", "test"] else True
-        _vals_to_replace["email"] = args.email or _jsfile.get("email", "")
-
-        if _vals_to_replace.get("https_host") and not _vals_to_replace["email"]:
+        if tcp == 'https' and not _vals_to_replace["email"]:
             raise Exception("With HTTPS enabled, the email parameter is required")
-        
-        _updated_vals = _vals_to_replace.copy()
-        for key, val in _updated_vals.items():
-            if key in _jsfile and val:
-                _jsfile[key] = val
-            elif key in _jsfile and _jsfile[key]:
-                _vals_to_replace.pop(key)
-                continue
-            else:
-                _jsfile[key] = _vals_to_replace.pop(key)
 
         return {**_jsfile, **_vals_to_replace}
 
