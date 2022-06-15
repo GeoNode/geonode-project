@@ -48,52 +48,7 @@ _strong_chars = shuffle(string.ascii_letters + \
     string.punctuation.replace("\"", '').replace("'", '').replace("`", ''))
 
 
-def generate_env_file(parser):
-    parser.add_argument(
-        "-hn",
-        "--hostname",
-        help=f"Host name, default localhost",
-        default="localhost",
-    )
-
-    # expected path as a value
-    parser.add_argument(
-        "-sf",
-        "--sample_file",
-        help=f"Path of the sample file to use as a template. Default is: {dir_path}/.env.sample",
-        default=f"{dir_path}/.env.sample",
-    )
-    parser.add_argument(
-        "-f",
-        "--file",
-        help="absolute path of the file with the configuration. Note: we expect that the keys of the dictionary have the same name as the CLI params",
-    )
-    # booleans
-    parser.add_argument(
-        "--https", action="store_true", default=False, help="If provided, https is used"
-    )
-    # strings
-    parser.add_argument(
-        "--email", help="Admin email, this field is required if https is enabled"
-    )
-
-    parser.add_argument("--geonodepwd", help="GeoNode admin password")
-    parser.add_argument("--geoserverpwd", help="Geoserver admin password")
-    parser.add_argument("--pgpwd", help="PostgreSQL password")
-    parser.add_argument("--dbpwd", help="GeoNode DB user password")
-    parser.add_argument("--geodbpwd", help="Geodatabase user password")
-    parser.add_argument("--clientid", help="Oauth2 client id")
-    parser.add_argument("--clientsecret", help="Oauth2 client secret")
-    parser.add_argument("--secret_key", help="Django Secret Key")
-
-    parser.add_argument(
-        "--env_type",
-        help="Development/production or test",
-        choices=["prod", "test", "dev"],
-        default="prod",
-    )
-
-    args = parser.parse_args()
+def generate_env_file(args):
 
     # validity checks
     if not os.path.exists(args.sample_file):
@@ -160,4 +115,61 @@ if __name__ == "__main__":
         description="Tool for generate environment file automatically. The information can be passed or via CLI or via JSON file ( --file /path/env.json)",
         usage="python create-envfile.py localhost -f /path/to/json/file.json",
     )
-    generate_env_file(parser)
+    parser.add_argument(
+            '--noinput', '--no-input', action='store_false', dest='confirmation',
+            help=('skips prompting for confirmation.'),
+        )
+    parser.add_argument(
+        "-hn",
+        "--hostname",
+        help=f"Host name, default localhost",
+        default="localhost",
+    )
+
+    # expected path as a value
+    parser.add_argument(
+        "-sf",
+        "--sample_file",
+        help=f"Path of the sample file to use as a template. Default is: {dir_path}/.env.sample",
+        default=f"{dir_path}/.env.sample",
+    )
+    parser.add_argument(
+        "-f",
+        "--file",
+        help="absolute path of the file with the configuration. Note: we expect that the keys of the dictionary have the same name as the CLI params",
+    )
+    # booleans
+    parser.add_argument(
+        "--https", action="store_true", default=False, help="If provided, https is used"
+    )
+    # strings
+    parser.add_argument(
+        "--email", help="Admin email, this field is required if https is enabled"
+    )
+
+    parser.add_argument("--geonodepwd", help="GeoNode admin password")
+    parser.add_argument("--geoserverpwd", help="Geoserver admin password")
+    parser.add_argument("--pgpwd", help="PostgreSQL password")
+    parser.add_argument("--dbpwd", help="GeoNode DB user password")
+    parser.add_argument("--geodbpwd", help="Geodatabase user password")
+    parser.add_argument("--clientid", help="Oauth2 client id")
+    parser.add_argument("--clientsecret", help="Oauth2 client secret")
+    parser.add_argument("--secret_key", help="Django Secret Key")
+
+    parser.add_argument(
+        "--env_type",
+        help="Development/production or test",
+        choices=["prod", "test", "dev"],
+        default="prod",
+    )
+
+    args = parser.parse_args()
+
+    if not args.confirmation:
+        generate_env_file(args)
+    else:
+        overwrite_env = input("This action will overwrite any existing .env file. Do you wish to continue? (y/n)")
+        if overwrite_env not in ['y', 'n']:
+            logger.error("Please enter a valid response")
+        if overwrite_env == 'y':
+            generate_env_file(args)
