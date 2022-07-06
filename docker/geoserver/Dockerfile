@@ -1,4 +1,6 @@
-FROM tomcat:9.0.64-jre11-openjdk-slim-bullseye
+ARG IMAGE_VERSION=9.0-jdk11-openjdk-slim-bullseye
+ARG JAVA_HOME=/usr/local/openjdk-11
+FROM tomcat:$IMAGE_VERSION
 LABEL GeoNode Development Team
 
 #
