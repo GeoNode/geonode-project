@@ -24,9 +24,9 @@ services:
       - DJANGO_URL=http://localhost/
     depends_on:
       - postgis
-      - data_dir_conf
+      -  data-dir-conf
 
-  data_dir_conf:
+  data-dir-conf:
     image: geonode/geoserver_data:2.20.5
     container_name: geoserver_data_dir # named data container
     command: /bin/true
