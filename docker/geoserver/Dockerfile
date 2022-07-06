@@ -1,16 +1,18 @@
-FROM tomcat:9-jre8
+ARG IMAGE_VERSION=9.0-jdk11-openjdk-slim-bullseye
+ARG JAVA_HOME=/usr/local/openjdk-11
+FROM tomcat:$IMAGE_VERSION
 LABEL GeoNode Development Team
 
 #
 # Set GeoServer version and data directory
 #
-ENV GEOSERVER_VERSION=2.19.6
+ENV GEOSERVER_VERSION=2.20.5
 ENV GEOSERVER_DATA_DIR="/geoserver_data/data"
 
 #
 # Download and install GeoServer
 #
-RUN apt update && apt install wget -y && apt install unzip -y
+RUN apt-get update -y && apt-get install curl wget unzip -y
 RUN cd /usr/local/tomcat/webapps \
     && wget --no-check-certificate --progress=bar:force:noscroll https://artifacts.geonode.org/geoserver/${GEOSERVER_VERSION}/geoserver.war -O geoserver.war \
     && unzip -q geoserver.war -d geoserver \
@@ -99,6 +101,6 @@ RUN apt-get update \
 
 RUN pip install j2cli
 
-ENV JAVA_OPTS="-Djava.awt.headless=true -XX:+UnlockDiagnosticVMOptions -XX:+LogVMOutput -XX:LogFile=/var/log/jvm.log -XX:MaxPermSize=512m -XX:PermSize=256m -Xms512m -Xmx2048m -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:ParallelGCThreads=4 -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -Duser.timezone=GMT -Dorg.geotools.shapefile.datetime=false -DGEOSERVER_CSRF_DISABLED=true -DPRINT_BASE_URL=http://geoserver:8080/geoserver/pdf -Xbootclasspath/a:/usr/local/tomcat/webapps/geoserver/WEB-INF/lib/marlin-0.9.3.jar -Dsun.java2d.renderer=org.marlin.pisces.MarlinRenderingEngine"
+ENV JAVA_OPTS="-Djava.awt.headless=true -XX:+UnlockDiagnosticVMOptions -XX:+LogVMOutput -XX:LogFile=/var/log/jvm.log -XX:MaxPermSize=512m -XX:PermSize=256m -Xms512m -Xmx2048m -XX:+UseConcMarkSweepGC -XX:ParallelGCThreads=4 -Dfile.encoding=UTF8 -Djavax.servlet.request.encoding=UTF-8 -Djavax.servlet.response.encoding=UTF-8 -Duser.timezone=GMT -Dorg.geotools.shapefile.datetime=false -DGEOSERVER_CSRF_DISABLED=true -DPRINT_BASE_URL=http://geoserver:8080/geoserver/pdf -Xbootclasspath/a:/usr/local/tomcat/webapps/geoserver/WEB-INF/lib/marlin-0.9.3.jar -Dsun.java2d.renderer=org.marlin.pisces.MarlinRenderingEngine"
 
 CMD ["/usr/local/tomcat/tmp/entrypoint.sh"]
