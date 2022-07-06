@@ -1,10 +1,10 @@
-version: '3.4'
+version: '3.9'
 
 # Common Django template for GeoNode and Celery services below
 x-common-django:
   &default-common-django
   image: ${COMPOSE_PROJECT_NAME}_django:latest
-  restart: unless-stopped
+  restart: on-failure
   env_file:
     - .env
   volumes:
@@ -66,7 +66,7 @@ services:
       - nginx-confd:/etc/nginx
       - nginx-certificates:/geonode-certificates
       - statics:/mnt/volumes/statics
-    restart: unless-stopped
+    restart: on-failure
 
   # Gets and installs letsencrypt certificates
   letsencrypt:
@@ -80,7 +80,7 @@ services:
       - LETSENCRYPT_MODE=${LETSENCRYPT_MODE}
     volumes:
       - nginx-certificates:/geonode-certificates
-    restart: unless-stopped
+    restart: on-failure
 
   # Geoserver backend
   geoserver:
@@ -102,17 +102,21 @@ services:
       - backup-restore:/backup_restore
       - data:/data
       - tmp:/tmp
-    restart: unless-stopped
+    restart: on-failure
     depends_on:
-      - db
-      - data-dir-conf
+      db:
+        condition: service_healthy
+      data-dir-conf:
+        condition: service_healthy
 
   data-dir-conf:
     image: geonode/geoserver_data:2.20.5
     container_name: gsconf4${COMPOSE_PROJECT_NAME}
-    command: /bin/true
+    entrypoint: sleep infinity
     volumes:
       - geoserver-data-dir:/geoserver_data/data
+    healthcheck:
+      test: "ls -A '/geoserver_data/data' | wc -l"
 
   # PostGIS database.
   db:
@@ -125,10 +129,12 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
       - dbbackups:/pg_backups
-    restart: unless-stopped
+    restart: on-failure
     # uncomment to enable remote connections to postgres
     #ports:
     #  - "5432:5432"
+    healthcheck:
+      test: "pg_isready -d gis"
 
   # Vanilla RabbitMQ service. This is needed by celery
   rabbitmq:
@@ -136,7 +142,7 @@ services:
     container_name: rabbitmq4${COMPOSE_PROJECT_NAME}
     volumes:
       - rabbitmq:/var/lib/rabbitmq
-    restart: unless-stopped
+    restart: on-failure
 
   jenkins:
     image: jenkins/jenkins:lts
@@ -154,7 +160,8 @@ services:
       - data:/data
     environment:
       - 'JENKINS_OPTS=--httpPort=${JENKINS_HTTP_PORT} --httpsPort=${JENKINS_HTTPS_PORT} --prefix=/jenkins'
-    restart: unless-stopped
+    restart: on-failure
+
 volumes:
   jenkins_data:
     driver: local
