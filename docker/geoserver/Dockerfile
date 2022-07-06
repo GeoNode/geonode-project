@@ -1,4 +1,4 @@
-FROM tomcat:9-jre8
+FROM tomcat:9.0.64-jre11-openjdk-slim-bullseye
 LABEL GeoNode Development Team
 
 #
