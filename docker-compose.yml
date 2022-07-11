@@ -3,7 +3,7 @@ version: '3.9'
 # Common Django template for GeoNode and Celery services below
 x-common-django:
   &default-common-django
-  image: ${COMPOSE_PROJECT_NAME}_django:latest
+  image: ${COMPOSE_PROJECT_NAME}_django:4.0
   restart: on-failure
   env_file:
     - .env
@@ -14,6 +14,11 @@ x-common-django:
     - backup-restore:/backup_restore
     - data:/data
     - tmp:/tmp
+  depends_on:
+    db:
+      condition: service_healthy
+    geoserver:
+      condition: service_healthy
 
 services:
 
@@ -26,10 +31,10 @@ services:
     container_name: django4${COMPOSE_PROJECT_NAME}
     healthcheck:
       test: "curl --fail --silent --write-out 'HTTP CODE : %{http_code}\n' --output /dev/null http://127.0.0.1:8001/"
+      start_period: 60s
       interval: 60s
       timeout: 10s
-      retries: 1
-      start_period: 60s
+      retries: 10
     environment:
       - IS_CELERY=False
     entrypoint: ["/usr/src/{{project_name}}/entrypoint.sh"]
@@ -38,7 +43,7 @@ services:
   # Celery worker that executes celery tasks created by Django.
   celery:
     << : *default-common-django
-    image: ${COMPOSE_PROJECT_NAME}_django:latest
+    image: ${COMPOSE_PROJECT_NAME}_django:4.0
     container_name: celery4${COMPOSE_PROJECT_NAME}
     depends_on:
       - django
@@ -49,7 +54,7 @@ services:
 
   # Nginx is serving django static and media files and proxies to django and geonode
   geonode:
-    image: geonode/nginx:3.x
+    image: geonode/nginx:4.0
     build: ./docker/nginx/
     container_name: nginx4${COMPOSE_PROJECT_NAME}
     environment:
@@ -70,7 +75,7 @@ services:
 
   # Gets and installs letsencrypt certificates
   letsencrypt:
-    image: geonode/letsencrypt:latest
+    image: geonode/letsencrypt:4.0
     build: ./docker/letsencrypt/
     container_name: letsencrypt4${COMPOSE_PROJECT_NAME}
     environment:
@@ -88,10 +93,11 @@ services:
     build: ./docker/geoserver/
     container_name: geoserver4${COMPOSE_PROJECT_NAME}
     healthcheck:
-      test: curl --fail -s http://localhost:8080/geoserver/rest/workspaces/geonode.html || exit 1
-      interval: 30s
+      test: "curl --fail --silent --write-out 'HTTP CODE : %{http_code}\n' --output /dev/null http://127.0.0.1:8080/geoserver/rest/workspaces/geonode.html"
+      start_period: 60s
+      interval: 60s
       timeout: 10s
-      retries: 3
+      retries: 10
     env_file:
       - .env
     ports:
@@ -115,6 +121,7 @@ services:
     entrypoint: sleep infinity
     volumes:
       - geoserver-data-dir:/geoserver_data/data
+    restart: on-failure
     healthcheck:
       test: "ls -A '/geoserver_data/data' | wc -l"
 
@@ -130,11 +137,11 @@ services:
       - dbdata:/var/lib/postgresql/data
       - dbbackups:/pg_backups
     restart: on-failure
+    healthcheck:
+      test: "pg_isready -d gis"
     # uncomment to enable remote connections to postgres
     #ports:
     #  - "5432:5432"
-    healthcheck:
-      test: "pg_isready -d gis"
 
   # Vanilla RabbitMQ service. This is needed by celery
   rabbitmq:
