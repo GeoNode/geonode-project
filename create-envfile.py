@@ -81,9 +81,11 @@ def generate_env_file(args):
         }
         tcp = 'https' if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize()) else 'http'
 
+        _vals_to_replace["public_port"] = '443' if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize()) else '80'
         _vals_to_replace["http_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'http' else ""
         _vals_to_replace["https_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'https' else ""
 
+        _vals_to_replace["siteurl"] = f"{tcp}://{_jsfile.get('hostname', args.hostname)}"
         _vals_to_replace["geoserver_ui"] = f"{tcp}://{_jsfile.get('hostname', args.hostname)}"
         _vals_to_replace["secret_key"] = _jsfile.get("secret_key",args.secret_key) or "".join(random.choice(_strong_chars) for _ in range(50))
         _vals_to_replace["letsencrypt_mode"] = "disabled" if not _vals_to_replace.get("https_host") else "production"
