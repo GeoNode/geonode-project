@@ -96,7 +96,7 @@ To setup your project follow these instructions:
         "geodbpwd": "value",
         "clientid": "value",
         "clientsecret": "value"
-      }
+      } 
       ```
 
 ### Start your server
@@ -350,3 +350,4 @@ Starts a vm for test on plain docker service with docker-compose:
     - starts, reboots.
 
 [1] to achieve `docker-compose build --no-cache` just destroy vagrant boxes `vagrant destroy -f`
+
