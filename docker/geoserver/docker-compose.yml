@@ -11,7 +11,7 @@ services:
     #volumes_from:
       #- pgstore
     healthcheck:
-      test: "pg_isready -d gis"
+      test: "pg_isready -d postgres -U postgres"
     restart: on-failure
 
   geoserver:
