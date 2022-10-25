@@ -4,7 +4,7 @@
 
 source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
 mkvirtualenv --python=/usr/bin/python3 generated-project
-pip install Django==3.2
+pip install Django==3.2.16
 rm -rf generated-project
 django-admin startproject --template=/home/vagrant/geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile generated-project
 cd /home/vagrant/generated-project
