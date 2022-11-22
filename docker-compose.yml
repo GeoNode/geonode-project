@@ -152,8 +152,7 @@ services:
     restart: on-failure
 
   jenkins:
-    image: jenkins/jenkins:lts
-    # image: istresearch/jenkins:latest
+    image: jenkins/jenkins:2.164-jdk11
     container_name: jenkins4${COMPOSE_PROJECT_NAME}
     user: jenkins
     ports:
