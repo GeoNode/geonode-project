@@ -50,7 +50,7 @@ To setup your project follow these instructions:
     - *hostname*: e.g. master.demo.geonode.org, default localhost
     - *https*: (boolean), default value is False
     - *email*: Admin email (this is required if https is set to True since a valid email is required by Letsencrypt certbot)
-    - *emv_type*: `prod`, `test` or `dev`. It will set the `DEBUG` variable to `False` (`prod`, `test`) or `True` (`dev`)
+    - *env_type*: `prod`, `test` or `dev`. It will set the `DEBUG` variable to `False` (`prod`, `test`) or `True` (`dev`)
     - *geonodepwd*: GeoNode admin password (required inside the .env)
     - *geoserverpwd*: Geoserver admin password (required inside the .env)
     - *pgpwd*: PostgreSQL password (required inside the .env)
