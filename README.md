@@ -34,7 +34,7 @@ To setup your project follow these instructions:
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
     source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
     mkvirtualenv --python=/usr/bin/python3 {{ project_name }}
-    pip install Django==3.2.14
+    pip install Django==3.2.16
 
     django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile {{ project_name }}
 
@@ -50,7 +50,7 @@ To setup your project follow these instructions:
     - *hostname*: e.g. master.demo.geonode.org, default localhost
     - *https*: (boolean), default value is False
     - *email*: Admin email (this is required if https is set to True since a valid email is required by Letsencrypt certbot)
-    - *emv_type*: `prod`, `test` or `dev`. It will set the `DEBUG` variable to `False` (`prod`, `test`) or `True` (`dev`)
+    - *env_type*: `prod`, `test` or `dev`. It will set the `DEBUG` variable to `False` (`prod`, `test`) or `True` (`dev`)
     - *geonodepwd*: GeoNode admin password (required inside the .env)
     - *geoserverpwd*: Geoserver admin password (required inside the .env)
     - *pgpwd*: PostgreSQL password (required inside the .env)
@@ -268,7 +268,7 @@ Step 3. Set up a free account on github or bitbucket and make a copy of the repo
 You may want to configure your requirements.txt, if you are using additional or custom versions of python packages. For example
 
 ```python
-Django==3.2.14
+Django==3.2.16
 git+git://github.com/<your organization>/geonode.git@<your branch>
 ```
 
