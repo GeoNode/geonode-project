@@ -10,7 +10,7 @@
     branch_name: master
     virtualenv_dir: "/home/ubuntu/.venvs"
     site_url: "http://localhost:8000/" # The public url of the GeoNode instance
-    geoserver_url: "https://artifacts.geonode.org/geoserver/2.20.5/geoserver.war" # geoserver_url should match what is found in dev_config.yml
+    geoserver_url: "https://artifacts.geonode.org/geoserver/2.20.7/geoserver.war" # geoserver_url should match what is found in dev_config.yml
     pg_max_connections: 100
     pg_shared_buffers: 128MB
     tomcat_xms: "1024M"
