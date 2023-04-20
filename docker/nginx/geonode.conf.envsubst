@@ -6,8 +6,10 @@ charset     utf-8;
 # max upload size
 client_max_body_size 100G;
 client_body_buffer_size 256K;
+client_body_timeout 600s;
 large_client_header_buffers 4 64k;
 proxy_read_timeout 600s;
+uwsgi_read_timeout 600s;
 
 fastcgi_hide_header Set-Cookie;
 
@@ -87,27 +89,6 @@ location /uploaded/ {
       add_header Pragma "public";
       add_header Cache-Control "max-age=31536000, public";
   }
-}
-
-location ~ ^/celery-monitor/? {
-
-    # Using a variable is a trick to let Nginx start even if upstream host is not up yet
-    # (see https://sandro-keil.de/blog/2017/07/24/let-nginx-start-if-upstream-host-is-unavailable-or-down/)
-    set $upstream celerymonitor:5555;
-
-    rewrite ^/celery-monitor/?(.*)$ /$1 break;
-
-    sub_filter '="/' '="/celery-monitor/';
-    sub_filter_last_modified on;
-    sub_filter_once off;
-
-    # proxy_pass http://unix:/tmp/flower.sock:/;
-    proxy_pass http://$upstream;
-    proxy_redirect off;
-    proxy_set_header Host $host;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-    proxy_http_version 1.1;
 }
 
 location / {
