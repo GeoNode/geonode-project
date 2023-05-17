@@ -41,8 +41,8 @@ RUN pip install pylibmc \
     && pip install sherlock
 
 # add bower and grunt command
-COPY src /usr/src/geonode_master/
-WORKDIR /usr/src/geonode_master
+COPY src /usr/src/{{project_name}}/
+WORKDIR /usr/src/{{project_name}}
 
 COPY src/monitoring-cron /etc/cron.d/monitoring-cron
 RUN chmod 0644 /etc/cron.d/monitoring-cron
@@ -52,8 +52,8 @@ RUN service cron start
 
 COPY src/wait-for-databases.sh /usr/bin/wait-for-databases
 RUN chmod +x /usr/bin/wait-for-databases
-RUN chmod +x /usr/src/geonode_master/tasks.py \
-    && chmod +x /usr/src/geonode_master/entrypoint.sh
+RUN chmod +x /usr/src/{{project_name}}/tasks.py \
+    && chmod +x /usr/src/{{project_name}}/entrypoint.sh
 
 COPY src/celery.sh /usr/bin/celery-commands
 RUN chmod +x /usr/bin/celery-commands
@@ -77,4 +77,4 @@ RUN rm -rf /var/lib/apt/lists/*
 EXPOSE 8000
 
 # We provide no command or entrypoint as this image can be used to serve the django project or run celery tasks
-# ENTRYPOINT /usr/src/geonode_master/entrypoint.sh
+# ENTRYPOINT /usr/src/{{project_name}}/entrypoint.sh
