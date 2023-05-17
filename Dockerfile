@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 LABEL GeoNode development team
 
-RUN mkdir -p /usr/src/geonode_master
+RUN mkdir -p /usr/src/{{project_name}}
 
 ## Enable postgresql-client-13
 RUN apt-get update -y && apt-get install curl wget unzip gnupg2 -y
