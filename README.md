@@ -76,8 +76,10 @@ To setup your project follow these instructions:
         --geonodepwd gn_password \
         --geoserverpwd gs_password \
         --pgpwd pg_password \
+        --dbpwd db_user \
         --dbpwd db_password \
-        --geodbpwd _db_password \
+        --geodbusr geo_db_user \
+        --geodbpwd geo_db_password \
         --clientid 12345 \
         --clientsecret abc123 
       ```
@@ -92,7 +94,9 @@ To setup your project follow these instructions:
         "geonodepwd": "value",
         "geoserverpwd": "value",
         "pgpwd": "value",
+        "dbusr": "value",
         "dbpwd": "value",
+        "geodbusr": "value",
         "geodbpwd": "value",
         "clientid": "value",
         "clientsecret": "value"
