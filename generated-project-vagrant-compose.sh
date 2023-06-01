@@ -11,10 +11,8 @@ cd /home/vagrant/generated-project
 python create-envfile.py --geonodepwd geonode \
   --geoserverpwd geoserver \
   --pgpwd postgres \
-  --dbusr geonode \
   --dbpwd geonode \
-  --geodbusr geonode_data \
-  --geodbpwd geonode_data
+  --geodbpwd geonode
 sed -i 's/GEOSERVER_WEB_UI_LOCATION=http:\/\/localhost\/geoserver\//GEOSERVER_WEB_UI_LOCATION=http:\/\/localhost:8888\/geoserver\//' .env
 sed -i 's/GEOSERVER_PUBLIC_LOCATION=http:\/\/localhost\/geoserver\//GEOSERVER_PUBLIC_LOCATION=http:\/\/localhost:8888\/geoserver\//' .env
 sed -i 's/SITEURL=.*/SITEURL=http:\/\/localhost:8888\//' .env
