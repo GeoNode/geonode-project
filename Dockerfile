@@ -7,11 +7,11 @@ RUN mkdir -p /usr/src/{{project_name}}
 COPY src /usr/src/{{project_name}}/
 WORKDIR /usr/src/{{project_name}}
 
-COPY src/monitoring-cron /etc/cron.d/monitoring-cron
-RUN chmod 0644 /etc/cron.d/monitoring-cron
-RUN crontab /etc/cron.d/monitoring-cron
-RUN touch /var/log/cron.log
-RUN service cron start
+#COPY src/monitoring-cron /etc/cron.d/monitoring-cron
+#RUN chmod 0644 /etc/cron.d/monitoring-cron
+#RUN crontab /etc/cron.d/monitoring-cron
+#RUN touch /var/log/cron.log
+#RUN service cron start
 
 COPY src/wait-for-databases.sh /usr/bin/wait-for-databases
 RUN chmod +x /usr/bin/wait-for-databases
