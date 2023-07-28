@@ -150,7 +150,6 @@ services:
     volumes:
       - rabbitmq:/var/lib/rabbitmq
     restart: unless-stopped
-    restart: on-failure
 
 volumes:
   statics:
