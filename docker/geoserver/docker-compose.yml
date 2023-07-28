@@ -19,8 +19,8 @@ services:
     build:
       context: .
       args:
-        - DOCKERHOST
-        - GEONODE_HOST_IP
+        - GEONODE_HOST_IP=django
+        - GEONODE_LB_PORT=8000
         - PUBLIC_PORT=80
     links:
       - postgis
@@ -29,11 +29,10 @@ services:
     volumes:
       - /geoserver_data/data
     environment:
-      - DOCKERHOST
-      - GEONODE_HOST_IP
+      - GEONODE_HOST_IP=django
+      - GEONODE_LB_PORT=8000
       - PUBLIC_PORT=80
-      - DOCKER_HOST_IP
-      - DJANGO_URL=http://localhost/
+      - NGINX_BASE_URL=http://localhost
     depends_on:
       postgis:
         condition: service_completed_successfully

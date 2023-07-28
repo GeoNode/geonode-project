@@ -17,8 +17,6 @@ x-common-django:
   depends_on:
     db:
       condition: service_healthy
-    geoserver:
-      condition: service_healthy
 
 services:
 
@@ -30,11 +28,7 @@ services:
       dockerfile: Dockerfile
     container_name: django4${COMPOSE_PROJECT_NAME}
     healthcheck:
-      test: "curl --fail --silent --write-out 'HTTP CODE : %{http_code}\n' --output /dev/null http://127.0.0.1:8000/"
-      start_period: 60s
-      interval: 60s
-      timeout: 10s
-      retries: 10
+      test: "curl -m 10 --fail --silent --write-out 'HTTP CODE : %{http_code}\n' --output /dev/null http://django:8000/"
     environment:
       - IS_CELERY=False
     entrypoint: ["/usr/src/{{project_name}}/entrypoint.sh"]
@@ -46,7 +40,8 @@ services:
     image: ${COMPOSE_PROJECT_NAME}_django:latest
     container_name: celery4${COMPOSE_PROJECT_NAME}
     depends_on:
-      - django
+      django:
+        condition: service_healthy
     environment:
       - IS_CELERY=True
     entrypoint: ["/usr/src/{{project_name}}/entrypoint.sh"]
@@ -57,12 +52,9 @@ services:
     image: geonode/nginx:latest
     build: ./docker/nginx/
     container_name: nginx4${COMPOSE_PROJECT_NAME}
+    env_file:
+      - .env
     environment:
-      - HTTPS_HOST=${HTTPS_HOST}
-      - HTTP_HOST=${HTTP_HOST}
-      - HTTPS_PORT=${HTTPS_PORT}
-      - HTTP_PORT=${HTTP_PORT}
-      - LETSENCRYPT_MODE=${LETSENCRYPT_MODE}
       - RESOLVER=127.0.0.11
     ports:
       - "${HTTP_PORT}:80"
@@ -78,11 +70,8 @@ services:
     image: geonode/letsencrypt:latest
     build: ./docker/letsencrypt/
     container_name: letsencrypt4${COMPOSE_PROJECT_NAME}
-    environment:
-      - HTTPS_HOST=${HTTPS_HOST}
-      - HTTP_HOST=${HTTP_HOST}
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
-      - LETSENCRYPT_MODE=${LETSENCRYPT_MODE}
+    env_file:
+      - .env
     volumes:
       - nginx-certificates:/geonode-certificates
     restart: unless-stopped
@@ -110,9 +99,9 @@ services:
       - tmp:/tmp
     restart: unless-stopped
     depends_on:
-      db:
-        condition: service_healthy
       data-dir-conf:
+        condition: service_healthy
+      django:
         condition: service_healthy
 
   data-dir-conf:

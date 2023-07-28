@@ -27,7 +27,7 @@ import socket
 import logging
 import datetime
 
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 from invoke import task
 
 BOOTSTRAP_IMAGE_CHEIP = "codenvy/che-ip:nightly"
@@ -40,14 +40,6 @@ def waitfordbs(ctx):
     print("**************************databases*******************************")
     db_host = os.getenv("DATABASE_HOST", "db")
     ctx.run(f"/usr/bin/wait-for-databases {db_host}", pty=True)
-
-
-@task
-def waitforgeoserver(ctx):
-    print("****************************geoserver********************************")
-    while not _gs_service_availability(f"{os.environ['GEOSERVER_LOCATION']}ows"):
-        print("Wait for GeoServer API availability...")
-    print("GeoServer is available for HTTP calls!")
 
 
 @task
@@ -378,31 +370,6 @@ def prepare(ctx):
     _prepare_oauth_fixture()
     ctx.run("rm -rf /tmp/default_site.json", pty=True)
     _prepare_site_fixture()
-    # Updating OAuth2 Service Config
-    new_ext_ip = os.environ["SITEURL"]
-    client_id = os.environ["OAUTH2_CLIENT_ID"]
-    client_secret = os.environ["OAUTH2_CLIENT_SECRET"]
-    oauth_config = "/geoserver_data/data/security/filter/geonode-oauth2/config.xml"
-    ctx.run(
-        f'sed -i "s|<cliendId>.*</cliendId>|<cliendId>{client_id}</cliendId>|g" {oauth_config}',
-        pty=True,
-    )
-    ctx.run(
-        f'sed -i "s|<clientSecret>.*</clientSecret>|<clientSecret>{client_secret}</clientSecret>|g" {oauth_config}',
-        pty=True,
-    )
-    ctx.run(
-        f'sed -i "s|<userAuthorizationUri>.*</userAuthorizationUri>|<userAuthorizationUri>{new_ext_ip}o/authorize/</userAuthorizationUri>|g" {oauth_config}',  # noqa
-        pty=True,
-    )
-    ctx.run(
-        f'sed -i "s|<redirectUri>.*</redirectUri>|<redirectUri>{new_ext_ip}geoserver/index.html</redirectUri>|g" {oauth_config}',  # noqa
-        pty=True,
-    )
-    ctx.run(
-        f'sed -i "s|<logoutUri>.*</logoutUri>|<logoutUri>{new_ext_ip}account/logout/</logoutUri>|g" {oauth_config}',
-        pty=True,
-    )
 
 
 @task
@@ -438,12 +405,6 @@ def collectstatic(ctx):
 --settings={_localsettings()}",
         pty=True,
     )
-
-
-@task
-def geoserverfixture(ctx):
-    print("********************geoserver fixture********************************")
-    _geoserver_info_provision(f"{os.environ['GEOSERVER_LOCATION']}rest/")
 
 
 @task
@@ -611,44 +572,8 @@ def _geonode_public_port():
     return gn_pub_port
 
 
-def _geoserver_info_provision(url):
-    from django.conf import settings
-    from geoserver.catalog import Catalog
-
-    print("Setting GeoServer Admin Password...")
-    cat = Catalog(
-        url,
-        username=settings.OGC_SERVER_DEFAULT_USER,
-        password=settings.OGC_SERVER_DEFAULT_PASSWORD,
-    )
-    headers = {"Content-type": "application/xml", "Accept": "application/xml"}
-    data = f"""<?xml version="1.0" encoding="UTF-8"?>
-<userPassword>
-    <newPassword>{(os.getenv('GEOSERVER_ADMIN_PASSWORD', 'geoserver'))}</newPassword>
-</userPassword>"""
-
-    response = cat.http_request(
-        f"{cat.service_url}/security/self/password",
-        method="PUT",
-        data=data,
-        headers=headers,
-    )
-    print(f"Response Code: {response.status_code}")
-    if response.status_code == 200:
-        print("GeoServer admin password updated SUCCESSFULLY!")
-    else:
-        logger.warning(
-            f"WARNING: GeoServer admin password *NOT* updated: code [{response.status_code}]"
-        )
-
-
 def _prepare_oauth_fixture():
     upurl = urlparse(os.environ["SITEURL"])
-    net_scheme = upurl.scheme
-    pub_ip = _geonode_public_host_ip()
-    print(f"Public Hostname or IP is {pub_ip}")
-    pub_port = _geonode_public_port()
-    print(f"Public PORT is {pub_port}")
     default_fixture = [
         {
             "model": "oauth2_provider.application",
@@ -658,9 +583,7 @@ def _prepare_oauth_fixture():
                 "created": "2018-05-31T10:00:31.661Z",
                 "updated": "2018-05-31T11:30:31.245Z",
                 "algorithm": "RS256",
-                "redirect_uris": f"{net_scheme}://{pub_ip}:{pub_port}/geoserver/index.html"
-                if pub_port
-                else f"{net_scheme}://{pub_ip}/geoserver/index.html",
+                "redirect_uris": f"{urlunparse(upurl)}geoserver/index.html",
                 "name": "GeoServer",
                 "authorization_grant_type": "authorization-code",
                 "client_type": "confidential",

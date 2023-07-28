@@ -99,8 +99,6 @@ services:
     build: ./docker/geoserver/
     env_file:
       - .env
-    environment:
-      DOCKER_HOST_IP: "localhost"
     healthcheck:
       test: curl --fail -s http://localhost:8080/geoserver/rest/workspaces/geonode.html || exit 1
       interval: 60s

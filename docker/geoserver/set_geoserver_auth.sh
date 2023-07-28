@@ -16,19 +16,10 @@ test ! -f "$auth_conf_source" && echo "Source $auth_conf_source does not exist o
 test ! -d "$auth_conf_target" && echo "Target directory $auth_conf_target does not exist or is not a directory" && exit 1
 
 # for debugging
-echo -e "NGINX_BASE_URL=${NGINX_BASE_URL}\n"
-if [ "$PUBLIC_PORT" == "443" ]; then
-    SUBSTITUTION_URL="https://${DOCKER_HOST_IP}"
-    if [ "$PUBLIC_PORT" != "443" ]; then
-        SUBSTITUTION_URL="https://${DOCKER_HOST_IP}:${PUBLIC_PORT}"
-    fi
-else
-    SUBSTITUTION_URL="http://${DOCKER_HOST_IP}"
-    if [ "$PUBLIC_PORT" != "80" ]; then
-        SUBSTITUTION_URL="http://${DOCKER_HOST_IP}:${PUBLIC_PORT}"
-    fi
-fi
-
+echo -e "OAUTH2_API_KEY=$OAUTH2_API_KEY\n"
+echo -e "OAUTH2_CLIENT_ID=$OAUTH2_CLIENT_ID\n"
+echo -e "OAUTH2_CLIENT_SECRET=$OAUTH2_CLIENT_SECRET\n"
+echo -e "NGINX_BASE_URL=$NGINX_BASE_URL\n"
 echo -e "SUBSTITUTION_URL=$SUBSTITUTION_URL\n"
 echo -e "auth_conf_source=$auth_conf_source\n"
 echo -e "auth_conf_target=$auth_conf_target\n"
@@ -38,7 +29,7 @@ echo " " >> "$auth_conf_source"
 
 cat "$auth_conf_source"
 
-tagname=( ${@:3:5} )
+tagname=( ${@:3:7} )
 
 # for debugging
 for i in "${tagname[@]}"
@@ -59,21 +50,21 @@ do
 
     # Setting new substituted value
     case $i in
-        proxyBaseUrl )
-            if [ ${GEONODE_LB_HOST_IP} ]
-            then
-                echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$SUBSTITUTION_URL'"
-                newvalue=`echo -ne "$tagvalue" | sed -re "s@http://localhost(:8.*0)@$SUBSTITUTION_URL@"`
-            else
-                echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$NGINX_BASE_URL'"
-                newvalue=`echo -ne "$tagvalue" | sed -re "s@http://localhost(:8.*0)@$NGINX_BASE_URL@"`
-            fi;;
-        accessTokenUri | checkTokenEndpointUrl | baseUrl )
+        authApiKey)
+            echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$OAUTH2_API_KEY'"
+            newvalue=`echo -ne "$tagvalue" | sed -re "s@.*@$OAUTH2_API_KEY@"`;;
+        cliendId)
+            echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$OAUTH2_CLIENT_ID'"
+            newvalue=`echo -ne "$tagvalue" | sed -re "s@.*@$OAUTH2_CLIENT_ID@"`;;
+        clientSecret)
+            echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$OAUTH2_CLIENT_SECRET'"
+            newvalue=`echo -ne "$tagvalue" | sed -re "s@.*@$OAUTH2_CLIENT_SECRET@"`;;
+        proxyBaseUrl | redirectUri | userAuthorizationUri )
             echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$NGINX_BASE_URL'"
-            newvalue=`echo -ne "$tagvalue" | sed -re "s@http://localhost(:8.*0)@$NGINX_BASE_URL@"`;;
-        userAuthorizationUri | redirectUri | logoutUri )
+            newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@$NGINX_BASE_URL@"`;;
+        baseUrl | accessTokenUri | checkTokenEndpointUrl | logoutUri )
             echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$SUBSTITUTION_URL'"
-            newvalue=`echo -ne "$tagvalue" | sed -re "s@http://localhost(:8.*0)@$SUBSTITUTION_URL@"`;;
+            newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@$SUBSTITUTION_URL@"`;;
         *) echo -n "an unknown variable has been found";;
     esac
 

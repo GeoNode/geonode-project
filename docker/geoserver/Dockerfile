@@ -38,16 +38,6 @@ RUN wget --no-check-certificate https://repo1.maven.org/maven2/org/postgis/postg
     mv hibernate-spatial-postgis-1.1.3.2.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/ && \
     mv postgis-jdbc-1.3.3.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/
 
-###########docker host###############
-# Set DOCKERHOST variable if DOCKER_HOST exists
-ARG DOCKERHOST=${DOCKERHOST}
-# for debugging
-RUN echo -n #1===>DOCKERHOST=${DOCKERHOST}
-#
-ENV DOCKERHOST ${DOCKERHOST}
-# for debugging
-RUN echo -n #2===>DOCKERHOST=${DOCKERHOST}
-
 ###########docker host ip#############
 # Set GEONODE_HOST_IP address if it exists
 ARG GEONODE_HOST_IP=${GEONODE_HOST_IP}
@@ -57,17 +47,6 @@ RUN echo -n #1===>GEONODE_HOST_IP=${GEONODE_HOST_IP}
 ENV GEONODE_HOST_IP ${GEONODE_HOST_IP}
 # for debugging
 RUN echo -n #2===>GEONODE_HOST_IP=${GEONODE_HOST_IP}
-# If empty set DOCKER_HOST_IP to GEONODE_HOST_IP
-ENV DOCKER_HOST_IP=${DOCKER_HOST_IP:-${GEONODE_HOST_IP}}
-# for debugging
-RUN echo -n #1===>DOCKER_HOST_IP=${DOCKER_HOST_IP}
-# Trying to set the value of DOCKER_HOST_IP from DOCKER_HOST
-RUN if ! [ -z ${DOCKER_HOST_IP} ]; \
-    then echo export DOCKER_HOST_IP=${DOCKERHOST} | \
-    sed 's/tcp:\/\/\([^:]*\).*/\1/' >> /root/.bashrc; \
-    else echo "DOCKER_HOST_IP is already set!"; fi
-# for debugging
-RUN echo -n #2===>DOCKER_HOST_IP=${DOCKER_HOST_IP}
 
 # Set WEBSERVER public port
 ARG PUBLIC_PORT=${PUBLIC_PORT}
@@ -77,10 +56,6 @@ RUN echo -n #1===>PUBLIC_PORT=${PUBLIC_PORT}
 ENV PUBLIC_PORT=${PUBLIC_PORT}
 # for debugging
 RUN echo -n #2===>PUBLIC_PORT=${PUBLIC_PORT}
-
-# set nginx base url for geoserver
-RUN echo export NGINX_BASE_URL=http://${NGINX_HOST}:${NGINX_PORT}/ | \
-    sed 's/tcp:\/\/\([^:]*\).*/\1/' >> /root/.bashrc
 
 # copy the script and perform the run of scripts from entrypoint.sh
 RUN mkdir -p /usr/local/tomcat/tmp

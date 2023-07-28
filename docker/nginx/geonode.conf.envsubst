@@ -43,18 +43,19 @@ gzip_types
 location /geoserver {
   # Using a variable is a trick to let Nginx start even if upstream host is not up yet
   # (see https://sandro-keil.de/blog/2017/07/24/let-nginx-start-if-upstream-host-is-unavailable-or-down/)
-  set $upstream geoserver:8080;
+  set $upstream $GEOSERVER_LB_HOST_IP:$GEOSERVER_LB_PORT;
 
   proxy_set_header X-Forwarded-Host $host;
   proxy_set_header X-Forwarded-Server $host;
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_set_header X-Real-IP $remote_addr;
-  proxy_set_header X-Forwarded-Proto $scheme;
+  proxy_set_header X-Forwarded-Proto $HTTP_SCHEME;
   proxy_set_header Upgrade $http_upgrade;
   proxy_set_header Connection "upgrade";
   proxy_hide_header X-Frame-Options;
   proxy_pass http://$upstream;
   proxy_http_version 1.1;
+  proxy_redirect http://$upstream $HTTP_SCHEME://$HTTP_HOST;
   proxy_request_buffering  off;
   client_max_body_size 0;
 }
@@ -87,7 +88,7 @@ location /uploaded/ {
 location / {
   # Using a variable is a trick to let Nginx start even if upstream host is not up yet
   # (see https://sandro-keil.de/blog/2017/07/24/let-nginx-start-if-upstream-host-is-unavailable-or-down/)
-  set $upstream django:8000;
+  set $upstream $GEONODE_LB_HOST_IP:$GEONODE_LB_PORT;
 
   if ($request_method = OPTIONS) {
       add_header Access-Control-Allow-Methods "GET, POST, PUT, PATCH, OPTIONS";
@@ -105,11 +106,11 @@ location / {
   
   proxy_redirect              off;
   proxy_set_header            Host $host;
-  proxy_set_header            Origin $scheme://$host;
+  proxy_set_header            Origin $HTTP_SCHEME://$host;
   proxy_set_header            X-Real-IP $remote_addr;
   proxy_set_header            X-Forwarded-Host $server_name;
   proxy_set_header            X-Forwarded-For $proxy_add_x_forwarded_for;
-  proxy_set_header            X-Forwarded-Proto $scheme;
+  proxy_set_header            X-Forwarded-Proto $HTTP_SCHEME;
   proxy_hide_header           X-Frame-Options;
   proxy_request_buffering     off;
 
