@@ -48,8 +48,8 @@ then
     echo "NGINX_BASE_URL is empty so I'll use the static nginx hostname \n"
     # echo export NGINX_BASE_URL=`python3 /usr/local/tomcat/tmp/get_nginxhost_ip.py` >> /root/.override_env
     # TODO rework get_nginxhost_ip to get URL with static hostname from nginx service name
-    # + exposed port of that container i.e. http://geonode:80
-    echo export NGINX_BASE_URL=http://geonode:80 >> /root/.override_env
+    # + exposed port of that container i.e. http://django:8000
+    echo export NGINX_BASE_URL=http://django:8000 >> /root/.override_env
     echo "The calculated value is now NGINX_BASE_URL='$NGINX_BASE_URL' \n"
 else
     echo "NGINX_BASE_URL is filled so I'll leave the found value '$NGINX_BASE_URL' \n"

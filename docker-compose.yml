@@ -3,7 +3,7 @@ version: '3.9'
 # Common Django template for GeoNode and Celery services below
 x-common-django:
   &default-common-django
-  image: ${COMPOSE_PROJECT_NAME}_django:4.master
+  image: ${COMPOSE_PROJECT_NAME}_django:latest
   restart: unless-stopped
   env_file:
     - .env
@@ -43,7 +43,7 @@ services:
   # Celery worker that executes celery tasks created by Django.
   celery:
     << : *default-common-django
-    image: ${COMPOSE_PROJECT_NAME}_django:4.master
+    image: ${COMPOSE_PROJECT_NAME}_django:latest
     container_name: celery4${COMPOSE_PROJECT_NAME}
     depends_on:
       - django

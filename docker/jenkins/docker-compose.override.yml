@@ -1,6 +1,0 @@
-version: '2.2'
-services:
-
-  jenkins:
-    volumes:
-      - '/data/backup_restore:/backup_restore'
