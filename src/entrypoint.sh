@@ -79,7 +79,6 @@ else
 
         if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
             echo "LOG INIT" > /usr/src/{{project_name}}/invoke.log
-            invoke updategeoip
             invoke fixtures
             invoke monitoringfixture
             invoke initialized

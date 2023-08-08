@@ -298,21 +298,6 @@ def static(options):
         sh('grunt production')
 
 
-@task
-@needs([
-    'setup_geoserver',
-])
-def setup(options):
-    """Get dependencies and prepare a GeoNode development environment."""
-
-    if MONITORING_ENABLED:
-        updategeoip(options)
-
-    info('GeoNode development environment successfully set up.'
-         'If you have not set up an administrative account,'
-         ' please do so now. Use "paver start" to start up the server.')
-
-
 def grab_winfiles(url, dest, packagename):
     # Add headers
     headers = {'User-Agent': 'Mozilla 5.10'}
@@ -375,22 +360,6 @@ def upgradedb(options):
         print("Please specify your GeoNode version")
     else:
         print(f"Upgrades from version {version} are not yet supported.")
-
-
-@task
-@cmdopts([
-    ('settings=', 's', 'Specify custom DJANGO_SETTINGS_MODULE')
-])
-def updategeoip(options):
-    """
-    Update geoip db
-    """
-    if MONITORING_ENABLED:
-        settings = options.get('settings', '')
-        if settings and 'DJANGO_SETTINGS_MODULE' not in settings:
-            settings = f'DJANGO_SETTINGS_MODULE={settings}'
-
-        sh(f"{settings} python -W ignore manage.py updategeoip -o")
 
 
 @task
