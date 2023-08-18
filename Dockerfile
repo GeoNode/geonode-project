@@ -4,7 +4,13 @@ LABEL GeoNode development team
 RUN mkdir -p /usr/src/{{project_name}}
 
 ## Enable postgresql-client-13
-RUN apt-get update -y && apt-get install curl wget unzip gnupg2 -y
+RUN apt-get update -y && apt-get install curl wget unzip gnupg2 locales -y
+
+RUN sed -i -e 's/# C.UTF-8 UTF-8/C.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
+
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 # will install python3.10 
 RUN apt-get install lsb-core -y
