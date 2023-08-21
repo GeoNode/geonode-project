@@ -59,10 +59,10 @@ do
         clientSecret)
             echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$OAUTH2_CLIENT_SECRET'"
             newvalue=`echo -ne "$tagvalue" | sed -re "s@.*@$OAUTH2_CLIENT_SECRET@"`;;
-        proxyBaseUrl | redirectUri | userAuthorizationUri )
+        proxyBaseUrl | redirectUri | userAuthorizationUri | logoutUri )
             echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$NGINX_BASE_URL'"
             newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@$NGINX_BASE_URL@"`;;
-        baseUrl | accessTokenUri | checkTokenEndpointUrl | logoutUri )
+        baseUrl | accessTokenUri | checkTokenEndpointUrl )
             echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$SUBSTITUTION_URL'"
             newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@$SUBSTITUTION_URL@"`;;
         *) echo -n "an unknown variable has been found";;
