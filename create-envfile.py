@@ -89,11 +89,6 @@ def generate_env_file(args):
             else "http"
         )
 
-        _vals_to_replace["public_port"] = (
-            "443"
-            if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize())
-            else "80"
-        )
         _vals_to_replace["http_host"] = (
             _jsfile.get("hostname", args.hostname) if tcp == "http" else ""
         )

@@ -18,10 +18,6 @@ services:
     image: geonode/geoserver:2.23.0
     build:
       context: .
-      args:
-        - GEONODE_HOST_IP=django
-        - GEONODE_LB_PORT=8000
-        - PUBLIC_PORT=80
     links:
       - postgis
     ports:
@@ -29,9 +25,6 @@ services:
     volumes:
       - /geoserver_data/data
     environment:
-      - GEONODE_HOST_IP=django
-      - GEONODE_LB_PORT=8000
-      - PUBLIC_PORT=80
       - NGINX_BASE_URL=http://localhost
     depends_on:
       postgis:

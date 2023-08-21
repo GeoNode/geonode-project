@@ -38,24 +38,6 @@ RUN wget --no-check-certificate https://repo1.maven.org/maven2/org/postgis/postg
     mv hibernate-spatial-postgis-1.1.3.2.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/ && \
     mv postgis-jdbc-1.3.3.jar /usr/local/tomcat/webapps/geoserver/WEB-INF/lib/
 
-###########docker host ip#############
-# Set GEONODE_HOST_IP address if it exists
-ARG GEONODE_HOST_IP=${GEONODE_HOST_IP}
-# for debugging
-RUN echo -n #1===>GEONODE_HOST_IP=${GEONODE_HOST_IP}
-#
-ENV GEONODE_HOST_IP ${GEONODE_HOST_IP}
-# for debugging
-RUN echo -n #2===>GEONODE_HOST_IP=${GEONODE_HOST_IP}
-
-# Set WEBSERVER public port
-ARG PUBLIC_PORT=${PUBLIC_PORT}
-# for debugging
-RUN echo -n #1===>PUBLIC_PORT=${PUBLIC_PORT}
-#
-ENV PUBLIC_PORT=${PUBLIC_PORT}
-# for debugging
-RUN echo -n #2===>PUBLIC_PORT=${PUBLIC_PORT}
 
 # copy the script and perform the run of scripts from entrypoint.sh
 RUN mkdir -p /usr/local/tomcat/tmp
