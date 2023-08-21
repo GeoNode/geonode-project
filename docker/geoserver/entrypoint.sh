@@ -3,6 +3,18 @@ set -e
 
 source /root/.bashrc
 
+
+INVOKE_LOG_STDOUT=${INVOKE_LOG_STDOUT:-FALSE}
+invoke () {
+    if [ $INVOKE_LOG_STDOUT = 'true' ] || [ $INVOKE_LOG_STDOUT = 'True' ]
+    then
+        /usr/local/bin/invoke $@
+    else
+        /usr/local/bin/invoke $@ > /usr/src/geonode/invoke.log 2>&1
+    fi
+    echo "$@ tasks done"
+}
+
 # control the values of LB settings if present
 if [ -n "$GEONODE_LB_HOST_IP" ];
 then
@@ -134,6 +146,11 @@ if [ "${GEOSERVER_CORS_ENABLED}" = "true" ] || [ "${GEOSERVER_CORS_ENABLED}" = "
       <url-pattern>/*</url-pattern>\n\
     </filter-mapping>" "$CATALINA_HOME/webapps/geoserver/WEB-INF/web.xml";
   fi
+fi
+
+if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "${GEOSERVER_DATA_DIR}/geoserver_init.lock" ]; then
+    # Run async configuration, it needs Geoserver to be up and running
+    nohup sh -c "invoke configure-geoserver" &
 fi
 
 # start tomcat
