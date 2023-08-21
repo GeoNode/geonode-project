@@ -43,10 +43,6 @@ RUN wget --no-check-certificate https://repo1.maven.org/maven2/org/postgis/postg
 RUN mkdir -p /usr/local/tomcat/tmp
 WORKDIR /usr/local/tomcat/tmp
 COPY set_geoserver_auth.sh /usr/local/tomcat/tmp
-COPY setup_auth.sh /usr/local/tomcat/tmp
-COPY requirements.txt /usr/local/tomcat/tmp
-COPY get_dockerhost_ip.py /usr/local/tomcat/tmp
-COPY get_nginxhost_ip.py /usr/local/tomcat/tmp
 COPY entrypoint.sh /usr/local/tomcat/tmp
 COPY ./templates /templates
 COPY multidump.sh /usr/local/tomcat/tmp
@@ -56,12 +52,7 @@ RUN apt-get update \
     && apt-get install -y procps less \
     && apt-get install -y python3 python3-pip python3-dev \
     && chmod +x /usr/local/tomcat/tmp/set_geoserver_auth.sh \
-    && chmod +x /usr/local/tomcat/tmp/setup_auth.sh \
-    && chmod +x /usr/local/tomcat/tmp/entrypoint.sh \
-    && pip3 install pip --upgrade \
-    && pip3 install -r requirements.txt \
-    && chmod +x /usr/local/tomcat/tmp/get_dockerhost_ip.py \
-    && chmod +x /usr/local/tomcat/tmp/get_nginxhost_ip.py
+    && chmod +x /usr/local/tomcat/tmp/entrypoint.sh
 
 RUN pip install j2cli
 
