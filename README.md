@@ -18,42 +18,44 @@ GeoNode template project. Generates a django project with GeoNode support.
 ## Quick Docker Start
 
   ```bash
-    python3.10 -m venv ~/.venvs/{{ project_name }}
+    python3.10 -m venv ~/.venvs/project_name
     source ~/.venvs/{{ project_name }}/bin/activate
 
     pip install Django==3.2.*
 
-    mkdir ~/{{ project_name }}
+    mkdir ~/project_name
   ```
 
   ```bash
     GN_VERSION=master
 
-    django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/tags/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile {{ project_name }} ~/{{ project_name }}
+    django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/tags/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
   ```
 
   ```bash
-    cd ~/{{ project_name }}
-
-    python create-envfile.py \
-        --https \
-        --env_type test \
-        --hostname localhost \
-        --email admin@email.com \
-        --geonodepwd admin \
-        --geoserverpwd geoserver \
-        --pgpwd postgres \
-        --dbpwd geonode \
-        --geodbpwd geonode \
-        --clientid Jrchz2oPY3akmzndmgUTYrs9gczlgoV20YPSvqaV \
-        --clientsecret rCnp5txobUo83EpQEblM8fVj3QT5zb5qRfxNsuPzCqZaiRyIoxM4jdgMiZKFfePBHYXCLd7B8NlkfDBY9HKeIQPcy5Cp08KQNpRHQbjpLItDHv12GvkSeXp6OxaUETv3
+    cd ~/project_name
+    python create-envfile.py 
   ```
+`create-envfile.py` accepts the following arguments:
 
-  ```bash
-    docker compose build
-
-    docker compose up -d
-  ```
+- `--https`: Enable SSL. It's disabled by default
+- `--env_type`: 
+   - When set to `prod` `DEBUG` is disabled and the creation of a valid `SSL` is requested to Letsencrypt's ACME server
+   - When set to `test`  `DEBUG` is disabled and a test `SSL` certificate is generated for local testing
+   - When set to `dev`  `DEBUG` is enabled and no `SSL` certificate is generated
+- `--hostname`: The URL that whill serve GeoNode (`localhost` by default)
+- `--email`: The administrator's email. Notice that a real email and a valid SMPT configurations are required if  `--env_type` is seto to `prod`. Letsencrypt uses to email for issuing the SSL certificate 
+- `--geonodepwd`: GeoNode's administrator password. A random value is set if left empty
+- `--geoserverpwd`: GeoNode's administrator password. A random value is set if left empty
+- `--pgpwd`: PostgreSQL's administrator password. A random value is set if left empty
+- `--dbpwd`: GeoNode DB user role's password. A random value is set if left empty
+- `--geodbpwd`: GeoNode data DB user role's password. A random value is set if left empty
+- `--clientid`: Client id of Geoserver's GeoNode Oauth2 client. A random value is set if left empty
+- `--clientsecret`: Client secret of Geoserver's GeoNode Oauth2 client. A random value is set if left empty
+```bash
+  docker compose build
+  docker compose up -d
+```
 
 ## Developer Workshop
 
