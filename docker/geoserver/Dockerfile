@@ -49,11 +49,12 @@ COPY ./templates /templates
 COPY multidump.sh /usr/local/tomcat/tmp
 COPY multidump-alt.sh /usr/local/tomcat/tmp
 
+RUN chmod +x /usr/local/tomcat/tmp/set_geoserver_auth.sh \
+    && chmod +x /usr/local/tomcat/tmp/entrypoint.sh
+
 RUN apt-get update \
     && apt-get install -y procps less \
-    && apt-get install -y python3 python3-pip python3-dev \
-    && chmod +x /usr/local/tomcat/tmp/set_geoserver_auth.sh \
-    && chmod +x /usr/local/tomcat/tmp/entrypoint.sh
+    && apt-get install -y python3 python3-pip python3-dev
 
 RUN pip install j2cli invoke==2.2.0 requests==2.31.0
 

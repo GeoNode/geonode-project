@@ -43,20 +43,24 @@ fi
 # control the value of NGINX_BASE_URL variable
 if [ -z `echo ${NGINX_BASE_URL} | sed 's/http:\/\/\([^:]*\).*/\1/'` ]
 then
-    echo "NGINX_BASE_URL is empty so I'll use the static nginx hostname \n"
-    echo export NGINX_BASE_URL=http://django:8000 >> /root/.override_env
-    echo "The calculated value is now NGINX_BASE_URL='$NGINX_BASE_URL' \n"
+    echo "NGINX_BASE_URL is empty so I'll use the default Geoserver location \n"
+    echo "Setting GEOSERVER_LOCATION='http://${GEOSERVER_LB_HOST_IP}:${GEOSERVER_LB_PORT}' \n"
+    echo export GEOSERVER_LOCATION=http://${GEOSERVER_LB_HOST_IP}:${GEOSERVER_LB_PORT} >> /root/.override_env
 else
-    echo "NGINX_BASE_URL is filled so I'll leave the found value '$NGINX_BASE_URL' \n"
+    echo "NGINX_BASE_URL is filled so GEOSERVER_LOCATION='${NGINX_BASE_URL}' \n"
+    echo "Setting GEOSERVER_LOCATION='${NGINX_BASE_URL}' \n"
+    echo export GEOSERVER_LOCATION=${NGINX_BASE_URL} >> /root/.override_env
 fi
 
 if [ -n "$SUBSTITUTION_URL" ];
 then
     echo "SUBSTITUTION_URL is defined and not empty with the value '$SUBSTITUTION_URL' \n"
-    echo export SUBSTITUTION_URL=${SUBSTITUTION_URL} >> /root/.override_env
+    echo "Setting GEONODE_LOCATION='${SUBSTITUTION_URL}' \n"
+    echo export GEONODE_LOCATION=${SUBSTITUTION_URL} >> /root/.override_env
 else
-    echo "SUBSTITUTION_URL is either not defined or empty with the value 'http://${GEONODE_LB_HOST_IP}:${GEONODE_LB_PORT}' \n"
-    echo export SUBSTITUTION_URL=http://${GEONODE_LB_HOST_IP}:${GEONODE_LB_PORT} >> /root/.override_env
+    echo "SUBSTITUTION_URL is either not defined or empty so I'll use the default GeoNode location \n"
+    echo "Setting GEONODE_LOCATION='http://${GEONODE_LB_HOST_IP}:${GEONODE_LB_PORT}' \n"
+    echo export GEONODE_LOCATION=http://${GEONODE_LB_HOST_IP}:${GEONODE_LB_PORT} >> /root/.override_env
 fi
 
 # set basic tagname
