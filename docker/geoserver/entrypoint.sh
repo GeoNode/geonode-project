@@ -44,8 +44,8 @@ fi
 if [ -z `echo ${NGINX_BASE_URL} | sed 's/http:\/\/\([^:]*\).*/\1/'` ]
 then
     echo "NGINX_BASE_URL is empty so I'll use the default Geoserver location \n"
-    echo "Setting GEOSERVER_LOCATION='http://${GEOSERVER_LB_HOST_IP}:${GEOSERVER_LB_PORT}' \n"
-    echo export GEOSERVER_LOCATION=http://${GEOSERVER_LB_HOST_IP}:${GEOSERVER_LB_PORT} >> /root/.override_env
+    echo "Setting GEOSERVER_LOCATION='${GEOSERVER_PUBLIC_LOCATION}' \n"
+    echo export GEOSERVER_LOCATION=${GEOSERVER_PUBLIC_LOCATION} >> /root/.override_env
 else
     echo "NGINX_BASE_URL is filled so GEOSERVER_LOCATION='${NGINX_BASE_URL}' \n"
     echo "Setting GEOSERVER_LOCATION='${NGINX_BASE_URL}' \n"
