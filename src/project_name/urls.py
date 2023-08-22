@@ -20,11 +20,11 @@
 
 from geonode.urls import urlpatterns
 
-'''
+"""
 # You can register your own urlpatterns here
 urlpatterns = [
     url(r'^/?$',
         homepage,
         name='home'),
  ] + urlpatterns
-'''
+"""

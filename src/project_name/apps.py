@@ -20,6 +20,7 @@
 import os
 from django.apps import AppConfig as BaseAppConfig
 
+
 def run_setup_hooks(*args, **kwargs):
     from django.conf import settings
     from .celeryapp import app as celeryapp
@@ -30,12 +31,11 @@ def run_setup_hooks(*args, **kwargs):
     if celeryapp not in settings.INSTALLED_APPS:
         settings.INSTALLED_APPS += (celeryapp,)
 
-class AppConfig(BaseAppConfig):
 
-    name = "{{project_name}}"
-    label = "{{project_name}}"
+class AppConfig(BaseAppConfig):
+    name = "{{ project_name }}"
+    label = "{{ project_name }}"
 
     def ready(self):
         super(AppConfig, self).ready()
         run_setup_hooks()
-

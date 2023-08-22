@@ -99,8 +99,6 @@ services:
     build: ./docker/geoserver/
     env_file:
       - .env
-    environment:
-      DOCKER_HOST_IP: "localhost"
     healthcheck:
       test: curl --fail -s http://localhost:8080/geoserver/rest/workspaces/geonode.html || exit 1
       interval: 60s
@@ -144,28 +142,7 @@ services:
     env_file:
       - .env
 
-  jenkins:
-    deploy: *default-common-swarm-deploy
-    image: jenkins/jenkins:lts
-    # image: istresearch/jenkins:latest
-    user: jenkins
-    ports:
-      - '9080:9080'
-      - '9443:9443'
-      - '50000:50000'
-    # network_mode: "host"
-    volumes:
-      - jenkins_data:/var/jenkins_home
-      - backup-restore:/backup_restore
-      - data:/data
-    environment:
-      - 'JENKINS_OPTS=--httpPort=${JENKINS_HTTP_PORT} --httpsPort=${JENKINS_HTTPS_PORT} --prefix=/jenkins'
-    env_file:
-      - .env
-
 volumes:
-  jenkins_data:
-    driver: local
   statics:
     name: statics
   nginx-confd:
