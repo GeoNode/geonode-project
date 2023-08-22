@@ -4,8 +4,8 @@ RUN apk add --no-cache openssl inotify-tools vim
 
 WORKDIR /etc/nginx/
 
-RUN mkdir -p /etc/nginx/html
-RUN touch /etc/nginx/html/index.html
+RUN mkdir -p /etc/nginx/html &&\
+    touch /etc/nginx/html/index.html
 
 ADD nginx.conf.envsubst nginx.https.available.conf.envsubst ./
 ADD geonode.conf.envsubst ./sites-enabled/

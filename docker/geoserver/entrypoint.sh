@@ -4,7 +4,7 @@ set -e
 source /root/.bashrc
 
 
-INVOKE_LOG_STDOUT=${INVOKE_LOG_STDOUT:-FALSE}
+INVOKE_LOG_STDOUT=${INVOKE_LOG_STDOUT:-TRUE}
 invoke () {
     if [ $INVOKE_LOG_STDOUT = 'true' ] || [ $INVOKE_LOG_STDOUT = 'True' ]
     then
