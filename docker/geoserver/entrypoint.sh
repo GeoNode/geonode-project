@@ -90,7 +90,7 @@ else
 fi
 
 # If GEONODE_GEODATABASE_SCHEMA is not set in the environment, use the default value
-if [ -n "$DATABASE_PORT" ];
+if [ -n "$GEONODE_GEODATABASE_SCHEMA" ];
 then
     echo "GEONODE_GEODATABASE_SCHEMA is defined and not empty with the value '$GEONODE_GEODATABASE_SCHEMA' \n"
     echo export GEONODE_GEODATABASE_SCHEMA=${GEONODE_GEODATABASE_SCHEMA} >> /root/.override_env
