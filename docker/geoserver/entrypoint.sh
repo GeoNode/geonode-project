@@ -21,8 +21,9 @@ then
     echo "GEONODE_LB_HOST_IP is defined and not empty with the value '$GEONODE_LB_HOST_IP' \n"
     echo export GEONODE_LB_HOST_IP=${GEONODE_LB_HOST_IP} >> /root/.override_env
 else
-    echo "GEONODE_LB_HOST_IP is either not defined or empty with the value 'django' \n"
+    echo "GEONODE_LB_HOST_IP is either not defined or empty setting the value to 'django' \n"
     echo export GEONODE_LB_HOST_IP=django >> /root/.override_env
+    GEONODE_LB_HOST_IP=django
 fi
 
 if [ -n "$GEONODE_LB_PORT" ];
@@ -30,8 +31,73 @@ then
     echo "GEONODE_LB_HOST_IP is defined and not empty with the value '$GEONODE_LB_PORT' \n"
     echo export GEONODE_LB_PORT=${GEONODE_LB_PORT} >> /root/.override_env
 else
-    echo "GEONODE_LB_PORT is either not defined or empty with the value '8000' \n"
+    echo "GEONODE_LB_PORT is either not defined or empty setting the value to '8000' \n"
     echo export GEONODE_LB_PORT=8000 >> /root/.override_env
+    GEONODE_LB_PORT=8000
+fi
+
+if [ -n "$GEOSERVER_LB_HOST_IP" ];
+then
+    echo "GEOSERVER_LB_HOST_IP is defined and not empty with the value '$GEOSERVER_LB_HOST_IP' \n"
+    echo export GEOSERVER_LB_HOST_IP=${GEOSERVER_LB_HOST_IP} >> /root/.override_env
+else
+    echo "GEOSERVER_LB_HOST_IP is either not defined or empty setting the value to 'geoserver' \n"
+    echo export GEOSERVER_LB_HOST_IP=geoserver >> /root/.override_env
+    GEOSERVER_LB_HOST_IP=geoserver
+fi
+
+if [ -n "$GEOSERVER_LB_PORT" ];
+then
+    echo "GEOSERVER_LB_PORT is defined and not empty with the value '$GEOSERVER_LB_PORT' \n"
+    echo export GEOSERVER_LB_PORT=${GEOSERVER_LB_PORT} >> /root/.override_env
+else
+    echo "GEOSERVER_LB_PORT is either not defined or empty setting the value to '8000' \n"
+    echo export GEOSERVER_LB_PORT=8080 >> /root/.override_env
+    GEOSERVER_LB_PORT=8080
+fi
+
+# If DATABASE_HOST is not set in the environment, use the default value
+if [ -n "$DATABASE_HOST" ];
+then
+    echo "DATABASE_HOST is defined and not empty with the value '$DATABASE_HOST' \n"
+    echo export DATABASE_HOST=${DATABASE_HOST} >> /root/.override_env
+else
+    echo "DATABASE_HOST is either not defined or empty setting the value to 'db' \n"
+    echo export DATABASE_HOST=db >> /root/.override_env
+    DATABASE_HOST=db
+fi
+
+# If DATABASE_PORT is not set in the environment, use the default value
+if [ -n "$DATABASE_PORT" ];
+then
+    echo "DATABASE_PORT is defined and not empty with the value '$DATABASE_PORT' \n"
+    echo export DATABASE_HOST=${DATABASE_PORT} >> /root/.override_env
+else
+    echo "DATABASE_PORT is either not defined or empty setting the value to '5432' \n"
+    echo export DATABASE_PORT=5432 >> /root/.override_env
+    DATABASE_PORT=5432
+fi
+
+# If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE_USER" ];
+then
+    echo "GEONODE_GEODATABASE_USER is defined and not empty with the value '$GEONODE_GEODATABASE_USER' \n"
+    echo export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE_USER} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE_USER is either not defined or empty setting the value '$GEONODE_GEODATABASE' \n"
+    echo export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE} >> /root/.override_env
+    GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE}
+fi
+
+# If GEONODE_GEODATABASE_SCHEMA is not set in the environment, use the default value
+if [ -n "$DATABASE_PORT" ];
+then
+    echo "GEONODE_GEODATABASE_SCHEMA is defined and not empty with the value '$GEONODE_GEODATABASE_SCHEMA' \n"
+    echo export GEONODE_GEODATABASE_SCHEMA=${GEONODE_GEODATABASE_SCHEMA} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE_SCHEMA is either not defined or empty setting the value to 'public' \n"
+    echo export GEONODE_GEODATABASE_SCHEMA=public >> /root/.override_env
+    GEONODE_GEODATABASE_SCHEMA=public
 fi
 
 if [ ! -z "${GEOSERVER_JAVA_OPTS}" ]
