@@ -24,15 +24,10 @@ GeoNode template project. Generates a django project with GeoNode support.
     pip install Django==3.2.*
 
     mkdir ~/project_name
-  ```
 
-  ```bash
     GN_VERSION=master
-
     django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/tags/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
-  ```
-
-  ```bash
+  
     cd ~/project_name
     python create-envfile.py 
   ```
@@ -56,6 +51,8 @@ GeoNode template project. Generates a django project with GeoNode support.
   docker compose build
   docker compose up -d
 ```
+
+In case you want to customize the Docker images for Geoserver, Nginx, PostGIS, Letsencrypt or the data-dir setup, you can use the `docker-compose-local-builds.yml` override, which builds the images from the `./docker/*` subfolders
 
 ## Developer Workshop
 
