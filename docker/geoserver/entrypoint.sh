@@ -86,7 +86,7 @@ then
 else
     echo "GEONODE_GEODATABASE is either not defined or empty setting the value 'geonode_data' \n"
     echo export GEONODE_GEODATABASE=geonode_data >> /root/.override_env
-    export GEONODE_GEODATABASE=${GEONODE_GEODATABASE}
+    export GEONODE_GEODATABASE=geonode_data
 fi
 
 # If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
@@ -98,6 +98,17 @@ else
     echo "GEONODE_GEODATABASE_USER is either not defined or empty setting the value '$GEONODE_GEODATABASE' \n"
     echo export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE} >> /root/.override_env
     export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE}
+fi
+
+# If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE_PASSWORD" ];
+then
+    echo "GEONODE_GEODATABASE_PASSWORD is defined and not empty with the value '$GEONODE_GEODATABASE_PASSWORD' \n"
+    echo export GEONODE_GEODATABASE_PASSWORD=${GEONODE_GEODATABASE_PASSWORD} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE_PASSWORD is either not defined or empty setting the value 'geonode_data' \n"
+    echo export GEONODE_GEODATABASE_PASSWORD=geonode_data >> /root/.override_env
+    export GEONODE_GEODATABASE_PASSWORD=geonode_data
 fi
 
 # If GEONODE_GEODATABASE_SCHEMA is not set in the environment, use the default value

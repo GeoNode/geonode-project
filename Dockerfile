@@ -24,14 +24,14 @@ RUN chmod +x /usr/bin/celery-commands
 COPY src/celery-cmd /usr/bin/celery-cmd
 RUN chmod +x /usr/bin/celery-cmd
 
-RUN yes w | pip install --src /usr/src -r requirements.txt &&\
-    yes w | pip install -e .
-
 # Install "geonode-contribs" apps
 # RUN cd /usr/src; git clone https://github.com/GeoNode/geonode-contribs.git -b master
 # Install logstash and centralized dashboard dependencies
 # RUN cd /usr/src/geonode-contribs/geonode-logstash; pip install --upgrade  -e . \
 #     cd /usr/src/geonode-contribs/ldap; pip install --upgrade  -e .
+
+RUN yes w | pip install --src /usr/src -r requirements.txt &&\
+    yes w | pip install -e .
 
 # Cleanup apt update lists
 RUN apt-get autoremove --purge &&\
