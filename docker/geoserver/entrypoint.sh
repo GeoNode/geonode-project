@@ -79,6 +79,17 @@ else
 fi
 
 # If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE" ];
+then
+    echo "GEONODE_GEODATABASE is defined and not empty with the value '$GEONODE_GEODATABASE' \n"
+    echo export GEONODE_GEODATABASE=${GEONODE_GEODATABASE} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE is either not defined or empty setting the value '${COMPOSE_PROJECT_NAME}_data' \n"
+    echo export GEONODE_GEODATABASE=${COMPOSE_PROJECT_NAME}_data >> /root/.override_env
+    export GEONODE_GEODATABASE=${COMPOSE_PROJECT_NAME}_data
+fi
+
+# If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
 if [ -n "$GEONODE_GEODATABASE_USER" ];
 then
     echo "GEONODE_GEODATABASE_USER is defined and not empty with the value '$GEONODE_GEODATABASE_USER' \n"
@@ -87,6 +98,17 @@ else
     echo "GEONODE_GEODATABASE_USER is either not defined or empty setting the value '$GEONODE_GEODATABASE' \n"
     echo export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE} >> /root/.override_env
     export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE}
+fi
+
+# If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE_PASSWORD" ];
+then
+    echo "GEONODE_GEODATABASE_PASSWORD is defined and not empty with the value '$GEONODE_GEODATABASE_PASSWORD' \n"
+    echo export GEONODE_GEODATABASE_PASSWORD=${GEONODE_GEODATABASE_PASSWORD} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE_PASSWORD is either not defined or empty setting the value '${GEONODE_GEODATABASE}' \n"
+    echo export GEONODE_GEODATABASE_PASSWORD=${GEONODE_GEODATABASE} >> /root/.override_env
+    export GEONODE_GEODATABASE_PASSWORD=${GEONODE_GEODATABASE}
 fi
 
 # If GEONODE_GEODATABASE_SCHEMA is not set in the environment, use the default value
