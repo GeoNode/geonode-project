@@ -1,0 +1,20 @@
+version: '3.9'
+
+  # Nginx is serving django static and media files and proxies to django and geonode
+  geonode:
+    build: ./docker/nginx/
+
+  # Gets and installs letsencrypt certificates
+  letsencrypt:
+    build: ./docker/letsencrypt/
+
+  # Geoserver backend
+  geoserver:
+    build: ./docker/geoserver/
+
+  data-dir-conf:
+    build: ./docker/data_dir_conf/
+
+  # PostGIS database.
+  db:
+    build: ./docker/postgis/
