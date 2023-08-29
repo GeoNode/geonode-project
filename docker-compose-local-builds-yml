@@ -11,10 +11,3 @@ version: '3.9'
   # Geoserver backend
   geoserver:
     build: ./docker/geoserver/
-
-  data-dir-conf:
-    build: ./docker/data_dir_conf/
-
-  # PostGIS database.
-  db:
-    build: ./docker/postgis/
