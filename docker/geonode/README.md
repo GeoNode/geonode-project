@@ -1,4 +1,4 @@
-# Building GeoServer Image
+# Building GeoNode Image
 
 * Base image is built here: https://
 * Customizations can be done by 
