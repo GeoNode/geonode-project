@@ -64,10 +64,10 @@ do
             newvalue=`echo -ne "$tagvalue" | sed -re "s@.*@$OAUTH2_CLIENT_SECRET@"`;;
         proxyBaseUrl | redirectUri | userAuthorizationUri | logoutUri )
             echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$GEOSERVER_LOCATION'"
-            newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@$GEOSERVER_LOCATION@"`;;
+            newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@${GEOSERVER_LOCATION%/}@"`;;
         baseUrl | accessTokenUri | checkTokenEndpointUrl )
             echo "DEBUG: Editing '$auth_conf_source' for tagname <$i> and replacing its value with '$GEONODE_LOCATION'"
-            newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@$GEONODE_LOCATION@"`;;
+            newvalue=`echo -ne "$tagvalue" | sed -re "s@^(https?://[^/]+)@${GEONODE_LOCATION%/}@"`;;
         *) echo -n "an unknown variable has been found";;
     esac
 
