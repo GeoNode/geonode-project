@@ -14,9 +14,8 @@ invoke () {
     echo "$@ tasks done"
 }
 
-# Start cron && memcached services
+# Start cron service
 service cron restart
-service memcached restart
 
 echo $"\n\n\n"
 echo "-----------------------------------------------------"
@@ -70,6 +69,6 @@ echo "-----------------------------------------------------"
 echo "FINISHED DJANGO ENTRYPOINT --------------------------"
 echo "-----------------------------------------------------"
 
-# Run the CMD 
+# Run the CMD
 echo "got command $cmd"
 exec $cmd
