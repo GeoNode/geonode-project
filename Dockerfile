@@ -3,6 +3,13 @@ LABEL GeoNode development team
 
 RUN mkdir -p /usr/src/{{project_name}}
 
+RUN apt-get update -y && apt-get install curl wget unzip gnupg2 locales -y
+
+RUN sed -i -e 's/# C.UTF-8 UTF-8/C.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
+
 # add bower and grunt command
 COPY src /usr/src/{{project_name}}/
 WORKDIR /usr/src/{{project_name}}
