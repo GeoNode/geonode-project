@@ -3,82 +3,174 @@ set -e
 
 source /root/.bashrc
 
-# control the value of DOCKER_HOST_IP variable
-if [ -z ${DOCKER_HOST_IP} ]
-then
 
-    echo "DOCKER_HOST_IP is empty so I'll run the python utility \n"
-    echo export DOCKER_HOST_IP=`python3 /usr/local/tomcat/tmp/get_dockerhost_ip.py` >> /root/.override_env
-    echo "The calculated value is now DOCKER_HOST_IP='$DOCKER_HOST_IP' \n"
-
-else
-
-    echo "DOCKER_HOST_IP is filled so I'll leave the found value '$DOCKER_HOST_IP' \n"
-
-fi
+INVOKE_LOG_STDOUT=${INVOKE_LOG_STDOUT:-TRUE}
+invoke () {
+    if [ $INVOKE_LOG_STDOUT = 'true' ] || [ $INVOKE_LOG_STDOUT = 'True' ]
+    then
+        /usr/local/bin/invoke $@
+    else
+        /usr/local/bin/invoke $@ > /usr/src/geonode/invoke.log 2>&1
+    fi
+    echo "$@ tasks done"
+}
 
 # control the values of LB settings if present
-if [ ${GEONODE_LB_HOST_IP} ]
+if [ -n "$GEONODE_LB_HOST_IP" ];
 then
-
-    echo "GEONODE_LB_HOST_IP is filled so I replace the value of '$DOCKER_HOST_IP' with '$GEONODE_LB_HOST_IP' \n"
-    echo export DOCKER_HOST_IP=${GEONODE_LB_HOST_IP} >> /root/.override_env
-
+    echo "GEONODE_LB_HOST_IP is defined and not empty with the value '$GEONODE_LB_HOST_IP' "
+    echo export GEONODE_LB_HOST_IP=${GEONODE_LB_HOST_IP} >> /root/.override_env
+else
+    echo "GEONODE_LB_HOST_IP is either not defined or empty setting the value to 'django' "
+    echo export GEONODE_LB_HOST_IP=django >> /root/.override_env
+    export GEONODE_LB_HOST_IP=django
 fi
 
-if [ ${GEONODE_LB_PORT} ]
+if [ -n "$GEONODE_LB_PORT" ];
 then
+    echo "GEONODE_LB_HOST_IP is defined and not empty with the value '$GEONODE_LB_PORT' "
+    echo export GEONODE_LB_PORT=${GEONODE_LB_PORT} >> /root/.override_env
+else
+    echo "GEONODE_LB_PORT is either not defined or empty setting the value to '8000' "
+    echo export GEONODE_LB_PORT=8000 >> /root/.override_env
+    export GEONODE_LB_PORT=8000
+fi
 
-    echo "GEONODE_LB_PORT is filled so I replace the value of '$PUBLIC_PORT' with '$GEONODE_LB_PORT' \n"
-    echo export PUBLIC_PORT=${GEONODE_LB_PORT} >> /root/.override_env
+if [ -n "$GEOSERVER_LB_HOST_IP" ];
+then
+    echo "GEOSERVER_LB_HOST_IP is defined and not empty with the value '$GEOSERVER_LB_HOST_IP' "
+    echo export GEOSERVER_LB_HOST_IP=${GEOSERVER_LB_HOST_IP} >> /root/.override_env
+else
+    echo "GEOSERVER_LB_HOST_IP is either not defined or empty setting the value to 'geoserver' "
+    echo export GEOSERVER_LB_HOST_IP=geoserver >> /root/.override_env
+    export GEOSERVER_LB_HOST_IP=geoserver
+fi
 
+if [ -n "$GEOSERVER_LB_PORT" ];
+then
+    echo "GEOSERVER_LB_PORT is defined and not empty with the value '$GEOSERVER_LB_PORT' "
+    echo export GEOSERVER_LB_PORT=${GEOSERVER_LB_PORT} >> /root/.override_env
+else
+    echo "GEOSERVER_LB_PORT is either not defined or empty setting the value to '8000' "
+    echo export GEOSERVER_LB_PORT=8080 >> /root/.override_env
+    export GEOSERVER_LB_PORT=8080
+fi
+
+# If DATABASE_HOST is not set in the environment, use the default value
+if [ -n "$DATABASE_HOST" ];
+then
+    echo "DATABASE_HOST is defined and not empty with the value '$DATABASE_HOST' "
+    echo export DATABASE_HOST=${DATABASE_HOST} >> /root/.override_env
+else
+    echo "DATABASE_HOST is either not defined or empty setting the value to 'db' "
+    echo export DATABASE_HOST=db >> /root/.override_env
+    export DATABASE_HOST=db
+fi
+
+# If DATABASE_PORT is not set in the environment, use the default value
+if [ -n "$DATABASE_PORT" ];
+then
+    echo "DATABASE_PORT is defined and not empty with the value '$DATABASE_PORT' "
+    echo export DATABASE_HOST=${DATABASE_PORT} >> /root/.override_env
+else
+    echo "DATABASE_PORT is either not defined or empty setting the value to '5432' "
+    echo export DATABASE_PORT=5432 >> /root/.override_env
+    export DATABASE_PORT=5432
+fi
+
+# If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE" ];
+then
+    echo "GEONODE_GEODATABASE is defined and not empty with the value '$GEONODE_GEODATABASE' "
+    echo export GEONODE_GEODATABASE=${GEONODE_GEODATABASE} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE is either not defined or empty setting the value '${COMPOSE_PROJECT_NAME}_data' "
+    echo export GEONODE_GEODATABASE=${COMPOSE_PROJECT_NAME}_data >> /root/.override_env
+    export GEONODE_GEODATABASE=${COMPOSE_PROJECT_NAME}_data
+fi
+
+# If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE_USER" ];
+then
+    echo "GEONODE_GEODATABASE_USER is defined and not empty with the value '$GEONODE_GEODATABASE_USER' "
+    echo export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE_USER} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE_USER is either not defined or empty setting the value '$GEONODE_GEODATABASE' "
+    echo export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE} >> /root/.override_env
+    export GEONODE_GEODATABASE_USER=${GEONODE_GEODATABASE}
+fi
+
+# If GEONODE_GEODATABASE_USER is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE_PASSWORD" ];
+then
+    echo "GEONODE_GEODATABASE_PASSWORD is defined and not empty with the value '$GEONODE_GEODATABASE_PASSWORD' "
+    echo export GEONODE_GEODATABASE_PASSWORD=${GEONODE_GEODATABASE_PASSWORD} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE_PASSWORD is either not defined or empty setting the value '${GEONODE_GEODATABASE}' "
+    echo export GEONODE_GEODATABASE_PASSWORD=${GEONODE_GEODATABASE} >> /root/.override_env
+    export GEONODE_GEODATABASE_PASSWORD=${GEONODE_GEODATABASE}
+fi
+
+# If GEONODE_GEODATABASE_SCHEMA is not set in the environment, use the default value
+if [ -n "$GEONODE_GEODATABASE_SCHEMA" ];
+then
+    echo "GEONODE_GEODATABASE_SCHEMA is defined and not empty with the value '$GEONODE_GEODATABASE_SCHEMA' "
+    echo export GEONODE_GEODATABASE_SCHEMA=${GEONODE_GEODATABASE_SCHEMA} >> /root/.override_env
+else
+    echo "GEONODE_GEODATABASE_SCHEMA is either not defined or empty setting the value to 'public'"
+    echo export GEONODE_GEODATABASE_SCHEMA=public >> /root/.override_env
+    export GEONODE_GEODATABASE_SCHEMA=public
 fi
 
 if [ ! -z "${GEOSERVER_JAVA_OPTS}" ]
 then
-
-    echo "GEOSERVER_JAVA_OPTS is filled so I replace the value of '$JAVA_OPTS' with '$GEOSERVER_JAVA_OPTS' \n"
-    JAVA_OPTS=${GEOSERVER_JAVA_OPTS}
-
+    echo "GEOSERVER_JAVA_OPTS is filled so I replace the value of '$JAVA_OPTS' with '$GEOSERVER_JAVA_OPTS'"
+    export JAVA_OPTS=${GEOSERVER_JAVA_OPTS}
 fi
 
 # control the value of NGINX_BASE_URL variable
 if [ -z `echo ${NGINX_BASE_URL} | sed 's/http:\/\/\([^:]*\).*/\1/'` ]
 then
-    echo "NGINX_BASE_URL is empty so I'll use the static nginx hostname \n"
-    # echo export NGINX_BASE_URL=`python3 /usr/local/tomcat/tmp/get_nginxhost_ip.py` >> /root/.override_env
-    # TODO rework get_nginxhost_ip to get URL with static hostname from nginx service name
-    # + exposed port of that container i.e. http://geonode:80
-    echo export NGINX_BASE_URL=http://geonode:80 >> /root/.override_env
-    echo "The calculated value is now NGINX_BASE_URL='$NGINX_BASE_URL' \n"
+    echo "NGINX_BASE_URL is empty so I'll use the default Geoserver base url"
+    echo "Setting GEOSERVER_LOCATION='${SITEURL}'"
+    echo export GEOSERVER_LOCATION=${SITEURL} >> /root/.override_env
 else
-    echo "NGINX_BASE_URL is filled so I'll leave the found value '$NGINX_BASE_URL' \n"
+    echo "NGINX_BASE_URL is filled so GEOSERVER_LOCATION='${NGINX_BASE_URL}'"
+    echo "Setting GEOSERVER_LOCATION='${NGINX_BASE_URL}'"
+    echo export GEOSERVER_LOCATION=${NGINX_BASE_URL} >> /root/.override_env
+fi
+
+if [ -n "$SUBSTITUTION_URL" ];
+then
+    echo "SUBSTITUTION_URL is defined and not empty with the value '$SUBSTITUTION_URL'"
+    echo "Setting GEONODE_LOCATION='${SUBSTITUTION_URL}' "
+    echo export GEONODE_LOCATION=${SUBSTITUTION_URL} >> /root/.override_env
+else
+    echo "SUBSTITUTION_URL is either not defined or empty so I'll use the default GeoNode location "
+    echo "Setting GEONODE_LOCATION='http://${GEONODE_LB_HOST_IP}:${GEONODE_LB_PORT}' "
+    echo export GEONODE_LOCATION=http://${GEONODE_LB_HOST_IP}:${GEONODE_LB_PORT} >> /root/.override_env
 fi
 
 # set basic tagname
-TAGNAME=( "baseUrl" )
+TAGNAME=( "baseUrl" "authApiKey" )
 
 if ! [ -f ${GEOSERVER_DATA_DIR}/security/auth/geonodeAuthProvider/config.xml ]
 then
-
-    echo "Configuration file '$GEOSERVER_DATA_DIR'/security/auth/geonodeAuthProvider/config.xml is not available so it is gone to skip \n"
-
+    echo "Configuration file '$GEOSERVER_DATA_DIR'/security/auth/geonodeAuthProvider/config.xml is not available so it is gone to skip "
 else
-
     # backup geonodeAuthProvider config.xml
     cp ${GEOSERVER_DATA_DIR}/security/auth/geonodeAuthProvider/config.xml ${GEOSERVER_DATA_DIR}/security/auth/geonodeAuthProvider/config.xml.orig
     # run the setting script for geonodeAuthProvider
-    /usr/local/tomcat/tmp/set_geoserver_auth.sh ${GEOSERVER_DATA_DIR}/security/auth/geonodeAuthProvider/config.xml ${GEOSERVER_DATA_DIR}/security/auth/geonodeAuthProvider/ ${TAGNAME} > /dev/null 2>&1
-
+    /usr/local/tomcat/tmp/set_geoserver_auth.sh ${GEOSERVER_DATA_DIR}/security/auth/geonodeAuthProvider/config.xml ${GEOSERVER_DATA_DIR}/security/auth/geonodeAuthProvider/ ${TAGNAME[@]} > /dev/null 2>&1
 fi
 
 # backup geonode REST role service config.xml
 cp "${GEOSERVER_DATA_DIR}/security/role/geonode REST role service/config.xml" "${GEOSERVER_DATA_DIR}/security/role/geonode REST role service/config.xml.orig"
 # run the setting script for geonode REST role service
-/usr/local/tomcat/tmp/set_geoserver_auth.sh "${GEOSERVER_DATA_DIR}/security/role/geonode REST role service/config.xml" "${GEOSERVER_DATA_DIR}/security/role/geonode REST role service/" ${TAGNAME} > /dev/null 2>&1
+/usr/local/tomcat/tmp/set_geoserver_auth.sh "${GEOSERVER_DATA_DIR}/security/role/geonode REST role service/config.xml" "${GEOSERVER_DATA_DIR}/security/role/geonode REST role service/" ${TAGNAME[@]} > /dev/null 2>&1
 
 # set oauth2 filter tagname
-TAGNAME=( "accessTokenUri" "userAuthorizationUri" "redirectUri" "checkTokenEndpointUrl" "logoutUri" )
+TAGNAME=( "cliendId" "clientSecret" "accessTokenUri" "userAuthorizationUri" "redirectUri" "checkTokenEndpointUrl" "logoutUri" )
 
 # backup geonode-oauth2 config.xml
 cp ${GEOSERVER_DATA_DIR}/security/filter/geonode-oauth2/config.xml ${GEOSERVER_DATA_DIR}/security/filter/geonode-oauth2/config.xml.orig
@@ -91,7 +183,7 @@ TAGNAME=( "proxyBaseUrl" )
 # backup global.xml
 cp ${GEOSERVER_DATA_DIR}/global.xml ${GEOSERVER_DATA_DIR}/global.xml.orig
 # run the setting script for global configuration
-/usr/local/tomcat/tmp/set_geoserver_auth.sh ${GEOSERVER_DATA_DIR}/global.xml ${GEOSERVER_DATA_DIR}/ ${TAGNAME} > /dev/null 2>&1
+/usr/local/tomcat/tmp/set_geoserver_auth.sh ${GEOSERVER_DATA_DIR}/global.xml ${GEOSERVER_DATA_DIR}/ ${TAGNAME[@]} > /dev/null 2>&1
 
 # set correct amqp broker url
 sed -i -e 's/localhost/rabbitmq/g' ${GEOSERVER_DATA_DIR}/notifier/notifier.xml
@@ -146,6 +238,11 @@ if [ "${GEOSERVER_CORS_ENABLED}" = "true" ] || [ "${GEOSERVER_CORS_ENABLED}" = "
       <url-pattern>/*</url-pattern>\n\
     </filter-mapping>" "$CATALINA_HOME/webapps/geoserver/WEB-INF/web.xml";
   fi
+fi
+
+if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "${GEOSERVER_DATA_DIR}/geoserver_init.lock" ]; then
+    # Run async configuration, it needs Geoserver to be up and running
+    nohup sh -c "invoke configure-geoserver" &
 fi
 
 # start tomcat

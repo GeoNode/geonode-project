@@ -38,18 +38,20 @@ logger.addHandler(handler)
 
 
 def shuffle(chars):
-	chars_as_list = list(chars)
-	random.shuffle(chars_as_list)
-	return ''.join(chars_as_list)
+    chars_as_list = list(chars)
+    random.shuffle(chars_as_list)
+    return "".join(chars_as_list)
+
 
 _simple_chars = shuffle(string.ascii_letters + string.digits)
-_strong_chars = shuffle(string.ascii_letters + \
-    string.digits + \
-    string.punctuation.replace("\"", '').replace("'", '').replace("`", ''))
+_strong_chars = shuffle(
+    string.ascii_letters
+    + string.digits
+    + string.punctuation.replace('"', "").replace("'", "").replace("`", "")
+)
 
 
 def generate_env_file(args):
-
     # validity checks
     if not os.path.exists(args.sample_file):
         logger.error(f"File does not exists {args.sample_file}")
@@ -77,29 +79,51 @@ def generate_env_file(args):
                 _jsfile = json.load(_json_file)
 
         _vals_to_replace = {
-            key: _jsfile.get(key, val) for key, val in vars(args).items() if key not in _config
+            key: _jsfile.get(key, val)
+            for key, val in vars(args).items()
+            if key not in _config
         }
-        tcp = 'https' if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize()) else 'http'
+        tcp = (
+            "https"
+            if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize())
+            else "http"
+        )
 
-        _vals_to_replace["public_port"] = '443' if ast.literal_eval(f"{_jsfile.get('https', args.https)}".capitalize()) else '80'
-        _vals_to_replace["http_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'http' else ""
-        _vals_to_replace["https_host"] = _jsfile.get("hostname", args.hostname) if tcp == 'https' else ""
+        _vals_to_replace["http_host"] = (
+            _jsfile.get("hostname", args.hostname) if tcp == "http" else ""
+        )
+        _vals_to_replace["https_host"] = (
+            _jsfile.get("hostname", args.hostname) if tcp == "https" else ""
+        )
 
-        _vals_to_replace["siteurl"] = f"{tcp}://{_jsfile.get('hostname', args.hostname)}"
-        _vals_to_replace["geoserver_ui"] = f"{tcp}://{_jsfile.get('hostname', args.hostname)}"
-        _vals_to_replace["secret_key"] = _jsfile.get("secret_key",args.secret_key) or "".join(random.choice(_strong_chars) for _ in range(50))
-        _vals_to_replace["letsencrypt_mode"] = "disabled" if not _vals_to_replace.get("https_host") else "production"
-        _vals_to_replace["debug"] = False if _jsfile.get("env_type", args.env_type) in ["prod", "test"] else True
+        _vals_to_replace[
+            "siteurl"
+        ] = f"{tcp}://{_jsfile.get('hostname', args.hostname)}"
+        _vals_to_replace["secret_key"] = _jsfile.get(
+            "secret_key", args.secret_key
+        ) or "".join(random.choice(_strong_chars) for _ in range(50))
+        _vals_to_replace["letsencrypt_mode"] = (
+            "disabled"
+            if not _vals_to_replace.get("https_host")
+            else "staging"
+            if _jsfile.get("env_type", args.env_type) in ["test"]
+            else "production"
+        )
+        _vals_to_replace["debug"] = (
+            False
+            if _jsfile.get("env_type", args.env_type) in ["prod", "test"]
+            else True
+        )
         _vals_to_replace["email"] = _jsfile.get("email", args.email)
 
-        if tcp == 'https' and not _vals_to_replace["email"]:
+        if tcp == "https" and not _vals_to_replace["email"]:
             raise Exception("With HTTPS enabled, the email parameter is required")
 
         return {**_jsfile, **_vals_to_replace}
 
     for key, val in _get_vals_to_replace(args).items():
         _val = val or "".join(random.choice(_simple_chars) for _ in range(15))
-        if isinstance(val, bool) or key in ['email', 'http_host', 'https_host']:
+        if isinstance(val, bool) or key in ["email", "http_host", "https_host"]:
             _val = str(val)
         _sample_file = re.sub(
             "{" + key + "}",
@@ -111,16 +135,21 @@ def generate_env_file(args):
         output_env.write(_sample_file)
     logger.info(f".env file created: {dir_path}/.env")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="ENV file builder",
         description="Tool for generate environment file automatically. The information can be passed or via CLI or via JSON file ( --file /path/env.json)",
         usage="python create-envfile.py localhost -f /path/to/json/file.json",
+        allow_abbrev=False
     )
     parser.add_argument(
-            '--noinput', '--no-input', action='store_false', dest='confirmation',
-            help=('skips prompting for confirmation.'),
-        )
+        "--noinput",
+        "--no-input",
+        action="store_false",
+        dest="confirmation",
+        help=("skips prompting for confirmation."),
+    )
     parser.add_argument(
         "-hn",
         "--hostname",
@@ -170,8 +199,10 @@ if __name__ == "__main__":
     if not args.confirmation:
         generate_env_file(args)
     else:
-        overwrite_env = input("This action will overwrite any existing .env file. Do you wish to continue? (y/n)")
-        if overwrite_env not in ['y', 'n']:
+        overwrite_env = input(
+            "This action will overwrite any existing .env file. Do you wish to continue? (y/n)"
+        )
+        if overwrite_env not in ["y", "n"]:
             logger.error("Please enter a valid response")
-        if overwrite_env == 'y':
+        if overwrite_env == "y":
             generate_env_file(args)

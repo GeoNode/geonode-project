@@ -4,7 +4,8 @@ GeoNode template project. Generates a django project with GeoNode support.
 
 ## Table of Contents
 
--  [Developer Workshop](#developer-Workshop)
+-  [Quick Docker Start](#quick-docker-start)
+-  [Developer Workshop](#developer-workshop)
 -  [Create a custom project](#create-a-custom-project)
 -  [Start your server using Docker](#start-your-server-using-docker)
 -  [Run the instance in development mode](#run-the-instance-in-development-mode)
@@ -13,6 +14,48 @@ GeoNode template project. Generates a django project with GeoNode support.
 -  [Backup and Restore from Docker Images](#backup-and-restore-the-docker-images)
 -  [Recommended: Track your changes](#recommended-track-your-changes)
 -  [Hints: Configuring `requirements.txt`](#hints-configuring-requirementstxt)
+
+## Quick Docker Start
+
+  ```bash
+    python3.10 -m venv ~/.venvs/project_name
+    source ~/.venvs/{{ project_name }}/bin/activate
+
+    pip install Django==3.2.*
+
+    mkdir ~/project_name
+  ```
+
+  ```bash
+    GN_VERSION=master
+
+    django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/tags/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
+  ```
+
+  ```bash
+    cd ~/project_name
+    python create-envfile.py 
+  ```
+`create-envfile.py` accepts the following arguments:
+
+- `--https`: Enable SSL. It's disabled by default
+- `--env_type`: 
+   - When set to `prod` `DEBUG` is disabled and the creation of a valid `SSL` is requested to Letsencrypt's ACME server
+   - When set to `test`  `DEBUG` is disabled and a test `SSL` certificate is generated for local testing
+   - When set to `dev`  `DEBUG` is enabled and no `SSL` certificate is generated
+- `--hostname`: The URL that whill serve GeoNode (`localhost` by default)
+- `--email`: The administrator's email. Notice that a real email and a valid SMPT configurations are required if  `--env_type` is seto to `prod`. Letsencrypt uses to email for issuing the SSL certificate 
+- `--geonodepwd`: GeoNode's administrator password. A random value is set if left empty
+- `--geoserverpwd`: GeoNode's administrator password. A random value is set if left empty
+- `--pgpwd`: PostgreSQL's administrator password. A random value is set if left empty
+- `--dbpwd`: GeoNode DB user role's password. A random value is set if left empty
+- `--geodbpwd`: GeoNode data DB user role's password. A random value is set if left empty
+- `--clientid`: Client id of Geoserver's GeoNode Oauth2 client. A random value is set if left empty
+- `--clientsecret`: Client secret of Geoserver's GeoNode Oauth2 client. A random value is set if left empty
+```bash
+  docker compose build
+  docker compose up -d
+```
 
 ## Developer Workshop
 
