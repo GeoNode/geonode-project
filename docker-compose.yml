@@ -53,8 +53,11 @@ services:
 
   # Nginx is serving django static and media files and proxies to django and geonode
   geonode:
-    image: geonode/nginx:1.25.2
-    build: ./docker/nginx/
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+      args:
+        - BASE_IMAGE_VERSION=${NGINX_BASE_IMAGE_VERSION}
     container_name: nginx4${COMPOSE_PROJECT_NAME}
     env_file:
       - .env
@@ -84,8 +87,11 @@ services:
 
   # Gets and installs letsencrypt certificates
   letsencrypt:
-    image: geonode/letsencrypt:latest
-    build: ./docker/letsencrypt/
+    build:
+      context: ./docker/letsencrypt
+      dockerfile: Dockerfile
+      args:
+        - BASE_IMAGE_VERSION=${LETSENCRYPT_BASE_IMAGE_VERSION}
     container_name: letsencrypt4${COMPOSE_PROJECT_NAME}
     env_file:
       - .env
@@ -95,8 +101,11 @@ services:
 
   # Geoserver backend
   geoserver:
-    image: geonode/geoserver:2.23.0
-    build: ./docker/geoserver/
+    build:
+      context: ./docker/geoserver
+      dockerfile: Dockerfile
+      args:
+        - BASE_IMAGE_VERSION=${GEOSERVER_BASE_IMAGE_VERSION}
     container_name: geoserver4${COMPOSE_PROJECT_NAME}
     healthcheck:
       test: "curl -m 10 --fail --silent --write-out 'HTTP CODE : %{http_code}\n' --output /dev/null http://geoserver:8080/geoserver/ows"
@@ -122,7 +131,11 @@ services:
         condition: service_healthy
 
   data-dir-conf:
-    image: geonode/geoserver_data:2.23.0
+    build:
+      context: ./docker/geoserver_data
+      dockerfile: Dockerfile
+      args:
+        - BASE_IMAGE_VERSION=${GEOSERVER_DATA_BASE_IMAGE_VERSION}
     container_name: gsconf4${COMPOSE_PROJECT_NAME}
     entrypoint: sleep infinity
     volumes:
@@ -134,7 +147,11 @@ services:
   # PostGIS database.
   db:
     # use geonode official postgis 15 image
-    image: geonode/postgis:15
+    build:
+      context: ./docker/postgresql
+      dockerfile: Dockerfile
+      args:
+        - BASE_IMAGE_VERSION=${POSTGRES_BASE_IMAGE_VERSION}
     command: postgres -c "max_connections=${POSTGRESQL_MAX_CONNECTIONS}"
     container_name: db4${COMPOSE_PROJECT_NAME}
     env_file:
