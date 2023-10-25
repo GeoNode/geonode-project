@@ -57,8 +57,6 @@ services:
     image: geonode/nginx:1.23.3
     build: ./docker/nginx/
     container_name: nginx4${COMPOSE_PROJECT_NAME}
-    env_file:
-      - .env
     environment:
       - HTTPS_HOST=${HTTPS_HOST}
       - HTTP_HOST=${HTTP_HOST}
@@ -66,6 +64,8 @@ services:
       - HTTP_PORT=${HTTP_PORT}
       - LETSENCRYPT_MODE=${LETSENCRYPT_MODE}
       - RESOLVER=127.0.0.11
+      - JENKINS_HTTP_PORT=${JENKINS_HTTP_PORT}
+      - JENKINS_HTTPS_PORT=${JENKINS_HTTPS_PORT}
     ports:
       - "${HTTP_PORT}:80"
       - "${HTTPS_PORT}:443"
