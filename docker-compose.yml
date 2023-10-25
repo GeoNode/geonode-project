@@ -154,7 +154,7 @@ services:
     restart: on-failure
 
   jenkins:
-    image: jenkins/jenkins:2.414-jdk11
+    image: jenkins/jenkins:2.429-jdk17
     container_name: jenkins4${COMPOSE_PROJECT_NAME}
     user: jenkins
     ports:
