@@ -57,6 +57,8 @@ services:
     image: geonode/nginx:1.23.3
     build: ./docker/nginx/
     container_name: nginx4${COMPOSE_PROJECT_NAME}
+    env_file:
+      - .env
     environment:
       - HTTPS_HOST=${HTTPS_HOST}
       - HTTP_HOST=${HTTP_HOST}
