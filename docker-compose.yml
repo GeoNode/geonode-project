@@ -156,16 +156,16 @@ services:
     container_name: jenkins4${COMPOSE_PROJECT_NAME}
     user: jenkins
     ports:
-      - '${JENKINS_HTTP_PORT}:${JENKINS_HTTP_PORT}'
-      - '${JENKINS_HTTPS_PORT}:${JENKINS_HTTPS_PORT}'
-      - '50000:50000'
+      - "${JENKINS_HTTP_PORT}:${JENKINS_HTTP_PORT}"
+      - "${JENKINS_HTTPS_PORT}:${JENKINS_HTTPS_PORT}"
+      - "50000:50000"
     # network_mode: "host"
     volumes:
       - jenkins_data:/var/jenkins_home
       - backup-restore:/backup_restore
       - data:/data
     environment:
-      - 'JENKINS_OPTS=--httpPort=${JENKINS_HTTP_PORT} --httpsPort=${JENKINS_HTTPS_PORT} --prefix=/jenkins'
+      - "JENKINS_OPTS=--httpPort=${JENKINS_HTTP_PORT} --httpsPort=${JENKINS_HTTPS_PORT} --prefix=/jenkins"
     restart: on-failure
 
 volumes:
