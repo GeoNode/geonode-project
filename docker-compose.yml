@@ -3,7 +3,7 @@ version: '3.9'
 # Common Django template for GeoNode and Celery services below
 x-common-django:
   &default-common-django
-  image: ${COMPOSE_PROJECT_NAME}_django:latest
+  image: ${COMPOSE_PROJECT_NAME}/geonode:${GEONODE_BASE_IMAGE_VERSION}
   restart: unless-stopped
   env_file:
     - .env
@@ -53,6 +53,7 @@ services:
 
   # Nginx is serving django static and media files and proxies to django and geonode
   geonode:
+    image: ${COMPOSE_PROJECT_NAME}/nginx:${NGINX_BASE_IMAGE_VERSION}
     build:
       context: ./docker/nginx
       dockerfile: Dockerfile
@@ -87,6 +88,7 @@ services:
 
   # Gets and installs letsencrypt certificates
   letsencrypt:
+    image: ${COMPOSE_PROJECT_NAME}/letsencrypt:${LETSENCRYPT_BASE_IMAGE_VERSION}
     build:
       context: ./docker/letsencrypt
       dockerfile: Dockerfile
@@ -101,6 +103,7 @@ services:
 
   # Geoserver backend
   geoserver:
+    image: ${COMPOSE_PROJECT_NAME}/geoserver:${GEOSERVER_BASE_IMAGE_VERSION}
     build:
       context: ./docker/geoserver
       dockerfile: Dockerfile
@@ -131,6 +134,7 @@ services:
         condition: service_healthy
 
   data-dir-conf:
+    image: ${COMPOSE_PROJECT_NAME}/geoserver_data:${GEOSERVER_DATA_BASE_IMAGE_VERSION}
     build:
       context: ./docker/geoserver_data
       dockerfile: Dockerfile
@@ -146,7 +150,7 @@ services:
 
   # PostGIS database.
   db:
-    # use geonode official postgis 15 image
+    image: ${COMPOSE_PROJECT_NAME}/postgis:${POSTGRES_BASE_IMAGE_VERSION}
     build:
       context: ./docker/postgresql
       dockerfile: Dockerfile
