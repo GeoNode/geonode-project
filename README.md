@@ -29,7 +29,7 @@ GeoNode template project. Generates a django project with GeoNode support.
   ```bash
     GN_VERSION=master
 
-    django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/tags/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
+    django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/heads/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
   ```
 
   ```bash
