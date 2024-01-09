@@ -3,7 +3,7 @@ version: '3.9'
 # Common Django template for GeoNode and Celery services below
 x-common-django:
   &default-common-django
-  image: ${COMPOSE_PROJECT_NAME}/geonode:${GEONODE_BASE_IMAGE_VERSION}
+  image: ${COMPOSE_PROJECT_NAME}/geonode:4.2.x
   restart: unless-stopped
   env_file:
     - .env
