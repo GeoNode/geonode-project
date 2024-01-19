@@ -1,3 +1,1 @@
--e git+https://github.com/GeoNode/geonode-mapstore-client.git@4.2.x#egg=django_geonode_mapstore_client
--e git+https://github.com/GeoNode/geonode-importer.git@master#egg=geonode-importer
--e git+https://github.com/GeoNode/geonode.git@4.2.x#egg=GeoNode
+git+https://github.com/cesar-benjamin/geonode.git@4.2.x#egg=GeoNode
