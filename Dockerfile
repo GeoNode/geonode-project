@@ -1,6 +1,6 @@
 FROM geonode/geonode:latest-ubuntu-22.04
 LABEL desc="GeoNode Project" \
-      maintainer="GeoNode development team" \
+      maintainer="GeoNode Development Team" \
       version="4.2.0"
 
 RUN mkdir -p /usr/src/{{project_name}}
