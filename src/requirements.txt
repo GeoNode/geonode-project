@@ -1,1 +1,1 @@
-GeoNode~=4.2.2
+GeoNode~=4.2.3
