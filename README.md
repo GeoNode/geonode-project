@@ -21,18 +21,13 @@ GeoNode template project. Generates a django project with GeoNode support.
     python3.10 -m venv ~/.venvs/project_name
     source ~/.venvs/{{ project_name }}/bin/activate
 
-    pip install Django==3.2.*
+    pip install Django==4.2.*
 
     mkdir ~/project_name
-  ```
 
-  ```bash
-    GN_VERSION=master
-
+    GN_VERSION=master # This is the branch or tag you want to generate the project from 
     django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/heads/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
-  ```
 
-  ```bash
     cd ~/project_name
     python create-envfile.py 
   ```
