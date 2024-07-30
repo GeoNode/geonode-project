@@ -402,7 +402,7 @@ def fixtures(ctx):
 def collectstatic(ctx):
     print("************************static artifacts******************************")
     ctx.run(
-        f"django-admin.py collectstatic --noinput \
+        f"django-admin collectstatic --noinput \
 --settings={_localsettings()}",
         pty=True,
     )
@@ -438,7 +438,7 @@ def monitoringfixture(ctx):
 def updategeoip(ctx):
     print("**************************update geoip*******************************")
     if ast.literal_eval(os.environ.get("MONITORING_ENABLED", "False")):
-        ctx.run(f"django-admin.py updategeoip --settings={_localsettings()}", pty=True)
+        ctx.run(f"django-admin updategeoip --settings={_localsettings()}", pty=True)
 
 
 @task
@@ -450,7 +450,7 @@ def updateadmin(ctx):
         os.environ.get("ADMIN_EMAIL", "admin@example.org"),
     )
     ctx.run(
-        f"django-admin.py loaddata /tmp/django_admin_docker.json \
+        f"django-admin loaddata /tmp/django_admin_docker.json \
 --settings={_localsettings()}",
         pty=True,
     )
