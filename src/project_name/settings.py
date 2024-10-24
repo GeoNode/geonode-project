@@ -128,11 +128,11 @@ LOGGING = {
         },
         "celery": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "ERROR",
         },
         "mapstore2_adapter.plugins.serializers": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
         },
         "geonode_logstash.logstash": {
             "handlers": ["console"],
