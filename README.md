@@ -31,6 +31,16 @@ GeoNode template project. Generates a django project with GeoNode support.
     cd ~/project_name
     python create-envfile.py 
   ```
+
+The project can also be generated from a local checkout of the goenode-project repository
+
+```bash
+    git clone https://github.com/GeoNode/geonode-project
+    git checkout $GN_VERSION
+    django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
+
+  ```
+
 `create-envfile.py` accepts the following arguments:
 
 - `--https`: Enable SSL. It's disabled by default
