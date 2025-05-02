@@ -22,12 +22,8 @@
 import os
 import ast
 
-try:
-    from urllib.parse import urlparse, urlunparse
-    from urllib.request import urlopen, Request
-except ImportError:
-    from urllib2 import urlopen, Request
-    from urlparse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
+from urllib.request import urlopen, Request
 # Load more settings from a file called local_settings.py if it exists
 try:
     from {{ project_name }}.local_settings import *
