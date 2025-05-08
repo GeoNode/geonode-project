@@ -13,15 +13,15 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU General Public Licenses
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
 
-from geonode.urls import urlpatterns
-
-# global handler 500 view
-handler500 = "geonode.views.err500"
+# Do not remove handler500 import. It is required to re-export
+# the custom error page handler for the GeoNode project
+# related issue: https://github.com/GeoNode/geonode-project/issues/570  
+from geonode.urls import urlpatterns, handler500 # noqa
 
 """
 # You can register your own urlpatterns here
