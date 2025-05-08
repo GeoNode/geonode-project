@@ -20,6 +20,9 @@
 
 from geonode.urls import urlpatterns
 
+# global handler 500 view
+handler500 = "geonode.views.err500"
+
 """
 # You can register your own urlpatterns here
 urlpatterns = [
