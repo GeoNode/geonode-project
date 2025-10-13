@@ -169,7 +169,7 @@ services:
     #ports:
     #  - "5432:5432"
 
-  # Vanilla RabbitMQ service. This is needed by celery
+  # Vanilla Redis service. This is needed by celery
   redis:
     image: redis:7-alpine
     container_name: redis4${COMPOSE_PROJECT_NAME}
