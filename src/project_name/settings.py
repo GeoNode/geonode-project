@@ -76,3 +76,7 @@ loaders = TEMPLATES[0]["OPTIONS"].get("loaders") or [
 TEMPLATES[0]["OPTIONS"]["loaders"] = loaders
 TEMPLATES[0].pop("APP_DIRS", None)
 
+
+PROJECT_FIXTURES = [
+    # Keep any project related fixtures here
+]
