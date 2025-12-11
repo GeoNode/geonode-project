@@ -1,2 +1,2 @@
--e git+https://github.com/GeoNode/geonode-mapstore-client.git@5.0.x#egg=django_geonode_mapstore_client # Commented otherwise we get conflicts with the git deps from geonode master
--e git+https://github.com/GeoNode/geonode.git@5.0.x#egg=GeoNode
+-e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client # Commented otherwise we get conflicts with the git deps from geonode master
+-e git+https://github.com/GeoNode/geonode.git@master#egg=GeoNode
