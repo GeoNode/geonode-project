@@ -147,45 +147,6 @@ To setup your project follow these instructions:
       } 
       ```
 
-### Start your server
-*Skip this part if you want to run the project using Docker instead* see [Start your server using Docker](#start-your-server-using-docker)
-
-1. Setup the Python Dependencies
-
-    **NOTE**: *Important: modify your `requirements.txt` file, by adding the `GeoNode` branch before continue!*
-
-    (see [Hints: Configuring `requirements.txt`](#hints-configuring-requirementstxt))
-
-    ```bash
-    cd src
-    pip install -r requirements.txt --upgrade
-    pip install -e . --upgrade
-
-    # Install GDAL Utilities for Python
-    pip install pygdal=="`gdal-config --version`.*"
-
-    # Dev scripts
-    mv ../.override_dev_env.sample ../.override_dev_env
-    mv manage_dev.sh.sample manage_dev.sh
-    mv paver_dev.sh.sample paver_dev.sh
-
-    source ../.override_dev_env
-
-    # Using the Default Settings
-    sh ./paver_dev.sh reset
-    sh ./paver_dev.sh setup
-    sh ./paver_dev.sh sync
-    sh ./paver_dev.sh start
-    ```
-
-2. Access GeoNode from browser
-
-    **NOTE**: default admin user is ``admin`` (with pw: ``admin``)
-
-    ```bash
-    http://localhost:8000/
-    ```
-
 ### Start your server using Docker
 
 You need Docker 1.12 or higher, get the latest stable official release for your platform.
@@ -330,4 +291,3 @@ POSTGRESQL_MAX_CONNECTIONS=200
 ```
 
 In this case PostgreSQL will run accepting 200 maximum connections.
-
