@@ -33,8 +33,8 @@ def run_setup_hooks(*args, **kwargs):
 
 
 class AppConfig(BaseAppConfig):
-    name = "{{ project_name }}"
-    label = "{{ project_name }}"
+    name = "project"
+    label = "project"
 
     def ready(self):
         super(AppConfig, self).ready()

@@ -18,21 +18,15 @@
 #
 #########################################################################
 
-from __future__ import absolute_import
-
 import os
-from celery import Celery
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
-
-app = Celery("{{ project_name }}")
-
-# Using a string here means the worker will not have to
-# pickle the object when using Windows.
-app.config_from_object("django.conf:settings", namespace="CELERY")
-app.autodiscover_tasks()
+__version__ = (4, 2, 0, "dev", 0)
 
 
-@app.task(bind=True, name="{{ project_name }}.debug_task", queue="default")
-def debug_task(self):
-    print("Request: {!r}".format(self.request))
+default_app_config = "project.apps.AppConfig"
+
+
+def get_version():
+    import project.version
+
+    return project.version.get_version(__version__)
