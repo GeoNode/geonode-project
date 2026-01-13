@@ -1,6 +1,4 @@
-# Since the adoption of pyproject.toml this client dependency is no longer valid, since it will cause conflicts.
-# To install it in editable mode it must be installed manually after the GeoNode installation.
-# Inside the container run:
-# pip install -e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client --src=/usr/src
-#-e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client
--e git+https://github.com/GeoNode/geonode.git@master#egg=GeoNode
+# For an editable installation of GeoNode, you can perform the following inside the python venv:
+# pip install -e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client
+# pip install -e git+https://github.com/GeoNode/geonode.git@master#egg=geonode
+git+https://github.com/GeoNode/geonode.git@master#egg=GeoNode
