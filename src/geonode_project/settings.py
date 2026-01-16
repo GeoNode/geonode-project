@@ -20,13 +20,10 @@
 
 # Django settings for the GeoNode project.
 import os
-import ast
 
-from urllib.parse import urlparse, urlunparse
-from urllib.request import urlopen, Request
 # Load more settings from a file called local_settings.py if it exists
 try:
-    from {{ project_name }}.local_settings import *
+    from geonode_project.local_settings import *
 #    from geonode.local_settings import *
 except ImportError:
     from geonode.settings import *
@@ -34,13 +31,13 @@ except ImportError:
 #
 # General Django development settings
 #
-PROJECT_NAME = "{{ project_name }}"
+PROJECT_NAME = "geonode_project"
 
 # add trailing slash to site url. geoserver url will be relative to this
 if not SITEURL.endswith("/"):
     SITEURL = "{}/".format(SITEURL)
 
-SITENAME = os.getenv("SITENAME", "{{ project_name }}")
+SITENAME = os.getenv("SITENAME", "geonode_project")
 
 # Defines the directory that contains the settings file as the LOCAL_ROOT
 # It is used for relative settings elsewhere.
