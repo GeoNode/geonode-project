@@ -1,5 +1,3 @@
-version: '3.9'
-
 # Common Django template for GeoNode and Celery services below
 x-common-django:
   &default-common-django
@@ -8,7 +6,7 @@ x-common-django:
   env_file:
     - .env
   volumes:
-    # - './src:/usr/src/project'
+    # - './src:/usr/src/geonode'  # Uncomment for local development
     - statics:/mnt/volumes/statics
     - geoserver-data-dir:/geoserver_data/data
     - backup-restore:/backup_restore
@@ -35,8 +33,8 @@ services:
       retries: 2
     environment:
       - IS_CELERY=False
-    entrypoint: ["/usr/src/project/entrypoint.sh"]
-    command: "uwsgi --ini /usr/src/project/uwsgi.ini"
+    entrypoint: ["/usr/src/geonode/entrypoint.sh"]
+    command: "uwsgi --ini /usr/src/geonode/uwsgi.ini"
 
   # Celery worker that executes celery tasks created by Django.
   celery:
@@ -47,7 +45,7 @@ services:
         condition: service_healthy
     environment:
       - IS_CELERY=True
-    entrypoint: ["/usr/src/project/entrypoint.sh"]
+    entrypoint: ["/usr/src/geonode/entrypoint.sh"]
     command: "celery-cmd"
 
   # Nginx is serving django static and media files and proxies to django and geonode

@@ -6,7 +6,7 @@ import subprocess
 def get_version(version=None):
     "Returns a PEP 386-compliant version number from VERSION."
     if version is None:
-        from geonode import __version__ as version
+        from geonode_project import __version__ as version
     else:
         assert len(version) == 5
         assert version[3] in ("unstable", "beta", "rc", "final")

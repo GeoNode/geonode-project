@@ -29,11 +29,11 @@ def read(*rnames):
 
 
 setup(
-    name="project",
+    name="geonode_project",
     version="0.0.1",
     author="",
     author_email="",
-    description="project, based on GeoNode",
+    description="GeoNode Project",
     # Full list of classifiers can be found at:
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
@@ -41,7 +41,7 @@ setup(
     ],
     license="GPL",
     keywords="project geonode django",
-    url="https://github.com/project/project",
+    url="https://github.com/GeoNode/geonode-project",
     packages=find_packages(),
     dependency_links=["git+https://github.com/GeoNode/geonode.git#egg=geonode"],
     include_package_data=True,

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #########################################################################
 #
-# Copyright (C) 2018 OSGeo
+# Copyright (C) 2017 OSGeo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,25 +17,22 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
+
+from __future__ import absolute_import
+
 import os
-from django.apps import AppConfig as BaseAppConfig
+from celery import Celery
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geonode_project.settings")
+
+app = Celery("geonode_project")
+
+# Using a string here means the worker will not have to
+# pickle the object when using Windows.
+app.config_from_object("django.conf:settings", namespace="CELERY")
+app.autodiscover_tasks()
 
 
-def run_setup_hooks(*args, **kwargs):
-    from django.conf import settings
-    from .celeryapp import app as celeryapp
-
-    LOCAL_ROOT = os.path.abspath(os.path.dirname(__file__))
-    settings.TEMPLATES[0]["DIRS"].insert(0, os.path.join(LOCAL_ROOT, "templates"))
-
-    if celeryapp not in settings.INSTALLED_APPS:
-        settings.INSTALLED_APPS += (celeryapp,)
-
-
-class AppConfig(BaseAppConfig):
-    name = "project"
-    label = "project"
-
-    def ready(self):
-        super(AppConfig, self).ready()
-        run_setup_hooks()
+@app.task(bind=True, name="geonode_project.debug_task", queue="default")
+def debug_task(self):
+    print("Request: {!r}".format(self.request))
