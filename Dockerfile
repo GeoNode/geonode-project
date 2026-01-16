@@ -26,6 +26,7 @@ RUN chmod +x /usr/bin/celery-commands
 COPY src/celery-cmd /usr/bin/celery-cmd
 RUN chmod +x /usr/bin/celery-cmd
 
+RUN python -m pip install -U pip setuptools wheel
 RUN yes w | pip install --src /usr/src -r requirements.txt
 
 RUN apt-get autoremove --purge &&\
