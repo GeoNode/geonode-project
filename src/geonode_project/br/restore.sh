@@ -41,7 +41,7 @@ else
     echo "$SOURCE_URL --> $TARGET_URL"
 fi
 
-cd /usr/src/geonode/
+cd /usr/src/project/
 
 echo "-----------------------------------------------------"
 echo " 1. BACKUP $TARGET_URL"
