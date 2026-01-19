@@ -215,3 +215,35 @@ POSTGRESQL_MAX_CONNECTIONS=200
 ```
 
 In this case PostgreSQL will run accepting 200 maximum connections.
+
+## Developing with Dev Containers in VS Code
+
+This repo includes a .devcontainer folder with the condigurations to run Django and Celery as VS Code Dev Containers.
+A `docker.sh` script aliases the `docker compose` command with the pre-configured arguments to use the customized compose files.
+
+You can run the Dev Container with the following commands:
+
+```bash
+cd .devcontainer
+chmod +x docker.sh
+./docker.sh build
+.docker.sh up -d
+```
+
+The Django and Celery containers will be started **without** running the services. They can be started manually inside the dev container. The container are autopopulated with VS Code development extensions for Python a list of pre-configured luanch configurations (for Django and Celery).
+
+Within VS Code open the command palette with `Ctrl+P` and search for `Dev Container: Reopen in Container`. VS Code will recognize the presence of the two Dev Container configurations for Django and Celery, and will allow to select one of them.
+The VS Code will reopen inside the dev container. Wait a few seconds to let VS Code setup the dev extensions, then you should see the launch configurations.
+
+### Running Django
+The `GeoNode` launch configuration for Django sets the `ASYNC_SIGNALS` env variable to False. This way GeoNode can be developed and debugged in sync mode, without Celery.
+If you want to test Django in async mode, you can switch this variable to `True` and tun Celery (see below).
+
+Running the Debug sessions for Django will start Django with its internal development server.
+
+### Running Celery
+Celery exectutions requires luanching three Debug processes:
+
+ - `Celery Beat`: the scheduler
+ - `Celery Worker`: the generic worker process
+ - `Celery Harvesters`: The worker dedicated to the harvesters
