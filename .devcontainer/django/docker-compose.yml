@@ -4,7 +4,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - './src:/usr/src/geonode'
+      - './src:/usr/src/project'
       - './.devcontainer/django/.vscode:/usr/src/.vscode'
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
@@ -13,5 +13,5 @@ services:
       - tmp:/tmp
     healthcheck:
       test: "echo 'Alive'"
-    entrypoint: ["/usr/src/geonode/entrypoint.sh"]
+    entrypoint: ["/usr/src/project/entrypoint.sh"]
     command: sleep infinity
