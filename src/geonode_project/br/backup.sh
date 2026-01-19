@@ -30,7 +30,7 @@ else
     BKP_FOLDER_NAME="backup_restore"
 fi
 
-cd /usr/src/geonode/ 
+cd /usr/src/project/ 
 
 ./manage.sh backup -i -f -c $PWD/geonode_project/br/settings_docker.ini --backup-dir /$BKP_FOLDER_NAME/
 
