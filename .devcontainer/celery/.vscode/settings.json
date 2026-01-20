@@ -1,0 +1,11 @@
+{
+    "python.defaultInterpreterPath": "/usr/src/venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/project",
+        "${workspaceFolder}/geonode", 
+        "${workspaceFolder}/geonode_mapstore_client", 
+    ]
+}
