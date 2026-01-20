@@ -235,6 +235,16 @@ The Django and Celery containers will be started **without** running the service
 Within VS Code open the command palette with `Ctrl+P` and search for `Dev Container: Reopen in Container`. VS Code will recognize the presence of the two Dev Container configurations for Django and Celery, and will allow to select one of them.
 The VS Code will reopen inside the dev container. Wait a few seconds to let VS Code setup the dev extensions, then you should see the launch configurations.
 
+To simplify the debugging of GeoNode and the GeoNode client, these modules can be installed as editable (PEP-660) with the following commands:
+
+```bash
+pip install -e git+https://github.com/GeoNode/geonode.git@master#egg=geonode --src=/usr/src
+pip install -e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client --src=/usr/src
+```
+
+The modules will be isntalled under `/usr/src` and so at te root of the VS Code workspace.
+Notice that at the time of writing Pylance can't resolve PEP-660 editable installs. For this reason the `.vscode/settings.py` contain extrPaths for the modules.
+
 ### Running Django
 The `GeoNode` launch configuration for Django sets the `ASYNC_SIGNALS` env variable to False. This way GeoNode can be developed and debugged in sync mode, without Celery.
 If you want to test Django in async mode, you can switch this variable to `True` and tun Celery (see below).
