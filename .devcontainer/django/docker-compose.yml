@@ -1,8 +1,6 @@
 services:
 
   django:
-    ports:
-      - "8000:8000"
     volumes:
       - './src:/usr/src/project'
       - './.devcontainer/django/.vscode:/usr/src/.vscode'
