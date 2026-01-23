@@ -215,3 +215,47 @@ POSTGRESQL_MAX_CONNECTIONS=200
 ```
 
 In this case PostgreSQL will run accepting 200 maximum connections.
+
+## Developing with Dev Containers in VS Code
+
+This repo includes a .devcontainer folder with the condigurations to run Django and Celery inside a VS Code Dev Container.
+A `docker.sh` script aliases the `docker compose` command with the pre-configured arguments to use the customized compose files.
+
+You can run the Dev Container with the following commands:
+
+```bash
+cd .devcontainer
+chmod +x docker.sh
+./docker.sh build
+.docker.sh up -d
+```
+
+The Django and the Celery containers will be started **without** running the Django and Celery processes. They can be started manually inside the dev container. The container is autopopulated with VS Code development extensions for Python and a list of pre-configured luanch configurations (for Django and Celery).
+
+Within VS Code open the command palette with `Ctrl+P` and run `Dev Container: Reopen in Container`. VS Code will recognize the presence of the two dev container, and will allow to reopen the current window inside the container's workspace.
+Wait a few seconds to let VS Code setup the dev extensions, then you should see the launch configurations.
+
+To simplify the debugging of GeoNode and the GeoNode client, these modules can be installed as editable (PEP-660) with the following commands:
+
+```bash
+pip install -e git+https://github.com/GeoNode/geonode.git@master#egg=geonode --src=/usr/src
+pip install -e git+https://github.com/GeoNode/geonode-mapstore-client.git@master#egg=django_geonode_mapstore_client --src=/usr/src
+```
+
+The modules will be isntalled under `/usr/src` and so at te root of the VS Code workspace.
+Notice that at the time of writing Pylance can't resolve PEP-660 editable installs. For this reason the `.vscode/settings.py` contain extrPaths for the modules.
+
+### Running Django
+The `GeoNode` launch configuration for Django sets the `ASYNC_SIGNALS` env variable to False. This way GeoNode can be developed and debugged in sync mode, without Celery.
+If you want to test Django in async mode, you can switch this variable to `True` and tun Celery (see below).
+
+Running the Debug sessions for Django will start Django with its internal development server.
+
+### Running Celery
+Celery exectutions requires luanching three Debug processes:
+
+ - `Celery Worker`: the generic worker process
+ - `Celery Beat`: the scheduler
+ - `Celery Harvesters`: The worker dedicated to the harvesters
+
+You can also remove the `-X harvesting` argument inside the Celery Worker launch configuration to have also the harvesters running in the same worker. this way you don't need to run the Beat and the Celery Harvesters processes.
