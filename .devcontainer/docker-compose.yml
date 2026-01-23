@@ -3,7 +3,7 @@ services:
   django:
     volumes:
       - './src:/usr/src/project'
-      - './.devcontainer/django/.vscode:/usr/src/.vscode'
+      - './.devcontainer/.vscode:/usr/src/.vscode'
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
       - backup-restore:/backup_restore
@@ -11,5 +11,8 @@ services:
       - tmp:/tmp
     healthcheck:
       test: "echo 'Alive'"
+    entrypoint: ["/usr/src/project/entrypoint.sh"]
+    command: sleep infinity
+  celery:
     entrypoint: ["/usr/src/project/entrypoint.sh"]
     command: sleep infinity

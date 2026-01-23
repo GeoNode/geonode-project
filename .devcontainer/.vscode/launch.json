@@ -4,24 +4,21 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
-            "name": "Celery Beat",
+            "name": "GeoNode",
             "type": "debugpy",
             "request": "launch",
             "args": [
-                "-A",
-                "geonode.celery_app:app",
-                "beat",
-                "--loglevel=DEBUG",
-                "--scheduler=celery.beat:PersistentScheduler",
-                "--pidfile=/tmp/celerybeat.pid"
+                "runserver",
+                "0.0.0.0:8000"
             ],
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/project:/usr/src/django-geonode-mapstore-client"
+                "ASYNC_SIGNALS": "True",
             },
-            "cwd": "${workspaceFolder}",
+            "django": true,
             "autoStartBrowser": false,
-            "program": "${workspaceFolder}/venv/bin/celery",
+            "program": "${workspaceFolder}/project/manage.py",
             "justMyCode": false
         },
         {
@@ -43,6 +40,26 @@
                 "worker@%h",
                 "-X",
                 "harvesting"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/project:/usr/src/django-geonode-mapstore-client"
+            },
+            "cwd": "${workspaceFolder}",
+            "autoStartBrowser": false,
+            "program": "${workspaceFolder}/venv/bin/celery",
+            "justMyCode": false
+        },
+        {
+            "name": "Celery Beat",
+            "type": "debugpy",
+            "request": "launch",
+            "args": [
+                "-A",
+                "geonode.celery_app:app",
+                "beat",
+                "--loglevel=DEBUG",
+                "--scheduler=celery.beat:PersistentScheduler",
+                "--pidfile=/tmp/celerybeat.pid"
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/project:/usr/src/django-geonode-mapstore-client"
@@ -78,6 +95,6 @@
             "autoStartBrowser": false,
             "program": "${workspaceFolder}/venv/bin/celery",
             "justMyCode": false
-        },
+        }
     ]
 }

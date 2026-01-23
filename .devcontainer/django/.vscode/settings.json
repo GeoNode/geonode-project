@@ -1,8 +1,0 @@
-{
-    "python.defaultInterpreterPath": "/usr/src/venv/bin/python",
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}/project",
-        "${workspaceFolder}/geonode", 
-        "${workspaceFolder}/geonode_mapstore_client", 
-    ]
-}
