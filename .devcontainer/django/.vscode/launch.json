@@ -15,7 +15,6 @@
             ],
             "env": {
                 "ASYNC_SIGNALS": "False",
-                "SESSION_COOKIE_AGE": "120", 
             },
             "django": true,
             "autoStartBrowser": false,

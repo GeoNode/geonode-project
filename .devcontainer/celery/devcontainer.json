@@ -36,11 +36,7 @@
 
             // Add the IDs of extensions you want installed when the container is created.
             "extensions": [
-                "ms-python.python",
-                "batisteo.vscode-django",
-                "mrorz.language-gettext",
-                "eamodio.gitlens", // Note: User preference
-                "bigonesystems.django" // Note: User preference
+                "ms-python.python"
             ]
         }
     },
