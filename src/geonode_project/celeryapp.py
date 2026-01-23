@@ -18,16 +18,21 @@
 #
 #########################################################################
 
-# Do not remove handler500 import. It is required to re-export
-# the custom error page handler for the GeoNode project
-# related issue: https://github.com/GeoNode/geonode-project/issues/570  
-from geonode.urls import urlpatterns, handler500 # noqa
+from __future__ import absolute_import
 
-"""
-# You can register your own urlpatterns here
-urlpatterns = [
-    url(r'^/?$',
-        homepage,
-        name='home'),
- ] + urlpatterns
-"""
+import os
+from celery import Celery
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geonode_project.settings")
+
+app = Celery("geonode_project")
+
+# Using a string here means the worker will not have to
+# pickle the object when using Windows.
+app.config_from_object("django.conf:settings", namespace="CELERY")
+app.autodiscover_tasks()
+
+
+@app.task(bind=True, name="geonode_project.debug_task", queue="default")
+def debug_task(self):
+    print("Request: {!r}".format(self.request))

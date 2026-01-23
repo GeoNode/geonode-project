@@ -89,12 +89,6 @@ def update(ctx):
         "static_root": os.environ.get("STATIC_ROOT", "/mnt/volumes/statics/static/"),
         "media_root": os.environ.get("MEDIA_ROOT", "/mnt/volumes/statics/uploaded/"),
         "geoip_path": os.environ.get("GEOIP_PATH", "/mnt/volumes/statics/geoip.db"),
-        "monitoring": os.environ.get("MONITORING_ENABLED", False),
-        "monitoring_host_name": os.environ.get("MONITORING_HOST_NAME", "geonode"),
-        "monitoring_service_name": os.environ.get(
-            "MONITORING_SERVICE_NAME", "local-geonode"
-        ),
-        "monitoring_data_ttl": os.environ.get("MONITORING_DATA_TTL", 7),
         "geonode_geodb_passwd": os.environ.get(
             "GEONODE_GEODATABASE_PASSWORD", "geonode_data"
         ),
@@ -133,41 +127,6 @@ def update(ctx):
     ctx.run(
         "echo export DJANGO_SETTINGS_MODULE=\
 {local_settings} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export MONITORING_ENABLED=\
-{monitoring} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export MONITORING_HOST_NAME=\
-{monitoring_host_name} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export MONITORING_SERVICE_NAME=\
-{monitoring_service_name} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export MONITORING_DATA_TTL=\
-{monitoring_data_ttl} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEOIP_PATH=\
-{geoip_path} >> {override_fn}".format(
             **envs
         ),
         pty=True,
@@ -404,7 +363,8 @@ def fixtures(ctx):
 
     # Load Project related fixtures
     from django.conf import settings
-    project_fixtures = getattr(settings, 'PROJECT_FIXTURES', [])
+
+    project_fixtures = getattr(settings, "PROJECT_FIXTURES", [])
 
     for fixture in project_fixtures:
         if fixture:
@@ -412,10 +372,11 @@ def fixtures(ctx):
             try:
                 ctx.run(
                     f"python manage.py loaddata {fixture} --settings={_localsettings()}",
-                    pty=True
+                    pty=True,
                 )
             except Exception as e:
                 print(f"Warning: Failed to load fixture {fixture}: {e}")
+
 
 @task
 def collectstatic(ctx):
@@ -425,39 +386,6 @@ def collectstatic(ctx):
 --settings={_localsettings()}",
         pty=True,
     )
-
-
-@task
-def monitoringfixture(ctx):
-    if ast.literal_eval(os.environ.get("MONITORING_ENABLED", "False")):
-        print("*******************monitoring fixture********************************")
-        ctx.run("rm -rf /tmp/default_monitoring_apps_docker.json", pty=True)
-        _prepare_monitoring_fixture()
-        try:
-            ctx.run(
-                f"django-admin loaddata metric_data.json \
-    --settings={_localsettings()}",
-                pty=True,
-            )
-            ctx.run(
-                f"django-admin loaddata notifications.json \
-    --settings={_localsettings()}",
-                pty=True,
-            )
-            ctx.run(
-                f"django-admin loaddata /tmp/default_monitoring_apps_docker.json \
-    --settings={_localsettings()}",
-                pty=True,
-            )
-        except Exception as e:
-            logger.error(f"ERROR installing monitoring fixture: {str(e)}")
-
-
-@task
-def updategeoip(ctx):
-    print("**************************update geoip*******************************")
-    if ast.literal_eval(os.environ.get("MONITORING_ENABLED", "False")):
-        ctx.run(f"django-admin updategeoip --settings={_localsettings()}", pty=True)
 
 
 @task
@@ -489,7 +417,9 @@ def collectmetrics(ctx):
 def initialized(ctx):
     print("**************************init file********************************")
     static_root = os.environ.get("STATIC_ROOT", "/mnt/volumes/statics/static/")
-    lockfile_dir = Path(static_root).parent  # quite ugly, we're assuming such dir exists and is writable
+    lockfile_dir = Path(
+        static_root
+    ).parent  # quite ugly, we're assuming such dir exists and is writable
     ctx.run(f"date > {lockfile_dir}/geonode_init.lock")
 
 
@@ -519,12 +449,14 @@ address {ip_list[0]}"
         )
     return ip_list[0]
 
+
 def _is_valid_ip(ip):
     try:
         ipaddress.IPv4Address(ip)
         return True
-    except Exception as e:
+    except Exception:
         return False
+
 
 def _container_exposed_port(component, instname):
     port = "80"
@@ -576,7 +508,7 @@ def _update_geodb_connstring():
 
 
 def _localsettings():
-    settings = os.getenv("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
+    settings = os.getenv("DJANGO_SETTINGS_MODULE", "geonode_project.settings")
     return settings
 
 
@@ -657,99 +589,6 @@ def _prepare_site_fixture():
         }
     ]
     with open("/tmp/default_site.json", "w") as fixturefile:
-        json.dump(default_fixture, fixturefile)
-
-
-def _prepare_monitoring_fixture():
-    # upurl = urlparse(os.environ['SITEURL'])
-    # net_scheme = upurl.scheme
-    # net_loc = upurl.netloc
-    pub_ip = _geonode_public_host()
-    print(f"Public Hostname or IP is {pub_ip}")
-    pub_port = _geonode_public_port()
-    print(f"Public PORT is {pub_port}")
-    try:
-        geonode_ip = socket.gethostbyname("geonode")
-    except Exception:
-        geonode_ip = pub_ip
-    try:
-        geoserver_ip = socket.gethostbyname("geoserver")
-    except Exception:
-        geoserver_ip = pub_ip
-    d = "1970-01-01 00:00:00"
-    default_fixture = [
-        {
-            "fields": {
-                "active": True,
-                "ip": str(geonode_ip),
-                "name": str(os.environ["MONITORING_HOST_NAME"]),
-            },
-            "model": "monitoring.host",
-            "pk": 1,
-        },
-        {
-            "fields": {"active": True, "ip": str(geoserver_ip), "name": "geoserver"},
-            "model": "monitoring.host",
-            "pk": 2,
-        },
-        {
-            "fields": {
-                "name": str(os.environ["MONITORING_SERVICE_NAME"]),
-                "url": str(os.environ["SITEURL"]),
-                "notes": "",
-                "last_check": d,
-                "active": True,
-                "host": 1,
-                "check_interval": "00:01:00",
-                "service_type": 1,
-            },
-            "model": "monitoring.service",
-            "pk": 1,
-        },
-        {
-            "fields": {
-                "name": "geoserver-hostgeonode",
-                "url": str(os.environ["SITEURL"]),
-                "notes": "",
-                "last_check": d,
-                "active": True,
-                "host": 1,
-                "check_interval": "00:01:00",
-                "service_type": 3,
-            },
-            "model": "monitoring.service",
-            "pk": 2,
-        },
-        {
-            "fields": {
-                "name": "geoserver-hostgeoserver",
-                "url": str(os.environ["GEOSERVER_PUBLIC_LOCATION"]),
-                "notes": "",
-                "last_check": d,
-                "active": True,
-                "host": 2,
-                "check_interval": "00:01:00",
-                "service_type": 4,
-            },
-            "model": "monitoring.service",
-            "pk": 3,
-        },
-        {
-            "fields": {
-                "name": "default-geoserver",
-                "url": "http://geoserver:8080/geoserver/",
-                "notes": "",
-                "last_check": d,
-                "active": True,
-                "host": 2,
-                "check_interval": "00:01:00",
-                "service_type": 2,
-            },
-            "model": "monitoring.service",
-            "pk": 4,
-        },
-    ]
-    with open("/tmp/default_monitoring_apps_docker.json", "w") as fixturefile:
         json.dump(default_fixture, fixturefile)
 
 

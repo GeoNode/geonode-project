@@ -1,12 +1,10 @@
-# {{ project_name|title }}
+# GeoNode Project
 
-GeoNode template project. Generates a django project with GeoNode support.
+GeoNode Django project. This can be forked to customize, add Python modules or Django apps to your GeoNode instance.
 
 ## Table of Contents
 
 -  [Quick Docker Start](#quick-docker-start)
--  [Developer Workshop](#developer-workshop)
--  [Create a custom project](#create-a-custom-project)
 -  [Start your server using Docker](#start-your-server-using-docker)
 -  [Run the instance in development mode](#run-the-instance-in-development-mode)
 -  [Run the instance on a public site](#run-the-instance-on-a-public-site)
@@ -16,77 +14,13 @@ GeoNode template project. Generates a django project with GeoNode support.
 -  [Hints: Configuring `requirements.txt`](#hints-configuring-requirementstxt)
 
 ## Quick Docker Start
-
-  ```bash
-    python3.10 -m venv ~/.venvs/project_name
-    source ~/.venvs/{{ project_name }}/bin/activate
-
-    pip install Django==4.2.9
-
-    mkdir ~/project_name
-
-    GN_VERSION=master # Define the branch or tag you want to generate the project from
-    django-admin startproject --template=https://github.com/GeoNode/geonode-project/archive/refs/heads/$GN_VERSION.zip -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
-
-    cd ~/project_name
-    python create-envfile.py 
-  ```
-
-The project can also be generated from a local checkout of the goenode-project repository
-
-```bash
-    git clone https://github.com/GeoNode/geonode-project
-    git checkout $GN_VERSION
-    django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile project_name ~/project_name
-
-  ```
-
-`create-envfile.py` accepts the following arguments:
-
-- `--https`: Enable SSL. It's disabled by default
-- `--env_type`: 
-   - When set to `prod` `DEBUG` is disabled and the creation of a valid `SSL` is requested to Letsencrypt's ACME server
-   - When set to `test`  `DEBUG` is disabled and a test `SSL` certificate is generated for local testing
-   - When set to `dev`  `DEBUG` is enabled and no `SSL` certificate is generated
-- `--hostname`: The URL that whill serve GeoNode (`localhost` by default)
-- `--email`: The administrator's email. Notice that a real email and a valid SMPT configurations are required if  `--env_type` is seto to `prod`. Letsencrypt uses to email for issuing the SSL certificate 
-- `--geonodepwd`: GeoNode's administrator password. A random value is set if left empty
-- `--geoserverpwd`: GeoNode's administrator password. A random value is set if left empty
-- `--pgpwd`: PostgreSQL's administrator password. A random value is set if left empty
-- `--dbpwd`: GeoNode DB user role's password. A random value is set if left empty
-- `--geodbpwd`: GeoNode data DB user role's password. A random value is set if left empty
-- `--clientid`: Client id of Geoserver's GeoNode Oauth2 client. A random value is set if left empty
-- `--clientsecret`: Client secret of Geoserver's GeoNode Oauth2 client. A random value is set if left empty
-```bash
-  docker compose build
-  docker compose up -d
-```
-
-## Developer Workshop
-
-Available at
-
-  ```bash
-    http://geonode.org/dev-workshop
-  ```
-
-## Create a custom project
-
-**NOTE**: *You can call your geonode project whatever you like **except 'geonode'**. Follow the naming conventions for python packages (generally lower case with underscores (``_``). In the examples below, replace ``{{ project_name }}`` with whatever you would like to name your project.*
-
 To setup your project follow these instructions:
 
 1. Generate the project
 
     ```bash
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
-    source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
-    mkvirtualenv --python=/usr/bin/python3 {{ project_name }}
-    pip install Django==3.2.16
-
-    django-admin startproject --template=./geonode-project -e py,sh,md,rst,json,yml,ini,env,sample,properties -n monitoring-cron -n Dockerfile {{ project_name }}
-
-    cd {{ project_name }}
+    cd project
     ```
 
 2. Create the .env file
@@ -167,16 +101,6 @@ Once you have the project configured run the following command from the root fol
 
 2. Access the site on http://localhost/
 
-## Run the instance in development mode
-
-### Use dedicated docker-compose files while developing
-
-**NOTE**: In this example we are going to keep localhost as the target IP for GeoNode
-
-  ```bash
-  docker-compose -f docker-compose.development.yml -f docker-compose.development.override.yml up
-  ```
-
 ## Run the instance on a public site
 
 ### Preparation of the image (First time only)
@@ -215,7 +139,7 @@ docker system prune -a
 ### Run a Backup
 
 ```bash
-SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/backup.sh $BKP_FOLDER_NAME
+SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/backup.sh $BKP_FOLDER_NAME
 ```
 
 - BKP_FOLDER_NAME:
@@ -232,13 +156,13 @@ SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/backup.sh $B
 e.g.:
 
 ```bash
-docker exec -it django4{{project_name}} sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/backup.sh $BKP_FOLDER_NAME'
+docker exec -it django4project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/backup.sh $BKP_FOLDER_NAME'
 ```
 
 ### Run a Restore
 
 ```bash
-SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/restore.sh $BKP_FOLDER_NAME
+SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/restore.sh $BKP_FOLDER_NAME
 ```
 
 - BKP_FOLDER_NAME:
@@ -255,7 +179,7 @@ SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/restore.sh $
 e.g.:
 
 ```bash
-docker exec -it django4{{project_name}} sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./{{project_name}}/br/restore.sh $BKP_FOLDER_NAME'
+docker exec -it django4project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/restore.sh $BKP_FOLDER_NAME'
 ```
 
 ## Recommended: Track your changes

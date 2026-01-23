@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geonode_project"
+version = "0.0.1"
+description = "GeoNode Project"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+keywords = ["project", "geonode", "django"]
+
+# Equivalent modern replacement for dependency_links:
+dependencies = [
+  "GeoNode @ git+https://github.com/GeoNode/geonode.git"
+]
+
+[project.urls]
+Homepage = "https://github.com/GeoNode/geonode-project"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+# Equivalent to find_packages()
+where = ["."]
