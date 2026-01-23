@@ -77,8 +77,3 @@ TEMPLATES[0].pop("APP_DIRS", None)
 PROJECT_FIXTURES = [
     # List project-related fixture files here, in the order they should be loaded.
 ]
-
-SESSION_COOKIE_AGE = int(os.environ.get("SESSION_COOKIE_AGE", 30))
-
-expire_env_str = os.environ.get("SESSION_EXPIRE_AT_BROWSER_CLOSE", "True")
-SESSION_EXPIRE_AT_BROWSER_CLOSE = (expire_env_str == "True")
