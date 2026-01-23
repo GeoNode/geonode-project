@@ -218,7 +218,7 @@ In this case PostgreSQL will run accepting 200 maximum connections.
 
 ## Developing with Dev Containers in VS Code
 
-This repo includes a .devcontainer folder with the condigurations to run Django and Celery as VS Code Dev Containers.
+This repo includes a .devcontainer folder with the condigurations to run Django and Celery inside a VS Code Dev Container.
 A `docker.sh` script aliases the `docker compose` command with the pre-configured arguments to use the customized compose files.
 
 You can run the Dev Container with the following commands:
@@ -230,10 +230,10 @@ chmod +x docker.sh
 .docker.sh up -d
 ```
 
-The Django and Celery containers will be started **without** running the services. They can be started manually inside the dev container. The container are autopopulated with VS Code development extensions for Python a list of pre-configured luanch configurations (for Django and Celery).
+The Django and the Celery containers will be started **without** running the Django and Celery processes. They can be started manually inside the dev container. The container is autopopulated with VS Code development extensions for Python and a list of pre-configured luanch configurations (for Django and Celery).
 
-Within VS Code open the command palette with `Ctrl+P` and search for `Dev Container: Reopen in Container`. VS Code will recognize the presence of the two Dev Container configurations for Django and Celery, and will allow to select one of them.
-The VS Code will reopen inside the dev container. Wait a few seconds to let VS Code setup the dev extensions, then you should see the launch configurations.
+Within VS Code open the command palette with `Ctrl+P` and run `Dev Container: Reopen in Container`. VS Code will recognize the presence of the two dev container, and will allow to reopen the current window inside the container's workspace.
+Wait a few seconds to let VS Code setup the dev extensions, then you should see the launch configurations.
 
 To simplify the debugging of GeoNode and the GeoNode client, these modules can be installed as editable (PEP-660) with the following commands:
 
@@ -254,6 +254,8 @@ Running the Debug sessions for Django will start Django with its internal develo
 ### Running Celery
 Celery exectutions requires luanching three Debug processes:
 
- - `Celery Beat`: the scheduler
  - `Celery Worker`: the generic worker process
+ - `Celery Beat`: the scheduler
  - `Celery Harvesters`: The worker dedicated to the harvesters
+
+You can also remove the `-X harvesting` argument inside the Celery Worker launch configuration to have also the harvesters running in the same worker. this way you don't need to run the Beat and the Celery Harvesters processes.
