@@ -2,6 +2,9 @@
 
 GeoNode Django project. This can be forked to customize, add Python modules or Django apps to your GeoNode instance.
 
+> [!IMPORTANT]  
+This repository has been converted from a Django project template into a concrete Django project, ready to be forked and deployed. The goal is to make it easier to track updates and pull changes from this repo into your own project.s
+
 ## Table of Contents
 
 -  [Quick Docker Start](#quick-docker-start)
