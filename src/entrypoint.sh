@@ -36,9 +36,6 @@ echo SITEURL=$SITEURL
 echo ALLOWED_HOSTS=$ALLOWED_HOSTS
 echo GEOSERVER_PUBLIC_LOCATION=$GEOSERVER_PUBLIC_LOCATION
 
-# invoke waitfordbs
-
-cmd="$@"
 
 if [ ${IS_CELERY} = "true" ]  || [ ${IS_CELERY} = "True" ]
 then
