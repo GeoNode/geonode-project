@@ -75,6 +75,24 @@ if md5sum -c /$BKP_FOLDER_NAME/$NEW_UUID/$BKP_FILE_NAME.md5; then
         ./manage.sh migrate_baseurl -f --source-address=$SOURCE_URL --target-address=$TARGET_URL
         ./manage.sh create_tile_layers -f
         ./manage.sh set_all_datasets_metadata -d -i
+        echo "-----------------------------------------------------"
+        echo " Fixup GeoServer styles"
+        echo "-----------------------------------------------------"
+        XML_FILE="/geoserver_data/data/workspaces/geonode/workspace.xml"
+        ID_VALUE=$(sed -n 's|.*<id>\(.*\)</id>.*|\1|p' "$XML_FILE")
+        find /geoserver_data/data/workspaces/geonode/styles -type f -name "*.xml" -exec sed -i "s|<name>geonode</name>|<id>$ID_VALUE</id>|g" {} +
+        echo " GeoServer reloading catalog"
+        curl -w "%{http_code}\n" -u $GEOSERVER_ADMIN_USER:$GEOSERVER_ADMIN_PASSWORD -X POST "http://geoserver:8080/geoserver/rest/reload"
+        echo "-----------------------------------------------------"
+        echo " Geoserver Styles fixup completed"
+        echo "-----------------------------------------------------"
+        echo "-----------------------------------------------------"
+        echo " Cleanup memcached"
+        echo "-----------------------------------------------------"
+        echo "flush_all" | nc -q 1 memcached 11211
+        echo "-----------------------------------------------------"
+        echo "Cache cleanup done"
+        echo "-----------------------------------------------------"
     else
         # The MD5 sum didn't match
         echo "-----------------------------------------------------"

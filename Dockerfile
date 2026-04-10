@@ -1,7 +1,7 @@
 FROM geonode/geonode-base:latest-ubuntu-24.04
 RUN mkdir -p /usr/src/project
 
-RUN apt-get update -y && apt-get install curl wget unzip gnupg2 locales -y
+RUN apt-get update -y && apt-get install curl wget unzip gnupg2 locales netcat-openbsd -y
 
 RUN sed -i -e 's/# C.UTF-8 UTF-8/C.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen
