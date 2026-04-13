@@ -1,7 +1,7 @@
 #!/bin/sh
 # ##########################################################
 # Run a restore
-#  SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/restore.sh $BKP_FOLDER_NAME
+#  SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./geonode_project/br/restore.sh $BKP_FOLDER_NAME
 #   - BKP_FOLDER_NAME:
 #     Default value = backup_restore
 #     Shared Backup Folder name.
@@ -14,7 +14,7 @@
 #     Target Server URL, the one which must be synched.
 #
 # e.g.:
-#  docker exec -it django4project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/restore.sh $BKP_FOLDER_NAME'
+#  docker exec -it django4geonode_project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./geonode_project/br/restore.sh $BKP_FOLDER_NAME'
 # ##########################################################
 
 # Exit script in case of error
@@ -71,10 +71,10 @@ if md5sum -c /$BKP_FOLDER_NAME/$NEW_UUID/$BKP_FILE_NAME.md5; then
 
     if md5sum -c /$BKP_FOLDER_NAME/$BKP_FILE_NAME.md5; then
         # The MD5 sum matched
-        ./manage.sh restore -l -n -f --backup-file /$BKP_FOLDER_NAME/$BKP_FILE_NAME.zip --recovery-file /$BKP_FOLDER_NAME/$NEW_UUID/$RECOVERY_FILE_NAME.zip
-        ./manage.sh migrate_baseurl -f --source-address=$SOURCE_URL --target-address=$TARGET_URL
-        ./manage.sh create_tile_layers -f
-        ./manage.sh set_all_datasets_metadata -d -i
+        django-admin restore -l -n -f --backup-file /$BKP_FOLDER_NAME/$BKP_FILE_NAME.zip --recovery-file /$BKP_FOLDER_NAME/$NEW_UUID/$RECOVERY_FILE_NAME.zip
+        django-admin migrate_baseurl -f --source-address=$SOURCE_URL --target-address=$TARGET_URL
+        django-admin create_tile_layers -f
+        django-admin set_all_datasets_metadata -d -i
         echo "-----------------------------------------------------"
         echo " Fixup GeoServer styles"
         echo "-----------------------------------------------------"
