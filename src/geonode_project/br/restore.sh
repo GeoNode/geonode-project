@@ -89,7 +89,7 @@ if md5sum -c /$BKP_FOLDER_NAME/$NEW_UUID/$BKP_FILE_NAME.md5; then
         echo "-----------------------------------------------------"
         echo " Cleanup memcached"
         echo "-----------------------------------------------------"
-        echo "flush_all" | nc -q 1 memcached 11211
+        echo echo "flush_all" | nc -q 1 memcached 11211
         echo "-----------------------------------------------------"
         echo "Cache cleanup done"
         echo "-----------------------------------------------------"
