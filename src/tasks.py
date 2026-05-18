@@ -24,7 +24,6 @@ import json
 import time
 import docker
 import socket
-import ipaddress
 import logging
 import datetime
 from pathlib import Path
@@ -38,16 +37,9 @@ logger = logging.getLogger(__name__)
 
 
 @task
-def waitfordbs(ctx):
-    print("**************************databases*******************************")
-    db_host = os.getenv("DATABASE_HOST", "db")
-    ctx.run(f"/usr/bin/wait-for-databases {db_host}", pty=True)
-
-
-@task
 def update(ctx):
     print("***************************setting env*********************************")
-    ctx.run("env", pty=True)
+    ctx.run("echo 'getting hostname'", pty=True)
     pub_host = _geonode_public_host()
     print(f"Public Hostname or IP is {pub_host}")
     pub_port = _geonode_public_port()
@@ -60,8 +52,9 @@ def update(ctx):
     geonode_docker_host = None
     for _cnt in range(1, 29):
         try:
-            geonode_docker_host = str(socket.gethostbyname("geonode"))
+            geonode_docker_host = str(socket.gethostbyname("nginx"))
         except Exception:
+            ctx.run(f"echo '...waiting for NGINX to pop-up...{_cnt}'", pty=True)
             print(f"...waiting for NGINX to pop-up...{_cnt}")
             time.sleep(1)
 
@@ -88,6 +81,7 @@ def update(ctx):
         "geodburl": os.environ.get("GEODATABASE_URL", geodb_url),
         "static_root": os.environ.get("STATIC_ROOT", "/mnt/volumes/statics/static/"),
         "media_root": os.environ.get("MEDIA_ROOT", "/mnt/volumes/statics/uploaded/"),
+        "asset_root": os.environ.get("ASSETS_ROOT", "/mnt/volumes/statics/assets/"),
         "geoip_path": os.environ.get("GEOIP_PATH", "/mnt/volumes/statics/geoip.db"),
         "geonode_geodb_passwd": os.environ.get(
             "GEONODE_GEODATABASE_PASSWORD", "geonode_data"
@@ -122,172 +116,36 @@ def update(ctx):
     except ValueError:
         current_allowed = []
     current_allowed.extend([str(pub_host), f"{pub_host}:{pub_port}"])
-    allowed_hosts = [str(c) for c in current_allowed] + ['"geonode"', '"django"']
+    allowed_hosts = [str(c) for c in current_allowed] + ['"nginx"', '"django"']
+    # 1. We construct the text block using an f-string, cleanly handling the nested quotes
+    # Note: I kept both database keys in the exact chronological order of your original script.
+    content = f"""export DJANGO_SETTINGS_MODULE={envs['local_settings']}
+    export GEONODE_GEODATABASE_PASSWORD={envs['geonode_geodb_passwd']}
+    export DEFAULT_BACKEND_DATASTORE={envs['default_backend_datastore']}
+    export GEONODE_DATABASE_PASSWORD={envs['geonode_db_passwd']}
+    export GEONODE_GEODATABASE={envs['geonode_geodb']}
+    export DATABASE_URL={envs['db_url']}
+    export GEODATABASE_URL={envs['geodb_url']}
+    export GEONODE_DATABASE={envs['geonode_db']}
+    export GEOSERVER_LOCATION={envs['gs_loc']}
+    export GEOSERVER_WEB_UI_LOCATION={envs['gs_web_ui_loc']}
+    export GEOSERVER_PUBLIC_LOCATION={envs['gs_pub_loc']}
+    export GEOSERVER_ADMIN_PASSWORD={envs['gs_admin_pwd']}
+    export SITEURL={envs['siteurl']}
+    export ALLOWED_HOSTS="\\"{allowed_hosts}\\""
+    export DATABASE_URL={envs['dburl']}
+    export GEODATABASE_URL={envs['geodburl']}
+    export STATIC_ROOT={envs['static_root']}
+    export MEDIA_ROOT={envs['media_root']}
+    export GEOIP_PATH={envs['geoip_path']}
+    export LOGIN_URL={envs['siteurl']}account/login/
+    export LOGOUT_URL={envs['siteurl']}account/logout/
+    export LOGIN_REDIRECT_URL={envs['siteurl']}
+    export LOGOUT_REDIRECT_URL={envs['siteurl']}"""
 
-    ctx.run(
-        "echo export DJANGO_SETTINGS_MODULE=\
-{local_settings} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEONODE_GEODATABASE_PASSWORD=\
-{geonode_geodb_passwd} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export DEFAULT_BACKEND_DATASTORE=\
-{default_backend_datastore} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEONODE_DATABASE_PASSWORD=\
-{geonode_db_passwd} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEONODE_GEODATABASE=\
-{geonode_geodb} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export DATABASE_URL=\
-{db_url} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEODATABASE_URL=\
-{geodb_url} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEONODE_DATABASE=\
-{geonode_db} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEOSERVER_LOCATION=\
-{gs_loc} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEOSERVER_WEB_UI_LOCATION=\
-{gs_web_ui_loc} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEOSERVER_PUBLIC_LOCATION=\
-{gs_pub_loc} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEOSERVER_ADMIN_PASSWORD=\
-{gs_admin_pwd} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export SITEURL=\
-{siteurl} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        'echo export ALLOWED_HOSTS=\
-"\\"{}\\"" >> {override_fn}'.format(
-            allowed_hosts, **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export DATABASE_URL=\
-{dburl} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEODATABASE_URL=\
-{geodburl} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export STATIC_ROOT=\
-{static_root} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export MEDIA_ROOT=\
-{media_root} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export GEOIP_PATH=\
-{geoip_path} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export LOGIN_URL=\
-{siteurl}account/login/ >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export LOGOUT_URL=\
-{siteurl}account/logout/ >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export LOGIN_REDIRECT_URL=\
-{siteurl} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
-    ctx.run(
-        "echo export LOGOUT_REDIRECT_URL=\
-{siteurl} >> {override_fn}".format(
-            **envs
-        ),
-        pty=True,
-    )
+    # 2. Append the block to the file using a single echo command, then source it
+    ctx.run(f'echo "{content}" >> {envs["override_fn"]}', pty=True)
     ctx.run(f"source {override_env}", pty=True)
-    print("****************************finalize env**********************************")
-    ctx.run("env", pty=True)
 
 
 @task
@@ -297,17 +155,9 @@ def migrations(ctx):
         f"python manage.py migrate --noinput --settings={_localsettings()}", pty=True
     )
     ctx.run(
-        f"python manage.py migrate --noinput --settings={_localsettings()} --database=datastore",
+        f"python manage.py migrate dynamic_models --noinput --settings={_localsettings()} --database=datastore",
         pty=True,
     )
-    try:
-        ctx.run(
-            f"python manage.py rebuild_index --noinput --settings={_localsettings()}",
-            pty=True,
-        )
-    except Exception:
-        pass
-
 
 @task
 def statics(ctx):
@@ -379,16 +229,6 @@ def fixtures(ctx):
 
 
 @task
-def collectstatic(ctx):
-    print("************************static artifacts******************************")
-    ctx.run(
-        f"django-admin collectstatic --noinput \
---settings={_localsettings()}",
-        pty=True,
-    )
-
-
-@task
 def updateadmin(ctx):
     print("***********************update admin details**************************")
     ctx.run("rm -rf /tmp/django_admin_docker.json", pty=True)
@@ -399,16 +239,6 @@ def updateadmin(ctx):
     ctx.run(
         f"django-admin loaddata /tmp/django_admin_docker.json \
 --settings={_localsettings()}",
-        pty=True,
-    )
-
-
-@task
-def collectmetrics(ctx):
-    print("************************collect metrics******************************")
-    ctx.run(
-        f"python -W ignore manage.py collect_metrics  \
---settings={_localsettings()} -n -t xml",
         pty=True,
     )
 
@@ -448,14 +278,6 @@ address {ip_list}"
 address {ip_list[0]}"
         )
     return ip_list[0]
-
-
-def _is_valid_ip(ip):
-    try:
-        ipaddress.IPv4Address(ip)
-        return True
-    except Exception:
-        return False
 
 
 def _container_exposed_port(component, instname):
@@ -512,33 +334,9 @@ def _localsettings():
     return settings
 
 
-def _gs_service_availability(url):
-    import requests
-
-    try:
-        r = requests.request("get", url, verify=False)
-        r.raise_for_status()  # Raises a HTTPError if the status is 4xx, 5xxx
-    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
-        logger.error(f"GeoServer connection error is {e}")
-        return False
-    except requests.exceptions.HTTPError as er:
-        logger.error(f"GeoServer HTTP error is {er}")
-        return False
-    else:
-        logger.info("GeoServer API are available!")
-        return True
-
-
 def _geonode_public_host():
     gn_pub_hostip = os.getenv("GEONODE_LB_HOST_IP", None)
     if not gn_pub_hostip:
-        gn_pub_hostip = _docker_host_ip()
-    return gn_pub_hostip
-
-
-def _geonode_public_host_ip():
-    gn_pub_hostip = os.getenv("GEONODE_LB_HOST_IP", None)
-    if not gn_pub_hostip or not _is_valid_ip(gn_pub_hostip):
         gn_pub_hostip = _docker_host_ip()
     return gn_pub_hostip
 
