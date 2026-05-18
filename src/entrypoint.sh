@@ -9,7 +9,7 @@ invoke () {
     then
         /usr/local/bin/invoke $@
     else
-        /usr/local/bin/invoke $@ > /usr/src/{{project_name}}/invoke.log 2>&1
+        /usr/local/bin/invoke $@ > /usr/src/project/invoke.log 2>&1
     fi
     echo "$@ tasks done"
 }

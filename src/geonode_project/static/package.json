@@ -1,8 +1,8 @@
 {
-  "name": "{{ project_name }}",
+  "name": "project",
   "version": "0.0.1",
   "author": "GeoNode Developers",
-  "description": "Static code and assets for {{ project_name }}",
+  "description": "Static code and assets for project",
   "contributors": [
     {
     }

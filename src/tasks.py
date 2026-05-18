@@ -363,7 +363,8 @@ def fixtures(ctx):
 
     # Load Project related fixtures
     from django.conf import settings
-    project_fixtures = getattr(settings, 'PROJECT_FIXTURES', [])
+
+    project_fixtures = getattr(settings, "PROJECT_FIXTURES", [])
 
     for fixture in project_fixtures:
         if fixture:
@@ -371,10 +372,11 @@ def fixtures(ctx):
             try:
                 ctx.run(
                     f"python manage.py loaddata {fixture} --settings={_localsettings()}",
-                    pty=True
+                    pty=True,
                 )
             except Exception as e:
                 print(f"Warning: Failed to load fixture {fixture}: {e}")
+
 
 @task
 def collectstatic(ctx):
@@ -415,7 +417,9 @@ def collectmetrics(ctx):
 def initialized(ctx):
     print("**************************init file********************************")
     static_root = os.environ.get("STATIC_ROOT", "/mnt/volumes/statics/static/")
-    lockfile_dir = Path(static_root).parent  # quite ugly, we're assuming such dir exists and is writable
+    lockfile_dir = Path(
+        static_root
+    ).parent  # quite ugly, we're assuming such dir exists and is writable
     ctx.run(f"date > {lockfile_dir}/geonode_init.lock")
 
 
@@ -445,12 +449,14 @@ address {ip_list[0]}"
         )
     return ip_list[0]
 
+
 def _is_valid_ip(ip):
     try:
         ipaddress.IPv4Address(ip)
         return True
-    except Exception as e:
+    except Exception:
         return False
+
 
 def _container_exposed_port(component, instname):
     port = "80"
@@ -502,7 +508,7 @@ def _update_geodb_connstring():
 
 
 def _localsettings():
-    settings = os.getenv("DJANGO_SETTINGS_MODULE", "{{ project_name }}.settings")
+    settings = os.getenv("DJANGO_SETTINGS_MODULE", "geonode_project.settings")
     return settings
 
 
