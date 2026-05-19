@@ -117,8 +117,7 @@ def update(ctx):
         current_allowed = []
     current_allowed.extend([str(pub_host), f"{pub_host}:{pub_port}"])
     allowed_hosts = [str(c) for c in current_allowed] + ['"nginx"', '"django"']
-    # 1. We construct the text block using an f-string, cleanly handling the nested quotes
-    # Note: I kept both database keys in the exact chronological order of your original script.
+
     content = f"""export DJANGO_SETTINGS_MODULE={envs['local_settings']}
     export GEONODE_GEODATABASE_PASSWORD={envs['geonode_geodb_passwd']}
     export DEFAULT_BACKEND_DATASTORE={envs['default_backend_datastore']}
@@ -143,7 +142,6 @@ def update(ctx):
     export LOGIN_REDIRECT_URL={envs['siteurl']}
     export LOGOUT_REDIRECT_URL={envs['siteurl']}"""
 
-    # 2. Append the block to the file using a single echo command, then source it
     ctx.run(f'echo "{content}" >> {envs["override_fn"]}', pty=True)
     ctx.run(f"source {override_env}", pty=True)
 
