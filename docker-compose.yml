@@ -5,7 +5,7 @@ x-common-django:
   env_file:
     - .env
   volumes:
-    - './src:/usr/src/project'  # Uncomment for local development
+    # - './src:/usr/src/project'  # Uncomment for local development
     - statics:/mnt/volumes/statics
     - geoserver-data-dir:/geoserver_data/data
     - backup-restore:/backup_restore
