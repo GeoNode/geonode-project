@@ -11,9 +11,8 @@ requires-python = ">=3.10"
 license = { text = "GPL-3.0-or-later" }
 keywords = ["project", "geonode", "django"]
 
-# Equivalent modern replacement for dependency_links:
 dependencies = [
-  "GeoNode @ git+https://github.com/GeoNode/geonode.git"
+    "GeoNode @ git+https://github.com/GeoNode/geonode.git@master"
 ]
 
 [project.urls]
@@ -22,6 +21,7 @@ Homepage = "https://github.com/GeoNode/geonode-project"
 [tool.setuptools]
 include-package-data = true
 
+# Correct package discovery layout
 [tool.setuptools.packages.find]
-# Equivalent to find_packages()
 where = ["."]
+exclude = ["tests*"]
