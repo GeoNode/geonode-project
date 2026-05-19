@@ -123,11 +123,11 @@ services:
         - BASE_IMAGE_VERSION=${GEOSERVER_BASE_IMAGE_VERSION}
     container_name: geoserver4${COMPOSE_PROJECT_NAME}
     healthcheck:
-      test: "curl -m 10 --fail --silent --write-out 'HTTP CODE : %{http_code}\n' --output /dev/null http://geoserver:8080/geoserver/ows"
-      start_period: 60s
-      interval: 60s
+      test: ["CMD", "curl", "-f", "http://geoserver:8080/geoserver/web/wicket/resource/org.geoserver.web.GeoServerBasePage/img/logo.png"]
+      start_period: 30s
+      interval: 30s
       timeout: 10s
-      retries: 2
+      retries: 3
     env_file:
       - .env
     ports:
