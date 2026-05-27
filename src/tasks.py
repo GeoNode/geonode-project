@@ -4,7 +4,6 @@ import re
 import ast
 import json
 import time
-import docker
 import socket
 import logging
 import datetime
