@@ -37,7 +37,7 @@ services:
     environment:
       - IS_CELERY=False
     entrypoint: ["/usr/src/project/entrypoint.sh"]
-    command: "/usr/src/venv/bin/gunicorn -c //usr/src/project/gunicorn.conf.py geonode.wsgi:application"
+    command: "uwsgi --ini /usr/src/project/uwsgi.ini"
 
   # Celery worker that executes celery tasks created by Django.
   celery:
@@ -130,8 +130,6 @@ services:
       retries: 3
     env_file:
       - .env
-    #ports:
-    #  - "8080:8080"
     volumes:
       - statics:/mnt/volumes/statics
       - geoserver-data-dir:/geoserver_data/data
