@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # A configurable celery command.
 # Luca Pasquali <luca.pasquali@geosolutionsgroup.com>
+set -uo pipefail
+
 CELERY_BIN=${CELERY_BIN:-"$(which celery||echo celery)"}
 CELERY_APP=${CELERY_APP:-"geonode.celery_app:app"}
 CELERY__STATE_DB=${CELERY__STATE_DB:-"/mnt/volumes/statics/worker@%h.state"}
@@ -10,7 +12,7 @@ CELERY__AUTOSCALE_VALUES=${CELERY__AUTOSCALE_VALUES:-"10,5"}
 CELERY__MAX_TASKS_PER_CHILD=${CELERY__MAX_TASKS_PER_CHILD:-"10"}
 CELERY__OPTS=${CELERY__OPTS:-"--without-gossip --without-mingle -Ofair -E"}
 CELERY__LOG_LEVEL=${CELERY__LOG_LEVEL:-"ERROR"}
-CELERY__LOG_FILE=${CELERY__LOG_FILE:-"/var/log/celery.log"}
+CELERY__LOG_FILE=${CELERY__LOG_FILE:-"/var/log/celery_worker.log"}
 CELERY__WORKER_NAME=${CELERY__WORKER_NAME:-"worker1@%h"}
 CELERY__WORKER_CONCURRENCY=${CELERY__WORKER_CONCURRENCY:-"4"}
 
@@ -22,28 +24,44 @@ CELERY__BEAT_LOG=${CELERY__BEAT_LOG:-"/var/log/celery_beat.log"}
 CELERY__HARVESTER_WORKER_NAME=${CELERY__HARVESTER_WORKER_NAME:-"harvesting_worker@%h"}
 CELERY__HARVESTER_CONCURRENCY=${CELERY__HARVESTER_CONCURRENCY:-"10"}
 CELERY__HARVESTER_AUTOSCALE_VALUES=${CELERY__HARVESTER_AUTOSCALE_VALUES:-"15,10"}
-CELERY__HARVESTER_MAX_MEMORY_PER_CHILD=${CELERY__MAX_MEMORY_PER_CHILD:-"500000"}
+# FIX: was incorrectly referencing CELERY__MAX_MEMORY_PER_CHILD (missing HARVESTER_ prefix)
+CELERY__HARVESTER_MAX_MEMORY_PER_CHILD=${CELERY__HARVESTER_MAX_MEMORY_PER_CHILD:-"500000"}
+# FIX: separate log file to avoid interleaved writes with the default worker
+CELERY__HARVESTER_LOG_FILE=${CELERY__HARVESTER_LOG_FILE:-"/var/log/celery_harvester.log"}
 
-# --- FIX: Remove stale Beat pidfile before starting beat ---
+# --- Beat pidfile cleanup ---
 BEAT_PIDFILE="/tmp/celerybeat.pid"
 
 if [ -f "$BEAT_PIDFILE" ]; then
     PID=$(cat "$BEAT_PIDFILE" 2>/dev/null)
-
-    # If PID exists and is running → warn but continue (avoid killing)
     if kill -0 "$PID" 2>/dev/null; then
-        echo "WARNING: Celery Beat seems to be running already (PID $PID). Removing stale pidfile anyway."
-    else
-        echo "Removing stale Celery Beat pidfile: $BEAT_PIDFILE"
+        echo "ERROR: Celery Beat is already running (PID $PID). Aborting to avoid duplicate schedulers."
+        exit 1
     fi
-
+    echo "Removing stale Celery Beat pidfile: $BEAT_PIDFILE"
     rm -f "$BEAT_PIDFILE"
 fi
-# --- END FIX ---
+# --- END Beat pidfile cleanup ---
+
+# --- Graceful shutdown: forward SIGTERM to all children ---
+BEAT_PID=""
+WORKER_PID=""
+HARVESTER_PID=""
+
+_term() {
+    echo "Caught SIGTERM/SIGINT — shutting down all Celery processes gracefully..."
+    [ -n "$BEAT_PID" ]      && kill -TERM "$BEAT_PID"      2>/dev/null
+    [ -n "$WORKER_PID" ]    && kill -TERM "$WORKER_PID"    2>/dev/null
+    [ -n "$HARVESTER_PID" ] && kill -TERM "$HARVESTER_PID" 2>/dev/null
+    wait "$BEAT_PID" "$WORKER_PID" "$HARVESTER_PID" 2>/dev/null
+}
+trap _term SIGTERM SIGINT
+# --- END graceful shutdown ---
 
 echo "Starting Celery Beat..."
 $CELERY_BIN -A $CELERY_APP beat --scheduler=$CELERY__BEAT_SCHEDULE \
-    --loglevel=$CELERY__LOG_LEVEL -f $CELERY__BEAT_LOG --pidfile=/tmp/celerybeat.pid &
+    --loglevel=$CELERY__LOG_LEVEL -f $CELERY__BEAT_LOG --pidfile=$BEAT_PIDFILE &
+BEAT_PID=$!
 
 echo "Starting Default Celery Worker..."
 $CELERY_BIN -A $CELERY_APP worker --autoscale=$CELERY__AUTOSCALE_VALUES \
@@ -52,6 +70,7 @@ $CELERY_BIN -A $CELERY_APP worker --autoscale=$CELERY__AUTOSCALE_VALUES \
     --loglevel=$CELERY__LOG_LEVEL -n $CELERY__WORKER_NAME -f $CELERY__LOG_FILE \
     --concurrency=$CELERY__WORKER_CONCURRENCY --max-tasks-per-child=$CELERY__MAX_TASKS_PER_CHILD \
     -X harvesting &
+WORKER_PID=$!
 
 echo "Starting Harvester Celery Worker..."
 $CELERY_BIN -A $CELERY_APP worker -Q harvesting \
@@ -60,11 +79,11 @@ $CELERY_BIN -A $CELERY_APP worker -Q harvesting \
     --loglevel=$CELERY__LOG_LEVEL \
     -n $CELERY__HARVESTER_WORKER_NAME \
     --concurrency=$CELERY__HARVESTER_CONCURRENCY \
-    -f $CELERY__LOG_FILE &
+    -f $CELERY__HARVESTER_LOG_FILE &
+HARVESTER_PID=$!
 
-# Wait for any process to exit
+echo "Beat PID=$BEAT_PID | Worker PID=$WORKER_PID | Harvester PID=$HARVESTER_PID"
+
+# Wait for any process to exit, then let Docker handle the restart
 wait -n
-
-# Exit with the status of the process that exited first
-# Docker will restart the container if this is non-zero (i.e., a failure)
 exit $?
