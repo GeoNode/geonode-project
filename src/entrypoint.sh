@@ -5,7 +5,7 @@ set -e
 
 INVOKE_LOG_STDOUT=${INVOKE_LOG_STDOUT:-FALSE}
 invoke () {
-    if [ $INVOKE_LOG_STDOUT = 'true' ] || [ $INVOKE_LOG_STDOUT = 'True' ]
+    if [ "$INVOKE_LOG_STDOUT" = 'true' ] || [ "$INVOKE_LOG_STDOUT" = 'True' ]
     then
         /usr/local/bin/invoke $@
     else
@@ -44,7 +44,7 @@ echo MONITORING_DATA_TTL=$MONITORING_DATA_TTL
 
 cmd="$@"
 
-if [ ${IS_CELERY} = "true" ]  || [ ${IS_CELERY} = "True" ]
+if [ "${IS_CELERY}" = "true" ]  || [ "${IS_CELERY}" = "True" ]
 then
     echo "Executing Celery server $cmd for Production"
 else
@@ -52,7 +52,7 @@ else
     invoke migrations
     invoke prepare
 
-    if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
+    if [ "${FORCE_REINIT}" = "true" ]  || [ "${FORCE_REINIT}" = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
         invoke fixtures
         invoke monitoringfixture
         invoke initialized
