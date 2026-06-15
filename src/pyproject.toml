@@ -12,7 +12,7 @@ license = { text = "GPL-3.0-or-later" }
 keywords = ["project", "geonode", "django"]
 
 dependencies = [
-    "GeoNode @ https://github.com/GeoNode/geonode/archive/refs/heads/test.zip"
+    "GeoNode @ https://github.com/GeoNode/geonode/archive/refs/heads/master.zip"
 ]
 
 [project.urls]
