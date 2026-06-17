@@ -25,3 +25,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 # Equivalent to find_packages()
 where = ["."]
+
+# Enable this entry if the app is providing rdf files
+#[tool.setuptools.package-data]
+#"*" = ["**/thesauri/*.rdf"]

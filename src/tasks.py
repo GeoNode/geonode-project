@@ -382,6 +382,18 @@ def collectstatic(ctx):
 
 
 @task
+def loadthesauri(ctx):
+    print("**************************thesauri*******************************")
+    try:
+        ctx.run(
+            f"python manage.py thesaurus autoload --settings={_localsettings()}",
+            pty=True,
+        )
+    except Exception:
+        pass
+
+
+@task
 def updateadmin(ctx):
     print("***********************update admin details**************************")
     ctx.run("rm -rf /tmp/django_admin_docker.json", pty=True)
