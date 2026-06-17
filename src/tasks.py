@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import re
 import ast
 import json
 import time
@@ -252,21 +251,6 @@ def _docker_host_ip():
             return "127.0.0.1"
 
 
-def _container_exposed_port(component, instname):
-    port = "80"
-    try:
-        client = docker.from_env(version="1.24")
-        for c in client.containers.list(filters={"label": f"org.geonode.component={component}", "status": "running"}):
-            if str(instname) in c.name:
-                exposed_ports = c.attrs["Config"].get("ExposedPorts", {})
-                for key in exposed_ports:
-                    return re.split("/tcp", key)[0]
-    except Exception:
-        import traceback
-        traceback.print_exc()
-    return port
-
-
 def _update_db_connstring():
     connstr = os.getenv("DATABASE_URL", None)
     if not connstr:
@@ -304,10 +288,8 @@ def _geonode_public_host():
 
 def _geonode_public_port():
     gn_pub_port = os.getenv("GEONODE_LB_PORT", "")
-    if not gn_pub_port:
-        gn_pub_port = _container_exposed_port("nginx", os.getenv("GEONODE_INSTANCE_NAME", "geonode"))
-    elif gn_pub_port in ("80", "443"):
-        gn_pub_port = None
+    if not gn_pub_port or gn_pub_port in ("80", "443"):
+        return None
     return gn_pub_port
 
 
