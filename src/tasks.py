@@ -196,6 +196,18 @@ def fixtures(ctx):
 
 
 @task
+def loadthesauri(ctx):
+    print("**************************thesauri*******************************")
+    try:
+        ctx.run(
+            f"python manage.py thesaurus autoload --settings={_localsettings()}",
+            pty=True,
+        )
+    except Exception:
+        pass
+
+
+@task
 def updateadmin(ctx):
     print("***********************update admin details**************************")
     try:
