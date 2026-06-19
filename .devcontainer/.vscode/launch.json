@@ -14,7 +14,7 @@
                 "0.0.0.0:8000"
             ],
             "env": {
-                "ASYNC_SIGNALS": "True",
+                "ASYNC_SIGNALS": "False",
             },
             "django": true,
             "autoStartBrowser": false,

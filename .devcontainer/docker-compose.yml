@@ -14,6 +14,7 @@ services:
       test: "echo 'Alive'"
     entrypoint: ["/usr/src/project/entrypoint.sh"]
     environment:
+      - ASYNC_SIGNALS=False
       - PYTHONPATH=/usr/src/.devrequirements/geonode:/usr/src/.devrequirements/geonode-mapstore-client
     command: sleep infinity
   celery:
