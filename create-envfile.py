@@ -180,6 +180,7 @@ if __name__ == "__main__":
     parser.add_argument("--geodbpwd", help="Geodatabase user password")
     parser.add_argument("--clientid", help="Oauth2 client id")
     parser.add_argument("--clientsecret", help="Oauth2 client secret")
+    parser.add_argument("--authapikey", help="Oauth2 API key")
     parser.add_argument("--secret_key", help="Django Secret Key")
 
     parser.add_argument(

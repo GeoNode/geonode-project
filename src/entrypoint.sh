@@ -5,7 +5,7 @@ set -e
 
 INVOKE_LOG_STDOUT=${INVOKE_LOG_STDOUT:-FALSE}
 invoke () {
-    if [ $INVOKE_LOG_STDOUT = 'true' ] || [ $INVOKE_LOG_STDOUT = 'True' ]
+    if [ "$INVOKE_LOG_STDOUT" = 'true' ] || [ "$INVOKE_LOG_STDOUT" = 'True' ]
     then
         /usr/local/bin/invoke $@
     else
@@ -27,20 +27,9 @@ invoke update
 source $HOME/.bashrc
 source $HOME/.override_env
 
-echo DOCKER_API_VERSION=$DOCKER_API_VERSION
-echo POSTGRES_USER=$POSTGRES_USER
-echo POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-echo DATABASE_URL=$DATABASE_URL
-echo GEODATABASE_URL=$GEODATABASE_URL
-echo SITEURL=$SITEURL
-echo ALLOWED_HOSTS=$ALLOWED_HOSTS
-echo GEOSERVER_PUBLIC_LOCATION=$GEOSERVER_PUBLIC_LOCATION
-
-# invoke waitfordbs
-
 cmd="$@"
 
-if [ ${IS_CELERY} = "true" ]  || [ ${IS_CELERY} = "True" ]
+if [ "${IS_CELERY}" = "true" ]  || [ "${IS_CELERY}" = "True" ]
 then
     echo "Executing Celery server $cmd for Production"
 else
@@ -48,13 +37,14 @@ else
     invoke migrations
     invoke prepare
 
-    if [ ${FORCE_REINIT} = "true" ]  || [ ${FORCE_REINIT} = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
+    if [ "${FORCE_REINIT}" = "true" ]  || [ "${FORCE_REINIT}" = "True" ] || [ ! -e "/mnt/volumes/statics/geonode_init.lock" ]; then
         invoke fixtures
         invoke initialized
         invoke updateadmin
     fi
 
     invoke statics
+    invoke loadthesauri
 
     echo "Executing UWSGI server $cmd for Production"
 fi

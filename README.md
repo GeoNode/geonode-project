@@ -43,6 +43,7 @@ To setup your project follow these instructions:
     - *geodbpwd*: Geodatabase user password (required inside the .env)
     - *clientid*: Oauth2 client id (required inside the .env)
     - *clientsecret*: Oauth2 client secret (required inside the .env)
+    - *authapikey*: Oauth2 API Key (required inside the .env)
     - *secret key*: Django secret key (required inside the .env)
     - *sample_file*: absolute path to a env_sample file used to create the env_file. If not provided, the one inside the GeoNode project is used.
     - *file*: absolute path to a json file that contains all the above configuration
@@ -142,7 +143,7 @@ docker system prune -a
 ### Run a Backup
 
 ```bash
-SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/backup.sh $BKP_FOLDER_NAME
+SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./geonode_project/br/backup.sh $BKP_FOLDER_NAME
 ```
 
 - BKP_FOLDER_NAME:
@@ -159,13 +160,13 @@ SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/backup.sh $BKP_FOLDER
 e.g.:
 
 ```bash
-docker exec -it django4project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/backup.sh $BKP_FOLDER_NAME'
+docker exec -it django4geonode_project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./geonode_project/br/backup.sh $BKP_FOLDER_NAME'
 ```
 
 ### Run a Restore
 
 ```bash
-SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/restore.sh $BKP_FOLDER_NAME
+SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./geonode_project/br/restore.sh $BKP_FOLDER_NAME
 ```
 
 - BKP_FOLDER_NAME:
@@ -182,7 +183,7 @@ SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/restore.sh $BKP_FOLDE
 e.g.:
 
 ```bash
-docker exec -it django4project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./project/br/restore.sh $BKP_FOLDER_NAME'
+docker exec -it django4geonode_project sh -c 'SOURCE_URL=$SOURCE_URL TARGET_URL=$TARGET_URL ./geonode_project/br/restore.sh $BKP_FOLDER_NAME'
 ```
 
 ## Recommended: Track your changes
