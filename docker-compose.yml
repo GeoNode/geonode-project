@@ -86,7 +86,7 @@ services:
   memcached:
     image: memcached:alpine
     container_name: memcached4${COMPOSE_PROJECT_NAME}
-    command: memcached ${MEMCACHED_OPTIONS}
+    command: memcached ${MEMCACHED_OPTIONS:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "nc", "-z", "127.0.0.1", "11211"]
