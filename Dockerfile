@@ -12,7 +12,6 @@ WORKDIR /usr/src/project
 
 COPY src/tasks.py \
     src/entrypoint.sh \
-    src/requirements.txt \
     /usr/src/project/
 
 COPY src/wait-for-databases.sh /usr/bin/wait-for-databases
@@ -27,7 +26,6 @@ COPY src/celery-cmd /usr/bin/celery-cmd
 RUN chmod +x /usr/bin/celery-cmd
 
 RUN python -m pip install -U pip setuptools wheel
-RUN yes w | pip install --src /usr/src -r requirements.txt
 
 RUN apt-get autoremove --purge &&\
     apt-get clean &&\
