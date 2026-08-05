@@ -87,9 +87,9 @@ if md5sum -c /$BKP_FOLDER_NAME/$NEW_UUID/$BKP_FILE_NAME.md5; then
         echo " Geoserver Styles fixup completed"
         echo "-----------------------------------------------------"
         echo "-----------------------------------------------------"
-        echo " Cleanup memcached"
+        echo " Cleanup redis cache"
         echo "-----------------------------------------------------"
-        echo "flush_all" | nc -q 1 memcached 11211
+        response=$(printf 'FLUSHALL\r\n' | timeout 30 nc redis 6379); [[ "$response" == *"+OK"* ]] && echo "OK: flush confirmed" || { echo "ERROR: flush not confirmed" >&2; false; }
         echo "-----------------------------------------------------"
         echo "Cache cleanup done"
         echo "-----------------------------------------------------"
