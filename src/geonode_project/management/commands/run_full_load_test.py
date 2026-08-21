@@ -43,6 +43,9 @@ Resources (stage 2):
     --num-resources    N     how many resources to create (default 1000)
     --resource-type    CSV   subset of document,map,dataset (default "document,map")
     --resource-prefix  STR   title prefix (default "AutoResource")
+    --generate-thumbnails    generate real thumbnails per map/document (off by default —
+                            each one is a synchronous GeoServer WMS render / celery task,
+                            very slow at load-test volumes)
 
 Permissions (stage 3):
     --min-users        N     min users touched per resource (default 1)
@@ -64,17 +67,18 @@ import csv
 import os
 import random
 import string
+import time
 import uuid
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from geonode.base.models import ResourceBase, TopicCategory
 from geonode.documents.models import Document
-from geonode.maps.models import Map
+from geonode.maps.models import Map, MapLayer
+from geonode.resource.registry import document_manager, map_manager
 
 from geonode_project.management.geo_generators import generate_random_geojson, generate_random_geotiff
 from geonode_project.management.importer_bridge import import_and_wait
@@ -110,6 +114,16 @@ def random_words(n=3):
 
 def random_suffix(n=6):
     return "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(n))
+
+
+def format_duration(seconds):
+    minutes, seconds = divmod(int(seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours}h{minutes:02d}m{seconds:02d}s"
+    if minutes:
+        return f"{minutes}m{seconds:02d}s"
+    return f"{seconds}s"
 
 
 def random_password(length=12):
@@ -156,6 +170,11 @@ class Command(BaseCommand):
         # maps reference real datasets: --min-layers to --max-layers each
         parser.add_argument("--min-layers", type=int, default=2)
         parser.add_argument("--max-layers", type=int, default=50)
+        # map_manager/document_manager.create() generate a real thumbnail per resource
+        # (a synchronous GeoServer WMS render per map, a synchronous celery .apply() per
+        # document) — very slow at load-test volumes. Off by default; pass this to get
+        # real thumbnails at the cost of a lot of wall-clock time.
+        parser.add_argument("--generate-thumbnails", action="store_true")
 
         # stage 3 - permissions
         parser.add_argument("--min-users", type=int, default=1)
@@ -176,6 +195,8 @@ class Command(BaseCommand):
         self.stdout.write(style(f"[{stage:^11}] {msg}"))
 
     def handle(self, *args, **opts):
+        run_start = time.monotonic()
+
         if opts["seed"] is not None:
             random.seed(opts["seed"])
 
@@ -204,6 +225,7 @@ class Command(BaseCommand):
         self.log("SETUP", "=" * 60)
 
         # ================= STAGE 1: USERS =================
+        users_start = time.monotonic()
         self.log("USERS", f"Creating {opts['num_users']} users "
                            f"(prefix={opts['user_prefix']!r}, domain={opts['user_domain']!r}) ...")
 
@@ -242,7 +264,8 @@ class Command(BaseCommand):
             if dry_run:
                 transaction.set_rollback(True)
 
-        self.log("USERS", f"Done. Created: {len(created_users)}, Skipped (already existed): {len(skipped_users)}")
+        self.log("USERS", f"Done. Created: {len(created_users)}, Skipped (already existed): {len(skipped_users)} "
+                           f"[{format_duration(time.monotonic() - users_start)}]")
 
         # ================= build the user pool used for owners / permission subjects =================
         user_qs = User.objects.filter(is_active=True)
@@ -260,18 +283,26 @@ class Command(BaseCommand):
         self.log("USERS", f"Owner/permission candidate pool size: {len(all_users)}")
 
         # ================= STAGE 2: RESOURCES =================
+        resources_start = time.monotonic()
         self.log("RESOURCES", f"Creating {opts['num_resources']} resources of type(s) {types} ...")
+
+        if not opts["generate_thumbnails"] and not dry_run:
+            # map_manager/document_manager.create() unconditionally call set_thumbnail(),
+            # which is a synchronous GeoServer WMS render per map / synchronous celery
+            # .apply() per document — no-op it for this run's process only.
+            from geonode.resource.manager import BaseResourceManager
+            BaseResourceManager.set_thumbnail = lambda self, *a, **kw: False
+            self.log("RESOURCES", "Thumbnail generation disabled for this run "
+                                   "(pass --generate-thumbnails to enable; adds a per-resource "
+                                   "GeoServer/WMS round-trip and will be much slower).", "WARN")
 
         categories = list(TopicCategory.objects.all())
         existing_datasets = None
 
-        # introspect the actual Document/Map fields available in this GeoNode version,
-        # since these have changed across releases (e.g. Map viewer state fields,
-        # Document's file field name)
-        map_fields = model_field_names(Map)
+        # introspect the actual Document fields available in this GeoNode version,
+        # since these have changed across releases (e.g. Document's file field name)
         document_fields = model_field_names(Document)
         document_file_field = find_file_field_name(Document)
-        warned_map_fields = False
         warned_doc_file = False
 
         if document_file_field is None:
@@ -299,73 +330,79 @@ class Command(BaseCommand):
             resource = None
             try:
                 if rtype == "document":
-                    with transaction.atomic():
-                        doc = Document(title=title, abstract=abstract, owner=owner, category=category)
-
+                    # go through document_manager.create() (not a raw Document().save()) so
+                    # subtype/extension detection, the asset+Link row, poc/metadata_author,
+                    # default owner-only permissions and thumbnailing all actually run —
+                    # see geonode.documents.manager.DocumentResourceManager.create()
+                    doc_defaults = dict(title=title, abstract=abstract, owner=owner, category=category)
+                    file_path = None
+                    try:
                         if document_file_field:
+                            file_path = os.path.join("/tmp", f"{random_suffix()}.txt")
                             content = f"Synthetic test document {uuid.uuid4()}\n{abstract}".encode()
-                            getattr(doc, document_file_field).save(
-                                f"{random_suffix()}.txt", ContentFile(content), save=False
+                            with open(file_path, "wb") as fh:
+                                fh.write(content)
+                            doc = document_manager.create(
+                                str(uuid.uuid4()), defaults=doc_defaults, file=file_path, user=owner,
                             )
-                        elif "doc_url" in document_fields:
-                            doc.doc_url = f"https://example.com/fake-doc-{random_suffix()}.txt"
-
-                        doc.save()
+                        else:
+                            if "doc_url" in document_fields:
+                                doc_defaults["doc_url"] = f"https://example.com/fake-doc-{random_suffix()}.txt"
+                            doc = document_manager.create(str(uuid.uuid4()), defaults=doc_defaults, user=owner)
                         resource = doc
+                    finally:
+                        if file_path:
+                            try:
+                                os.remove(file_path)
+                            except OSError:
+                                pass
 
                 elif rtype == "map":
-                    with transaction.atomic():
-                        desired_map_kwargs = dict(
-                            title=title, abstract=abstract, owner=owner, category=category,
-                        )
-                        map_kwargs = {k: v for k, v in desired_map_kwargs.items() if k in map_fields}
-                        dropped = sorted(set(desired_map_kwargs) - set(map_kwargs))
-                        if dropped and not warned_map_fields:
-                            self.log("RESOURCES", f"Map model in this GeoNode version has no field(s) "
-                                                   f"{dropped} — creating maps without them.", "WARN")
-                            warned_map_fields = True
-
-                        m = Map(**map_kwargs)
-                        m.save()
-                        resource = m
-
-                    # attach 2..50 real, already-imported Datasets as MapLayers.
-                    # Done outside the atomic block above: it's a read of
-                    # already-committed Datasets plus independent MapLayer
-                    # inserts, and a layer-attach failure shouldn't roll back
-                    # the Map itself (a map with zero/fewer layers is still a
-                    # usable resource, just logged as a warning).
+                    # build 2..50 real, already-imported Datasets as *unsaved* MapLayers and
+                    # hand them to map_manager.create() via the "maplayers" default — the manager
+                    # attaches them with instance.maplayers.set(...) as part of create(), which is
+                    # also what triggers bbox/extent recompute from the attached layers. A map with
+                    # zero layers (no Datasets created yet) is still a usable resource, just warned.
                     if existing_datasets is None:
                         from geonode.layers.models import Dataset
                         existing_datasets = list(Dataset.objects.all())
+
+                    maplayers = []
                     if existing_datasets:
-                        from geonode.maps.models import MapLayer
                         n_layers = min(
                             random.randint(opts["min_layers"], opts["max_layers"]),
                             len(existing_datasets),
                         )
                         chosen = random.sample(existing_datasets, n_layers)
                         for order, ds in enumerate(chosen):
-                            try:
-                                MapLayer.objects.create(
-                                    map=m,
-                                    dataset=ds,
-                                    name=ds.alternate,
-                                    store=ds.store,
-                                    ows_url=ds.ows_url,
-                                    current_style=(ds.default_style.name if ds.default_style else None),
-                                    local=True,
-                                    order=order,
-                                    visibility=True,
-                                    opacity=1.0,
-                                )
-                            except Exception as exc:
-                                self.log("RESOURCES", f"Could not attach layer {ds.alternate!r} to map "
-                                                       f"{title!r}: {exc}", "WARN")
+                            maplayers.append(MapLayer(
+                                dataset=ds,
+                                name=ds.alternate,
+                                store=ds.store,
+                                ows_url=ds.ows_url,
+                                current_style=(ds.default_style.name if ds.default_style else None),
+                                local=True,
+                                order=order,
+                                visibility=True,
+                                opacity=1.0,
+                            ))
                     else:
                         self.log("RESOURCES", f"No real Datasets exist yet — map {title!r} created with "
                                                f"zero layers (create 'dataset' resources first, or in the "
                                                f"same run before maps get their random turn).", "WARN")
+
+                    # mirrors MapViewSet.perform_create(): explicit resource_type="map" in the
+                    # payload plus resource_type=Map as the model class to create.
+                    m = map_manager.create(
+                        str(uuid.uuid4()),
+                        resource_type=Map,
+                        defaults=dict(
+                            title=title, abstract=abstract, owner=owner, category=category,
+                            resource_type="map", maplayers=maplayers,
+                        ),
+                        user=owner,
+                    )
+                    resource = m
 
                 elif rtype == "dataset":
                     kind = random.choice(["vector", "raster"])
@@ -409,9 +446,11 @@ class Command(BaseCommand):
             if total_done % 100 == 0:
                 self.log("RESOURCES", f"...{total_done}/{opts['num_resources']} resources created")
 
-        self.log("RESOURCES", f"Done. Created: {created_counts}. Skipped: {skipped_counts}")
+        self.log("RESOURCES", f"Done. Created: {created_counts}. Skipped: {skipped_counts} "
+                               f"[{format_duration(time.monotonic() - resources_start)}]")
 
         # ================= STAGE 3: PERMISSIONS =================
+        permissions_start = time.monotonic()
         if opts["permissions_scope"] == "all":
             target_resources = list(ResourceBase.objects.all())
             self.log("PERMISSIONS", f"Scope=all -> {len(target_resources)} resources in the whole instance")
@@ -452,7 +491,8 @@ class Command(BaseCommand):
                 if touched % 100 == 0:
                     self.log("PERMISSIONS", f"...{touched}/{len(target_resources)} resources given new permissions")
 
-            self.log("PERMISSIONS", f"Done. Resources touched: {touched}. Assignments logged: {len(perm_rows)}")
+            self.log("PERMISSIONS", f"Done. Resources touched: {touched}. Assignments logged: {len(perm_rows)} "
+                                     f"[{format_duration(time.monotonic() - permissions_start)}]")
 
         # ================= CSV logs =================
         prefix = opts["csv_out_prefix"]
@@ -489,4 +529,5 @@ class Command(BaseCommand):
         self.log("SUMMARY", f"  resources:   created={created_counts} skipped={skipped_counts}")
         self.log("SUMMARY", f"  permissions: assignments={len(perm_rows)} "
                              f"(scope={opts['permissions_scope']})")
+        self.log("SUMMARY", f"  total duration: {format_duration(time.monotonic() - run_start)}")
         self.log("SUMMARY", "=" * 60)
