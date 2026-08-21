@@ -101,6 +101,101 @@ LEVELS = {
     ],
 }
 
+# MapStore reads its viewer config from ResourceBase.blob (a plain JSONField), not from
+# the MapLayer rows — those are just GeoNode-side bookkeeping (permissions cascade,
+# map.datasets). A Map created without a blob has nothing for the viewer to render:
+# no layers, no center/zoom. This is a minimal-but-real blob (mirrors what MapStore
+# itself POSTs on save), one background layer plus one wms entry per attached Dataset.
+MAP_BACKGROUND_LAYER = {
+    "id": "mapnik__0",
+    "name": "mapnik",
+    "type": "osm",
+    "group": "background",
+    "title": "Open Street Map",
+    "source": "osm",
+    "visibility": True,
+    "singleTile": False,
+    "hidden": False,
+}
+
+
+def qualified_style_name(ds):
+    """Workspace-qualified style name, e.g. "geonode:airports" — matches what real
+    MapLayer.current_style / blob layer "style" entries actually contain."""
+    if not ds.default_style:
+        return None
+    return f"{ds.workspace}:{ds.default_style.name}" if ds.workspace else ds.default_style.name
+
+
+def build_map_blob(datasets, ows_url):
+    """Build a minimal MapStore blob for a Map that renders `datasets` as WMS layers."""
+    extents = [ds.ll_bbox_polygon.extent for ds in datasets if ds.ll_bbox_polygon]
+    if extents:
+        minx = min(e[0] for e in extents)
+        miny = min(e[1] for e in extents)
+        maxx = max(e[2] for e in extents)
+        maxy = max(e[3] for e in extents)
+    else:
+        minx, miny, maxx, maxy = -180, -90, 180, 90
+
+    width = maxx - minx
+    zoom = 1
+    for threshold in (90, 40, 20, 10, 5, 2, 1):
+        if width <= threshold:
+            zoom += 1
+    center = {"x": (minx + maxx) / 2, "y": (miny + maxy) / 2, "crs": "EPSG:4326"}
+
+    layers = [dict(MAP_BACKGROUND_LAYER)]
+    for ds in datasets:
+        layer_id = str(uuid.uuid4())
+        bbox = ds.ll_bbox_polygon.extent if ds.ll_bbox_polygon else (minx, miny, maxx, maxy)
+        style = qualified_style_name(ds) or ""
+        layers.append({
+            "id": layer_id,
+            "url": ows_url,
+            "bbox": {
+                "crs": "EPSG:4326",
+                "bounds": {"minx": bbox[0], "miny": bbox[1], "maxx": bbox[2], "maxy": bbox[3]},
+            },
+            "name": ds.alternate,
+            "type": "wms",
+            "style": style,
+            "title": ds.title,
+            "format": "image/png",
+            "hidden": False,
+            "visibility": True,
+            "singleTile": False,
+            "extendedParams": {"pk": str(ds.pk), "alternate": ds.alternate},
+        })
+
+    return {
+        "version": 2,
+        "map": {
+            "zoom": zoom,
+            "units": "m",
+            "center": center,
+            "groups": [{"id": "Default", "title": "Default", "expanded": True, "visibility": True}],
+            "layers": layers,
+            "maxExtent": [-20037508.34, -20037508.34, 20037508.34, 20037508.34],
+            "projection": "EPSG:3857",
+            "backgrounds": [],
+            "visualizationMode": "2D",
+        },
+        "catalogServices": {
+            "services": {
+                "GeoNode": {
+                    "url": "/",
+                    "type": "geonode",
+                    "title": "GeoNode",
+                    "autoload": True,
+                    "resourceTypes": ["dataset", "document", "map"],
+                }
+            },
+            "selectedService": "GeoNode",
+        },
+    }, (minx, miny, maxx, maxy)
+
+
 WORD_POOL = [
     "river", "forest", "urban", "coastal", "seismic", "rainfall", "elevation",
     "landcover", "boundary", "soil", "wetland", "traffic", "population",
@@ -298,6 +393,7 @@ class Command(BaseCommand):
 
         categories = list(TopicCategory.objects.all())
         existing_datasets = None
+        ows_url = None
 
         # introspect the actual Document fields available in this GeoNode version,
         # since these have changed across releases (e.g. Document's file field name)
@@ -367,7 +463,12 @@ class Command(BaseCommand):
                         from geonode.layers.models import Dataset
                         existing_datasets = list(Dataset.objects.all())
 
+                    if ows_url is None:
+                        from geonode.geoserver.helpers import ogc_server_settings
+                        ows_url = ogc_server_settings.public_url.rstrip("/") + "/ows"
+
                     maplayers = []
+                    chosen = []
                     if existing_datasets:
                         n_layers = min(
                             random.randint(opts["min_layers"], opts["max_layers"]),
@@ -378,12 +479,13 @@ class Command(BaseCommand):
                             # map=None: MapLayer.map is nullable, and instance.maplayers.set()
                             # below needs objects with a pk to diff against the existing set —
                             # unsaved instances are unhashable ("without primary key value").
+                            # store/ows_url left None to match what real MapStore-created
+                            # MapLayers actually persist (the URL/store live in the blob layer,
+                            # not here).
                             ml = MapLayer(
                                 dataset=ds,
                                 name=ds.alternate,
-                                store=ds.store,
-                                ows_url=ds.ows_url,
-                                current_style=(ds.default_style.name if ds.default_style else None),
+                                current_style=qualified_style_name(ds),
                                 local=True,
                                 order=order,
                                 visibility=True,
@@ -396,6 +498,11 @@ class Command(BaseCommand):
                                                f"zero layers (create 'dataset' resources first, or in the "
                                                f"same run before maps get their random turn).", "WARN")
 
+                    # the MapLayer rows above are GeoNode-side bookkeeping only — what the
+                    # MapStore viewer actually renders (layers, background, center/zoom) comes
+                    # from the blob JSON, so build one instead of leaving it {} (default).
+                    blob, bbox = build_map_blob(chosen, ows_url)
+
                     # mirrors MapViewSet.perform_create(): explicit resource_type="map" in the
                     # payload plus resource_type=Map as the model class to create.
                     m = map_manager.create(
@@ -403,7 +510,8 @@ class Command(BaseCommand):
                         resource_type=Map,
                         defaults=dict(
                             title=title, abstract=abstract, owner=owner, category=category,
-                            resource_type="map", maplayers=maplayers,
+                            resource_type="map", maplayers=maplayers, blob=blob,
+                            extent={"srid": "EPSG:4326", "coords": list(bbox)},
                         ),
                         user=owner,
                     )
