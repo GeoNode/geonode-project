@@ -375,7 +375,10 @@ class Command(BaseCommand):
                         )
                         chosen = random.sample(existing_datasets, n_layers)
                         for order, ds in enumerate(chosen):
-                            maplayers.append(MapLayer(
+                            # map=None: MapLayer.map is nullable, and instance.maplayers.set()
+                            # below needs objects with a pk to diff against the existing set —
+                            # unsaved instances are unhashable ("without primary key value").
+                            ml = MapLayer(
                                 dataset=ds,
                                 name=ds.alternate,
                                 store=ds.store,
@@ -385,7 +388,9 @@ class Command(BaseCommand):
                                 order=order,
                                 visibility=True,
                                 opacity=1.0,
-                            ))
+                            )
+                            ml.save()
+                            maplayers.append(ml)
                     else:
                         self.log("RESOURCES", f"No real Datasets exist yet — map {title!r} created with "
                                                f"zero layers (create 'dataset' resources first, or in the "
