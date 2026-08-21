@@ -11,6 +11,7 @@ import json
 import os
 import statistics
 import time
+from urllib.parse import urlparse
 
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from fpdf import FPDF
@@ -31,8 +32,24 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 def _format_datetime(ts):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
 
-DEFAULT_BASE_URL = os.environ.get("GEONODE_BASE_URL", "http://nginx")
-DEFAULT_HOST_HEADER = os.environ.get("GEONODE_HOST_HEADER", "localhost")
+
+# Default the base URL to this instance's own configured SITEURL — the same
+# env var GeoNode itself uses — rather than assuming an internal service
+# name that may or may not exist/resolve/match the TLS cert on any given
+# deployment. GEONODE_BASE_URL still wins if explicitly set (e.g. to force
+# an internal name on purpose).
+DEFAULT_BASE_URL = os.environ.get("GEONODE_BASE_URL") or os.environ.get("SITEURL", "http://nginx").rstrip("/")
+
+# The Host-header-override quirk (see geonode_client.py) is specific to this
+# sandbox's nginx, which only matches server_name "localhost"/"127.0.0.1" —
+# so only default it to "localhost" when the base URL actually points there.
+# Any other target (a real domain via SITEURL, a different internal name)
+# defaults to no override, since a real deployment's nginx generally doesn't
+# need one and a wrong guess here just reproduces the original bug.
+_default_base_host = urlparse(DEFAULT_BASE_URL).hostname or ""
+DEFAULT_HOST_HEADER = os.environ.get(
+    "GEONODE_HOST_HEADER", "localhost" if _default_base_host in ("localhost", "127.0.0.1") else ""
+)
 
 
 def _run_once(client, conn, scenario_key, params):
@@ -104,7 +121,8 @@ def api_lookup_resources():
     data = request.get_json(force=True)
     base_url = data.get("base_url") or DEFAULT_BASE_URL
     host_header = data.get("host_header", DEFAULT_HOST_HEADER)
-    client = GeoNodeClient(base_url, host_header=host_header)
+    verify_tls = not data.get("skip_tls_verify")
+    client = GeoNodeClient(base_url, host_header=host_header, verify_tls=verify_tls)
     try:
         client.login(data["username"], data["password"])
         resources = lookup_resources(client, limit=int(data.get("limit", 50)))
@@ -138,6 +156,7 @@ def run():
 
     base_url = request.form.get("base_url") or DEFAULT_BASE_URL
     host_header = request.form.get("host_header", DEFAULT_HOST_HEADER)
+    verify_tls = not request.form.get("skip_tls_verify")
     username = request.form["username"]
     password = request.form["password"]
     iterations_n = max(1, min(int(request.form.get("iterations", 1)), 50))
@@ -160,7 +179,7 @@ def run():
         uploaded_file.save(tmp_upload_path)
         params["uploaded_file_path"] = tmp_upload_path
 
-    client = GeoNodeClient(base_url, host_header=host_header)
+    client = GeoNodeClient(base_url, host_header=host_header, verify_tls=verify_tls)
     try:
         client.login(username, password)
     except LoginError as e:

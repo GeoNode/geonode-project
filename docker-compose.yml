@@ -179,16 +179,11 @@ services:
       dockerfile: Dockerfile
     container_name: perftool4${COMPOSE_PROJECT_NAME}
     env_file:
+      # `.env`'s own SITEURL becomes perf_tool's default base URL, and its
+      # host decides whether Host-header-override defaults on (see app.py) —
+      # no hardcoded assumption here about internal names or "localhost".
+      # Set GEONODE_BASE_URL/GEONODE_HOST_HEADER in .env to override either.
       - .env
-    environment:
-      # Talk to nginx (the real entrypoint, same path real users take) with an
-      # explicit Host: localhost override — nginx's plain-HTTP vhost only
-      # matches server_name "localhost"/"127.0.0.1", so the bare service name
-      # "nginx" hits its default_server catch-all and gets dropped. Clear
-      # GEONODE_HOST_HEADER (set it to an empty string) if you point this tool
-      # at a real public GeoNode URL instead of this local instance.
-      - GEONODE_BASE_URL=http://nginx
-      - GEONODE_HOST_HEADER=localhost
     ports:
       - "5001:5001"
     volumes:

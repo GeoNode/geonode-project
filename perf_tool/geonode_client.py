@@ -25,12 +25,22 @@ against this instance, not guessed):
    it's a cosmetic locale-prefix redirect — so this client follows exactly
    one redirect itself, preserving the original method and body, instead of
    letting requests silently reinterpret the request.
+4. Connecting to an internal service name (e.g. "https://nginx") when that
+   service's TLS cert is issued for its real public hostname (e.g.
+   "test-gn.example.com", a perfectly valid Let's Encrypt cert) always fails
+   certificate hostname verification — the cert is for the wrong name, not
+   untrusted. `verify_tls=False` skips that check; only turn it off when
+   base_url is an internal name and you already know its cert is for a
+   different (real) hostname, not for "the site might be using a self-signed
+   cert" in general.
 """
 import re
 import time
+import warnings
 from urllib.parse import urljoin
 
 import requests
+import urllib3
 
 CSRF_RE = re.compile(r'name="csrfmiddlewaretoken"\s+value="([^"]+)"')
 REDIRECT_CODES = (301, 302, 307, 308)
@@ -41,11 +51,17 @@ class LoginError(RuntimeError):
 
 
 class GeoNodeClient:
-    def __init__(self, base_url, timeout=30, host_header="localhost"):
+    def __init__(self, base_url, timeout=30, host_header="localhost", verify_tls=True):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.host_header = host_header
         self.session = requests.Session()
+        self.session.verify = verify_tls
+        if not verify_tls:
+            # skipping verification is a deliberate, explained choice here
+            # (see class docstring #4) — no need for urllib3 to also warn
+            # about it on every single request
+            warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
         self._query_count = 0
         self._query_time_ms = 0.0
 

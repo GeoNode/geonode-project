@@ -10,11 +10,25 @@
 <form method="post" action="{{ url_for('run') }}" enctype="multipart/form-data">
   <fieldset>
     <legend>Target &amp; credentials</legend>
-    <label>GeoNode base URL
+    <label>GeoNode base URL (defaults to this instance's own SITEURL)
       <input type="text" name="base_url" id="base_url" value="{{ default_base_url }}">
     </label>
-    <label>Host header override (leave as "localhost" for this instance's nginx; clear it if pointing at a real public URL)
+    <p class="hint">
+      If SITEURL is "http://localhost" (common for local/dev instances):
+      that means "this container's own loopback" from perf_tool's point of
+      view, not the host machine — change base_url to the internal service
+      name instead (e.g. "http://nginx"), and set the Host header override
+      below to "localhost" so nginx still routes it correctly.
+    </p>
+    <label>Host header override (only needed if base_url isn't a name nginx's server_name actually matches — e.g. an internal service name like "nginx" while nginx only matches "localhost")
       <input type="text" name="host_header" id="host_header" value="{{ default_host_header }}">
+    </label>
+    <label>
+      <input type="checkbox" name="skip_tls_verify" id="skip_tls_verify" style="width:auto; display:inline-block; margin-right:0.4em;">
+      Skip TLS certificate verification — needed when base_url is an internal
+      service name (e.g. "https://nginx") but its cert is issued for the
+      real public hostname (a valid cert, just for a different name than the
+      one you're connecting to). Leave unchecked otherwise.
     </label>
     <label>Username
       <input type="text" name="username" id="username" required>

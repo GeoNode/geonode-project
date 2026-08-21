@@ -160,16 +160,31 @@ falls back cleanly, nothing else breaks.
 
 ## Using it
 
-1. **Target & credentials** — base URL defaults to `http://nginx` (this
-   instance's real entrypoint, same path a browser takes) with a
-   `Host: localhost` header override. That override is needed because this
-   project's nginx (same `geonode/nginx` base image) only matches
-   `server_name localhost 127.0.0.1` on plain HTTP — a bare service-name
-   Host header hits its default-server catch-all and the connection gets
-   dropped. Leave both as they are to test this instance; clear the
-   host-header field if you point the tool at a real public GeoNode URL
-   instead (a real deployment doesn't have this quirk). Username/password
-   are a real GeoNode account on this instance.
+1. **Target & credentials** — base URL defaults to this instance's own
+   `SITEURL` (the same env var GeoNode itself uses), and the Host-header
+   override defaults on only when that URL's host is `localhost`/`127.0.0.1`
+   — otherwise it defaults off. Two real deployment shapes this needs to
+   handle:
+   - **`SITEURL=http://localhost` (typical local/dev instance)**: from
+     *inside* the `perftool` container, "localhost" means that container's
+     own loopback, not the host machine running docker — so the default base
+     URL won't actually reach anything. Change `base_url` to the internal
+     service name (`http://nginx`) and keep the Host header override at
+     `localhost`, so nginx still routes it correctly (its plain-HTTP vhost
+     only matches `server_name localhost 127.0.0.1`).
+   - **`SITEURL` is a real public domain behind TLS**: the default base URL
+     (the real domain) usually works fine *if* `perftool` can actually reach
+     it — but on infra that doesn't allow "hairpin" traffic (a machine
+     inside the private network reaching the same server via its *public*
+     domain/IP — common with load balancers/WAFs), it won't, even though the
+     domain is perfectly reachable from outside. Symptom: `curl`/`requests`
+     both get a connection dropped with no HTTP response at all. Fix: switch
+     `base_url` to the internal service name instead (e.g. `https://nginx`),
+     set the Host header override to the real domain (so nginx's
+     `server_name` still matches), and check **Skip TLS certificate
+     verification** — the internal name won't match the cert's hostname even
+     though the cert itself is perfectly valid for the real domain.
+   Username/password are a real GeoNode account on this instance.
 2. **Scenario** — pick a built-in test:
    - **List resources** / **List maps** — times `GET /api/v2/...`.
    - **Upload a CSV dataset** — runs a real upload through the full
