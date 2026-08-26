@@ -157,6 +157,36 @@ code {
   white-space: pre;
 }
 
+.tabs { margin-bottom: 1.5rem; }
+
+.tab-bar {
+  display: flex;
+  gap: 0.3rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.tab-btn:hover { color: var(--text); filter: none; }
+
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.tab-btn .hint { font-weight: 400; font-size: 0.8em; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
 .error { color: var(--fail); }
 
 .repeat-buttons { display: flex; gap: 0.5rem; margin: 0.4rem 0 0.8rem; flex-wrap: wrap; }

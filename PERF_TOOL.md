@@ -162,12 +162,13 @@ falls back cleanly, nothing else breaks.
 
 A second middleware, `geonode.base.middleware.RequestProfilingMiddleware`,
 wraps the request in stdlib `cProfile` and returns the slowest functions by
-cumulative time as an `X-Profile-Top` header, gated by
-`EXPOSE_REQUEST_PROFILING`. Same "needs a newer GeoNode base image"
-limitation as above — it lives in the same source tree. The result page's
-"Slowest functions by cumulative time" section shows a hint instead of data
-until that's available. Adds real per-request overhead when on; leave it
-off outside a profiling session.
+*self* time (tottime, not cumtime — cumtime on a request profile is just
+the middleware/dispatch chain retracing itself) as an `X-Profile-Top`
+header, gated by `EXPOSE_REQUEST_PROFILING`. Same "needs a newer GeoNode
+base image" limitation as above — it lives in the same source tree. The
+result page's "Slowest functions by self time" section shows a hint
+instead of data until that's available. Adds real per-request overhead
+when on; leave it off outside a profiling session.
 
 ## Using it
 

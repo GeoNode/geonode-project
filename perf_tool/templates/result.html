@@ -31,110 +31,137 @@
   </div>
 </section>
 
-<h2>Per-iteration detail</h2>
-<div class="table-wrap">
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>wall time (s)</th>
-      <th>ok</th>
-      <th>http</th>
-      <th title="Change in Postgres's whole-database transaction-commit counter (pg_stat_database.xact_commit) while this iteration ran. A rough proxy for &quot;how many statements ran&quot; — it's database-wide, not scoped to just this request, so unrelated concurrent activity shows up here too.">xact_commit Δ</th>
-      <th title="Rows inserted anywhere in the database while this iteration ran (pg_stat_database.tup_inserted). Database-wide, like xact_commit Δ — see the per-table breakdown below to attribute this to a specific table.">tup_inserted Δ</th>
-      <th title="Rows updated anywhere in the database while this iteration ran (pg_stat_database.tup_updated). Database-wide, like xact_commit Δ — see the per-table breakdown below to attribute this to a specific table.">tup_updated Δ</th>
-      <th title="Rows deleted anywhere in the database while this iteration ran (pg_stat_database.tup_deleted). Database-wide, like xact_commit Δ — see the per-table breakdown below to attribute this to a specific table.">tup_deleted Δ</th>
-      <th title="Exact SQL query count for THIS request only, counted inside Django (X-DB-Query-Count header) — not database-wide, immune to concurrent activity. 0 if the target instance doesn't expose it.">req. queries</th>
-      <th title="Exact time spent in the database for THIS request only, in milliseconds (X-DB-Query-Time-Ms header).">req. DB ms</th>
-      <th>detail</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for it in run.iterations %}
-    <tr class="{{ 'ok' if it.ok else 'fail' }}">
-      <td>{{ loop.index }}</td>
-      <td>{{ it.wall_time }}</td>
-      <td>{{ '✓' if it.ok else '✗' }}</td>
-      <td>{{ it.http_status }}</td>
-      <td>{{ it.db.db.xact_commit }}</td>
-      <td>{{ it.db.db.tup_inserted }}</td>
-      <td>{{ it.db.db.tup_updated }}</td>
-      <td>{{ it.db.db.tup_deleted }}</td>
-      <td>{{ it.request_db.count if it.request_db else 0 }}</td>
-      <td>{{ it.request_db.time_ms if it.request_db else 0 }}</td>
-      <td class="detail">{{ it.detail }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
+<div class="tabs">
+  <div class="tab-bar" role="tablist">
+    <button type="button" class="tab-btn active" data-tab="iterations">Per-iteration detail</button>
+    <button type="button" class="tab-btn" data-tab="tables">Per-table writes/reads</button>
+    <button type="button" class="tab-btn" data-tab="queries">Top queries {% if not stat_statements %}<span class="hint">(n/a)</span>{% endif %}</button>
+    <button type="button" class="tab-btn" data-tab="profile">Slowest functions {% if not profile_top %}<span class="hint">(n/a)</span>{% endif %}</button>
+  </div>
 
-<h2>Per-table writes/reads (summed across all iterations)</h2>
-{% if table_totals %}
-<div class="table-wrap">
-<table>
-  <thead>
-    <tr>
-      <th>table</th>
-      <th title="Change in sequential (full table) scans on this table during the test. A rising number on a table that should be indexed is a red flag — it means Postgres read every row instead of using an index.">seq_scan Δ</th>
-      <th title="Change in index scans on this table during the test. Generally the cheap, wanted way to read a table — compare against seq_scan Δ to see whether queries are using indexes.">idx_scan Δ</th>
-      <th title="Rows inserted into this table during the test (INSERT statements' effect, summed across all iterations).">inserted Δ</th>
-      <th title="Rows updated in this table during the test (UPDATE statements' effect, summed across all iterations). A high number on a row that's only supposed to be created once (e.g. one resource updated 60+ times) is the kind of thing this column exists to catch.">updated Δ</th>
-      <th title="Rows deleted from this table during the test (DELETE statements' effect, summed across all iterations).">deleted Δ</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for table, t in table_totals.items() %}
-    <tr>
-      <td>{{ table }}</td>
-      <td>{{ t.seq_scan }}</td>
-      <td>{{ t.idx_scan }}</td>
-      <td>{{ t.n_tup_ins }}</td>
-      <td>{{ t.n_tup_upd }}</td>
-      <td>{{ t.n_tup_del }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-{% else %}
-<p class="hint">No tracked table changed. Add more tables to TRACKED_TABLES in db_stats.py if you're chasing something outside the default list.</p>
-{% endif %}
+  <div class="tab-panel active" id="tab-iterations">
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>wall time (s)</th>
+          <th>ok</th>
+          <th>http</th>
+          <th title="Change in Postgres's whole-database transaction-commit counter (pg_stat_database.xact_commit) while this iteration ran. A rough proxy for &quot;how many statements ran&quot; — it's database-wide, not scoped to just this request, so unrelated concurrent activity shows up here too.">xact_commit Δ</th>
+          <th title="Rows inserted anywhere in the database while this iteration ran (pg_stat_database.tup_inserted). Database-wide, like xact_commit Δ — see the per-table breakdown for attribution to a specific table.">tup_inserted Δ</th>
+          <th title="Rows updated anywhere in the database while this iteration ran (pg_stat_database.tup_updated). Database-wide, like xact_commit Δ — see the per-table breakdown for attribution to a specific table.">tup_updated Δ</th>
+          <th title="Rows deleted anywhere in the database while this iteration ran (pg_stat_database.tup_deleted). Database-wide, like xact_commit Δ — see the per-table breakdown for attribution to a specific table.">tup_deleted Δ</th>
+          <th title="Exact SQL query count for THIS request only, counted inside Django (X-DB-Query-Count header) — not database-wide, immune to concurrent activity. 0 if the target instance doesn't expose it.">req. queries</th>
+          <th title="Exact time spent in the database for THIS request only, in milliseconds (X-DB-Query-Time-Ms header).">req. DB ms</th>
+          <th>detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in run.iterations %}
+        <tr class="{{ 'ok' if it.ok else 'fail' }}">
+          <td>{{ loop.index }}</td>
+          <td>{{ it.wall_time }}</td>
+          <td>{{ '✓' if it.ok else '✗' }}</td>
+          <td>{{ it.http_status }}</td>
+          <td>{{ it.db.db.xact_commit }}</td>
+          <td>{{ it.db.db.tup_inserted }}</td>
+          <td>{{ it.db.db.tup_updated }}</td>
+          <td>{{ it.db.db.tup_deleted }}</td>
+          <td>{{ it.request_db.count if it.request_db else 0 }}</td>
+          <td>{{ it.request_db.time_ms if it.request_db else 0 }}</td>
+          <td class="detail">{{ it.detail }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </div>
 
-{% if stat_statements %}
-<h2>Top queries by call count (last iteration, pg_stat_statements)</h2>
-<div class="table-wrap">
-<table>
-  <thead><tr><th>calls</th><th>total time (ms)</th><th>query</th></tr></thead>
-  <tbody>
-    {% for row in stat_statements %}
-    <tr><td>{{ row.calls }}</td><td>{{ row.total_time_ms }}</td><td class="detail"><code>{{ row.query }}</code></td></tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-{% else %}
-<p class="hint">
-  <code>pg_stat_statements</code> isn't installed/readable on this database, so exact per-query
-  breakdown isn't available — the table above (from <code>pg_stat_user_tables</code>) is the
-  trustworthy fallback and needs no extra privileges.
-</p>
-{% endif %}
+  <div class="tab-panel" id="tab-tables">
+    <p class="hint">Summed across all iterations.</p>
+    {% if table_totals %}
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>table</th>
+          <th title="Change in sequential (full table) scans on this table during the test. A rising number on a table that should be indexed is a red flag — it means Postgres read every row instead of using an index.">seq_scan Δ</th>
+          <th title="Change in index scans on this table during the test. Generally the cheap, wanted way to read a table — compare against seq_scan Δ to see whether queries are using indexes.">idx_scan Δ</th>
+          <th title="Rows inserted into this table during the test (INSERT statements' effect, summed across all iterations).">inserted Δ</th>
+          <th title="Rows updated in this table during the test (UPDATE statements' effect, summed across all iterations). A high number on a row that's only supposed to be created once (e.g. one resource updated 60+ times) is the kind of thing this column exists to catch.">updated Δ</th>
+          <th title="Rows deleted from this table during the test (DELETE statements' effect, summed across all iterations).">deleted Δ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for table, t in table_totals.items() %}
+        <tr>
+          <td>{{ table }}</td>
+          <td>{{ t.seq_scan }}</td>
+          <td>{{ t.idx_scan }}</td>
+          <td>{{ t.n_tup_ins }}</td>
+          <td>{{ t.n_tup_upd }}</td>
+          <td>{{ t.n_tup_del }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="hint">No tracked table changed. Add more tables to TRACKED_TABLES in db_stats.py if you're chasing something outside the default list.</p>
+    {% endif %}
+  </div>
 
-{% if profile_top %}
-<h2>Slowest functions by cumulative time (last iteration, cProfile)</h2>
-<div class="table-wrap">
-<pre class="code-block">{% for line in profile_top %}{{ line }}
+  <div class="tab-panel" id="tab-queries">
+    {% if stat_statements %}
+    <p class="hint">By call count, last iteration, pg_stat_statements.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>calls</th><th>total time (ms)</th><th>query</th></tr></thead>
+      <tbody>
+        {% for row in stat_statements %}
+        <tr><td>{{ row.calls }}</td><td>{{ row.total_time_ms }}</td><td class="detail"><code>{{ row.query }}</code></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="hint">
+      <code>pg_stat_statements</code> isn't installed/readable on this database, so exact per-query
+      breakdown isn't available — the per-table tab (from <code>pg_stat_user_tables</code>) is the
+      trustworthy fallback and needs no extra privileges.
+    </p>
+    {% endif %}
+  </div>
+
+  <div class="tab-panel" id="tab-profile">
+    {% if profile_top %}
+    <p class="hint">By self time, last iteration, cProfile.</p>
+    <div class="table-wrap">
+    <pre class="code-block">{% for line in profile_top %}{{ line }}
 {% endfor %}</pre>
+    </div>
+    {% else %}
+    <p class="hint">
+      Python-level profiling isn't on for this instance — set
+      <code>EXPOSE_REQUEST_PROFILING=True</code> on the target GeoNode (see
+      <code>geonode.base.middleware.RequestProfilingMiddleware</code>) to see which
+      functions the time above was actually spent in.
+    </p>
+    {% endif %}
+  </div>
 </div>
-{% else %}
-<p class="hint">
-  Python-level profiling isn't on for this instance — set
-  <code>EXPOSE_REQUEST_PROFILING=True</code> on the target GeoNode (see
-  <code>geonode.base.middleware.RequestProfilingMiddleware</code>) to see which
-  functions the time above was actually spent in.
-</p>
-{% endif %}
+
+<script>
+document.querySelectorAll(".tab-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".tab-btn").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelectorAll(".tab-panel").forEach(function (p) { p.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+</script>
 
 <p><a href="{{ url_for('history') }}">← back to history</a> to compare this run against another.</p>
 {% endblock %}
