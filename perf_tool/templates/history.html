@@ -3,6 +3,10 @@
 <h1>Run history</h1>
 <p class="hint">Pick two runs to compare (e.g. a "before fix" run against an "after fix" run).</p>
 
+<form method="post" action="{{ url_for('delete_all_history') }}" onsubmit="return confirm('Delete all run history? This cannot be undone.');">
+<button type="submit" class="danger">Delete all history</button>
+</form>
+
 <form method="get" action="{{ url_for('compare') }}">
 <div class="table-wrap">
 <table>

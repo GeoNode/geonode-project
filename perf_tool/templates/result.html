@@ -121,5 +121,20 @@
 </p>
 {% endif %}
 
+{% if profile_top %}
+<h2>Slowest functions by cumulative time (last iteration, cProfile)</h2>
+<div class="table-wrap">
+<pre class="code-block">{% for line in profile_top %}{{ line }}
+{% endfor %}</pre>
+</div>
+{% else %}
+<p class="hint">
+  Python-level profiling isn't on for this instance — set
+  <code>EXPOSE_REQUEST_PROFILING=True</code> on the target GeoNode (see
+  <code>geonode.base.middleware.RequestProfilingMiddleware</code>) to see which
+  functions the time above was actually spent in.
+</p>
+{% endif %}
+
 <p><a href="{{ url_for('history') }}">← back to history</a> to compare this run against another.</p>
 {% endblock %}

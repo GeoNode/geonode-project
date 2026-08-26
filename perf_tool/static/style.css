@@ -96,6 +96,8 @@ button {
 
 button:hover { filter: brightness(1.1); }
 
+button.danger { background: #c0392b; color: #fff; }
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -144,6 +146,15 @@ code {
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
   font-size: 0.85em;
+}
+
+.code-block {
+  background: #0c0e12;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8em;
+  overflow-x: auto;
+  white-space: pre;
 }
 
 .error { color: var(--fail); }

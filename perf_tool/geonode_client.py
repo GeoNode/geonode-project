@@ -64,6 +64,7 @@ class GeoNodeClient:
             warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
         self._query_count = 0
         self._query_time_ms = 0.0
+        self._profile_top = ""
 
     def _headers(self, extra=None):
         headers = {"Referer": f"{self.base_url}/"}
@@ -86,6 +87,7 @@ class GeoNodeClient:
         reused across iterations)."""
         self._query_count = 0
         self._query_time_ms = 0.0
+        self._profile_top = ""
 
     def query_stats(self):
         """Sum of X-DB-Query-Count / X-DB-Query-Time-Ms across every request
@@ -96,6 +98,17 @@ class GeoNodeClient:
         RequestQueryStatsMiddleware); stays at 0 otherwise."""
         return {"count": self._query_count, "time_ms": round(self._query_time_ms, 2)}
 
+    def profile_top(self):
+        """The X-Profile-Top header from the last request made since
+        reset_query_stats() — cProfile's slowest functions by cumulative
+        time for that one request, `|`-joined. Only populated if the target
+        GeoNode has EXPOSE_REQUEST_PROFILING=True (see geonode.base.
+        middleware.RequestProfilingMiddleware); empty string otherwise. Not
+        summed across requests like query_stats() — a scenario making
+        several HTTP calls just shows the last one, since concatenating
+        whole profiles isn't meaningful."""
+        return self._profile_top
+
     def _record_query_stats(self, response):
         count = response.headers.get("X-DB-Query-Count")
         time_ms = response.headers.get("X-DB-Query-Time-Ms")
@@ -103,6 +116,9 @@ class GeoNodeClient:
             self._query_count += int(count)
         if time_ms is not None:
             self._query_time_ms += float(time_ms)
+        profile_top = response.headers.get("X-Profile-Top")
+        if profile_top is not None:
+            self._profile_top = profile_top
 
     def _request(self, method, url, **kwargs):
         """One HTTP call, following at most one redirect with the method and

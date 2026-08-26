@@ -54,6 +54,12 @@ def list_runs(limit=50):
     return [_row_to_dict(r) for r in rows]
 
 
+def delete_all_runs():
+    conn = _connect()
+    with conn:
+        conn.execute("DELETE FROM runs")
+
+
 def _row_to_dict(row):
     return {
         "id": row["id"],

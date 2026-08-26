@@ -158,6 +158,17 @@ queries`/`req. DB ms` per-iteration columns will show `0` here — the tool
 detects this the same way it detects a missing `pg_stat_statements` and
 falls back cleanly, nothing else breaks.
 
+## Python-level profiling — same base-image caveat
+
+A second middleware, `geonode.base.middleware.RequestProfilingMiddleware`,
+wraps the request in stdlib `cProfile` and returns the slowest functions by
+cumulative time as an `X-Profile-Top` header, gated by
+`EXPOSE_REQUEST_PROFILING`. Same "needs a newer GeoNode base image"
+limitation as above — it lives in the same source tree. The result page's
+"Slowest functions by cumulative time" section shows a hint instead of data
+until that's available. Adds real per-request overhead when on; leave it
+off outside a profiling session.
+
 ## Using it
 
 1. **Target & credentials** — base URL defaults to this instance's own

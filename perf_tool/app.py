@@ -74,6 +74,11 @@ def _run_once(client, conn, scenario_key, params):
         # RequestQueryStatsMiddleware. {"count": 0, "time_ms": 0} when the
         # target instance doesn't have EXPOSE_DB_QUERY_STATS_HEADER on.
         "request_db": client.query_stats(),
+        # cProfile's slowest functions for this iteration's last HTTP call —
+        # see geonode.base.middleware.RequestProfilingMiddleware. Empty
+        # string when the target instance doesn't have
+        # EXPOSE_REQUEST_PROFILING on.
+        "profile_top": client.profile_top(),
     }
 
 
@@ -219,11 +224,17 @@ def _run_context(run_id):
         if it["db"].get("stat_statements"):
             last_stat_statements = it["db"]["stat_statements"]
             break
+    last_profile_top = None
+    for it in reversed(run_data["iterations"]):
+        if it.get("profile_top"):
+            last_profile_top = it["profile_top"].split(" | ")
+            break
     return {
         "run": run_data,
         "aggregate": aggregate,
         "table_totals": _table_totals(run_data["iterations"]),
         "stat_statements": last_stat_statements,
+        "profile_top": last_profile_top,
         "scenario_label": SCENARIOS.get(run_data["scenario"], {}).get("label", run_data["scenario"]),
     }
 
@@ -351,6 +362,12 @@ def history():
         r["aggregate"] = _aggregate(r["iterations"])
         r["scenario_label"] = SCENARIOS.get(r["scenario"], {}).get("label", r["scenario"])
     return render_template("history.html", runs=runs)
+
+
+@app.route("/history/delete-all", methods=["POST"])
+def delete_all_history():
+    storage.delete_all_runs()
+    return redirect(url_for("history"))
 
 
 @app.route("/compare")
