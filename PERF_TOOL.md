@@ -163,11 +163,16 @@ falls back cleanly, nothing else breaks.
 A second middleware, `geonode.base.middleware.RequestProfilingMiddleware`,
 wraps the request in stdlib `cProfile` and returns the slowest functions by
 *self* time (tottime, not cumtime — cumtime on a request profile is just
-the middleware/dispatch chain retracing itself) as an `X-Profile-Top`
-header, gated by `EXPOSE_REQUEST_PROFILING`. Same "needs a newer GeoNode
-base image" limitation as above — it lives in the same source tree. The
-result page's "Slowest functions by self time" section shows a hint
-instead of data until that's available. Adds real per-request overhead
+the middleware/dispatch chain retracing itself), filtered to frames whose
+file path contains `/geonode/` — a raw top-N by self time is dominated by
+psycopg2/Django/DRF internals with no app code behind them to change, and
+the one place that noise IS the finding (an unindexed query, a per-row
+`reverse()` call) still shows up here attributed to the geonode call site
+that triggered it. Returned as an `X-Profile-Top` header, gated by
+`EXPOSE_REQUEST_PROFILING`. Same "needs a newer GeoNode base image"
+limitation as above — it lives in the same source tree. The result page's
+"Slowest functions" tab shows a hint instead of data until that's
+available. Adds real per-request overhead
 when on; leave it off outside a profiling session.
 
 ## Using it

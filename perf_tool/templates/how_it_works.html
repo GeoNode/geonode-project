@@ -87,6 +87,36 @@
   off; everything else on this page keeps working either way.
 </p>
 
+<h2>"Slowest functions" — Python-level profiling, geonode code only</h2>
+<p>
+  DB and query counters explain how much work ran; they don't say which
+  line of code asked for it. <code>geonode.base.middleware.
+  RequestProfilingMiddleware</code> wraps the request in stdlib
+  <code>cProfile</code> and returns the slowest functions by <strong>self
+  time</strong> (tottime — time spent in that function alone, excluding
+  its sub-calls) as an <code>X-Profile-Top</code> header.
+</p>
+<p>
+  Sorted by self time, not cumulative time: cumulative time on a request
+  profile is dominated by the outer middleware/dispatch chain, where every
+  wrapper down to the view shows nearly the same number — that's just the
+  call stack retracing itself, not where time is actually spent.
+</p>
+<p>
+  Filtered to frames whose file path contains <code>/geonode/</code> — a
+  raw top-N by self time is usually psycopg2, Django's URL resolver, or
+  DRF internals, with no app code behind them to change. The one place
+  that noise IS the finding (an unindexed query, a per-row
+  <code>reverse()</code> call) still shows up here, attributed to the
+  geonode call site that triggered it.
+</p>
+<p class="hint">
+  Off by default (<code>EXPOSE_REQUEST_PROFILING=False</code>) — cProfile
+  instruments every function call, so this adds real per-request overhead.
+  Only turn it on for a dedicated profiling session. Empty when it's off;
+  everything else on this page keeps working either way.
+</p>
+
 <h2>xact_commit Δ, tup_inserted/updated/deleted Δ</h2>
 <p>
   A snapshot of Postgres's own <code>pg_stat_database</code> counters is

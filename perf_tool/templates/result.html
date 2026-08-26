@@ -136,7 +136,7 @@
 
   <div class="tab-panel" id="tab-profile">
     {% if profile_top %}
-    <p class="hint">By self time, last iteration, cProfile.</p>
+    <p class="hint">geonode's own code only, by self time, last iteration, cProfile. Django/DRF/library frames are filtered out — check "how it works" for why.</p>
     <div class="table-wrap">
     <pre class="code-block">{% for line in profile_top %}{{ line }}
 {% endfor %}</pre>
