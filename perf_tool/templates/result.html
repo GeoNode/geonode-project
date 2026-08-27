@@ -120,13 +120,13 @@
 
   <div class="tab-panel" id="tab-queries">
     {% if stat_statements %}
-    <p class="hint">By call count, summed across all {{ run.iterations|length }} iteration(s), pg_stat_statements. Same query text appearing in multiple iterations is one row with combined calls/time, not repeated per iteration.</p>
+    <p class="hint">Per iteration average (over {{ stat_statements_n }} of {{ run.iterations|length }} iteration(s) that had pg_stat_statements data), sorted by avg calls. Same query text appearing across several iterations is one row — total/count columns show the raw sum this was divided from, for context.</p>
     <div class="table-wrap">
     <table>
-      <thead><tr><th>calls</th><th>total time (ms)</th><th>query</th></tr></thead>
+      <thead><tr><th>avg calls / iteration</th><th>avg time (ms) / iteration</th><th title="Raw sum across all iterations with data, before dividing by iteration count.">total calls</th><th title="Raw sum across all iterations with data, before dividing by iteration count.">total time (ms)</th><th>query</th></tr></thead>
       <tbody>
         {% for row in stat_statements %}
-        <tr><td>{{ row.calls }}</td><td>{{ row.total_time_ms }}</td><td class="detail"><code>{{ row.query }}</code></td></tr>
+        <tr><td><strong>{{ row.avg_calls }}</strong></td><td><strong>{{ row.avg_total_time_ms }}</strong></td><td class="hint">{{ row.calls }}</td><td class="hint">{{ row.total_time_ms }}</td><td class="detail"><code>{{ row.query }}</code></td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -142,13 +142,13 @@
 
   <div class="tab-panel" id="tab-profile">
     {% if profile_top %}
-    <p class="hint">geonode's own code only, by self time (tottime) summed across all {{ run.iterations|length }} iteration(s), cProfile. A function hot on several iterations but not the single slowest one now shows up too. Django/DRF/library frames are filtered out — check "how it works" for why.</p>
+    <p class="hint">geonode's own code only, by self time (tottime), per iteration average (over {{ profile_top_n }} of {{ run.iterations|length }} iteration(s) that had profiling data), cProfile. A function hot on several iterations but not the single slowest one on any one of them now shows up too. Django/DRF/library frames are filtered out — check "how it works" for why.</p>
     <div class="table-wrap">
     <table>
-      <thead><tr><th>total tottime (s)</th><th>calls</th><th>function</th></tr></thead>
+      <thead><tr><th>avg tottime (s) / iteration</th><th>avg calls / iteration</th><th title="Raw sum across all iterations with data, before dividing by iteration count.">total tottime (s)</th><th title="Raw sum across all iterations with data, before dividing by iteration count.">total calls</th><th>function</th></tr></thead>
       <tbody>
         {% for row in profile_top %}
-        <tr><td>{{ row.tottime }}</td><td>{{ row.ncalls }}</td><td class="detail"><code>{{ row.func }}</code></td></tr>
+        <tr><td><strong>{{ row.avg_tottime }}</strong></td><td><strong>{{ row.avg_ncalls }}</strong></td><td class="hint">{{ row.tottime }}</td><td class="hint">{{ row.ncalls }}</td><td class="detail"><code>{{ row.func }}</code></td></tr>
         {% endfor %}
       </tbody>
     </table>

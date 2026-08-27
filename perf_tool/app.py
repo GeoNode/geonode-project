@@ -130,13 +130,25 @@ def _aggregate(iterations):
 
 
 def _aggregate_stat_statements(iterations, top_n=30):
-    """Sum pg_stat_statements calls/time across every iteration, keyed by
-    query text (queryid isn't preserved past db_stats.diff()). Replaces
-    showing only the last iteration's snapshot — a query that ran on every
-    iteration but wasn't the very last one used to disappear entirely."""
+    """pg_stat_statements calls/time per query text, keyed by query text
+    (queryid isn't preserved past db_stats.diff()), reported as a
+    per-iteration average rather than a raw sum — a plain sum across N
+    iterations forces the reader to divide by N by hand to get back to
+    "how many times does this run per request", which is the number that
+    actually matters (a total that quietly scales with how many iterations
+    you happened to run isn't comparable across runs with different
+    iteration counts; a per-iteration average is). The total is kept too,
+    for context, but avg_calls/avg_total_time_ms are what's shown first.
+    Replaces showing only the last iteration's snapshot — a query that ran
+    on every iteration but wasn't part of the very last one used to
+    disappear entirely."""
     totals = {}
+    n_with_data = 0
     for it in iterations:
-        for row in it["db"].get("stat_statements") or []:
+        rows = it["db"].get("stat_statements") or []
+        if rows:
+            n_with_data += 1
+        for row in rows:
             bucket = totals.setdefault(row["query"], {"query": row["query"], "calls": 0, "total_time_ms": 0.0})
             bucket["calls"] += row["calls"]
             bucket["total_time_ms"] += row["total_time_ms"]
@@ -145,7 +157,9 @@ def _aggregate_stat_statements(iterations, top_n=30):
     rows = sorted(totals.values(), key=lambda r: r["calls"], reverse=True)[:top_n]
     for row in rows:
         row["total_time_ms"] = round(row["total_time_ms"], 2)
-    return rows
+        row["avg_calls"] = round(row["calls"] / n_with_data, 1)
+        row["avg_total_time_ms"] = round(row["total_time_ms"] / n_with_data, 2)
+    return {"rows": rows, "n_iterations": n_with_data}
 
 
 # One line of pstats.print_stats() output, post-processing already applied
@@ -159,14 +173,21 @@ _PSTATS_LINE_RE = re.compile(
 
 
 def _aggregate_profile_top(iterations, top_n=15):
-    """Sum cProfile self-time (tottime) per function across every iteration
-    that has an X-Profile-Top header, instead of showing only the last
-    iteration's profile — a function that's consistently hot across the
-    run but wasn't the slowest specifically on the final iteration used to
-    never surface."""
+    """cProfile self-time (tottime) per function, reported as a
+    per-iteration average (avg_tottime/avg_ncalls) rather than a raw sum
+    across every iteration that has an X-Profile-Top header — same
+    reasoning as _aggregate_stat_statements: a sum that scales with however
+    many iterations you ran isn't the number worth reading first, "cost
+    per request" is. Total is kept for context. Averaging (instead of
+    showing only the last iteration's profile, the old behavior) also
+    means a function that's consistently hot across the run but wasn't the
+    single slowest one on the final iteration now surfaces at all."""
     totals = {}
+    n_with_data = 0
     for it in iterations:
         profile_top = it.get("profile_top") or ""
+        if profile_top:
+            n_with_data += 1
         for line in profile_top.split(" | "):
             m = _PSTATS_LINE_RE.match(line.strip())
             if not m:
@@ -180,7 +201,9 @@ def _aggregate_profile_top(iterations, top_n=15):
     rows = sorted(totals.values(), key=lambda r: r["tottime"], reverse=True)[:top_n]
     for row in rows:
         row["tottime"] = round(row["tottime"], 4)
-    return rows
+        row["avg_ncalls"] = round(row["ncalls"] / n_with_data, 1)
+        row["avg_tottime"] = round(row["tottime"] / n_with_data, 5)
+    return {"rows": rows, "n_iterations": n_with_data}
 
 
 def _within_noise(agg_a, agg_b, metric):
@@ -307,14 +330,19 @@ def _run_context(run_id):
     if not run_data:
         return None
     aggregate = _aggregate(run_data["iterations"])
+    # {"rows": [...], "n_iterations": N} or None — see
+    # _aggregate_stat_statements/_aggregate_profile_top docstrings for why
+    # this is a per-iteration average, not a raw sum across the whole run.
+    stat_statements = _aggregate_stat_statements(run_data["iterations"])
+    profile_top = _aggregate_profile_top(run_data["iterations"])
     return {
         "run": run_data,
         "aggregate": aggregate,
         "table_totals": _table_totals(run_data["iterations"]),
-        # summed across every iteration, not just the last one — see
-        # _aggregate_stat_statements/_aggregate_profile_top docstrings.
-        "stat_statements": _aggregate_stat_statements(run_data["iterations"]),
-        "profile_top": _aggregate_profile_top(run_data["iterations"]),
+        "stat_statements": stat_statements["rows"] if stat_statements else None,
+        "stat_statements_n": stat_statements["n_iterations"] if stat_statements else 0,
+        "profile_top": profile_top["rows"] if profile_top else None,
+        "profile_top_n": profile_top["n_iterations"] if profile_top else 0,
         "scenario_label": SCENARIOS.get(run_data["scenario"], {}).get("label", run_data["scenario"]),
     }
 

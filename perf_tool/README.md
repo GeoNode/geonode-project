@@ -372,19 +372,29 @@ know how to talk to GeoNode:
   `_table_totals()` in `app.py`) — min/avg/median/stdev/max across
   **every** iteration for the scalar ones, a per-table sum for the table
   breakdown.
-- **`pg_stat_statements` top queries** (`_aggregate_stat_statements()`) —
-  summed across **every** iteration, keyed by query text (the only key
-  available — `queryid` doesn't survive `db_stats.diff()`). A query that
-  ran on several iterations is one row with combined `calls`/
-  `total_time_ms`, not repeated once per iteration and not silently
-  dropped if it wasn't part of the very last iteration.
-- **Profiling top functions** (`_aggregate_profile_top()`) — same idea:
-  each `X-Profile-Top` header line is parsed (`ncalls`, `tottime`,
-  function) with `_PSTATS_LINE_RE`, and `tottime`/`ncalls` are summed per
-  function across every iteration that had the header set, sorted by
-  total `tottime` descending, top 15 kept. A function that's consistently
-  warm across the run but wasn't the single slowest one on the final
-  iteration now shows up — it used not to.
+- **`pg_stat_statements` top queries** (`_aggregate_stat_statements()`) and
+  **profiling top functions** (`_aggregate_profile_top()`) — keyed by
+  query text / function name (the only stable key available — `queryid`
+  doesn't survive `db_stats.diff()`, and pstats lines carry no other
+  identity), summed across every iteration that had the data, then
+  reported as a **per-iteration average** (`avg_calls`/
+  `avg_total_time_ms`, `avg_ncalls`/`avg_tottime`) — the raw totals stay
+  in the table too, in a dimmer column, for context. Both replace showing
+  only the last iteration's snapshot — a query/function that ran on every
+  iteration but wasn't part of the very last one used to disappear
+  entirely.
+
+**Why per-iteration average instead of just the raw sum**: a bare sum
+scales with however many iterations you happened to run, which makes it
+actively misleading to read at a glance and impossible to compare between
+a 5-iteration run and a 10-iteration run — during actual use, a raw
+"9800 calls" sum required manually dividing by the iteration count to get
+back to "how much does this cost on one request", the number that's
+actually comparable/actionable. `n_iterations` in the aggregation result
+(shown in the tab's hint text) is the count of iterations that actually
+had the data — not necessarily every iteration in the run, if e.g. the
+target's middleware was toggled mid-investigation between two saved runs
+that got compared, though normally it's on/off uniformly for a whole run.
 
 Both aggregations parse/key on data every iteration already carries
 (`it["db"]["stat_statements"]`, `it["profile_top"]`) — no new data
