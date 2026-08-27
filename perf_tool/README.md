@@ -149,63 +149,163 @@ present.
 
 ### `RequestQueryStatsMiddleware`
 
-Wraps the request in `connection.execute_wrapper()`, timing every SQL
-statement Django/psycopg2 executes for that request, and sets two response
-headers: `X-DB-Query-Count`, `X-DB-Query-Time-Ms`.
+Standard new-style Django middleware (`__init__(self, get_response)` /
+`__call__(self, request)`), registered near the end of `MIDDLEWARE` so it
+wraps as much of the request/response cycle as possible.
+
+Mechanism, step by step:
+
+1. On `__call__`, if `settings.EXPOSE_DB_QUERY_STATS_HEADER` is falsy, it's
+   a pure passthrough (`return self.get_response(request)`) — zero overhead
+   when off, not even the wrapper registration.
+2. Otherwise it opens `connection.execute_wrapper(wrapper)` as a context
+   manager around `self.get_response(request)` — i.e. around the *entire*
+   rest of the middleware chain, the view, and every DB call any of that
+   code makes (ORM queries, raw SQL, signal handlers that hit the DB,
+   anything on Django's default connection). `execute_wrapper` is Django's
+   own hook for exactly this: it's called around every `cursor.execute()`/
+   `executemany()` on that connection.
+3. The `wrapper(execute, sql, params, many, context)` closure times each
+   call with `time.monotonic()` (immune to system clock adjustments,
+   unlike `time.time()`) and appends the duration to a `queries` list
+   local to that one request — a fresh list per call to `__call__`, so
+   there's no cross-request leakage or shared state to worry about.
+4. After `get_response` returns, it sets
+   `response["X-DB-Query-Count"] = len(queries)` and
+   `response["X-DB-Query-Time-Ms"] = round(sum(queries) * 1000, 2)` on the
+   way back out.
 
 **Why `execute_wrapper()` and not `connection.queries`**: `connection.queries`
 only populates when `DEBUG=True` (or `force_debug_cursor`), which nobody
 wants flipped on for a perf-comparison run against something
-production-like. `execute_wrapper()` is a hook that runs unconditionally,
-so this works with `DEBUG=False`.
+production-like — `DEBUG=True` also changes error pages, template
+behavior, and (mildly) performance itself, contaminating the very thing
+being measured. `execute_wrapper()` is a hook that runs unconditionally
+regardless of `DEBUG`, so counting works on a `DEBUG=False` instance,
+which is what you actually want to be measuring.
 
-**Why this exists at all given #2/#3 above**: it's the one number in the
-whole tool immune to "something else was hitting the DB at the same time"
-noise, by construction rather than by averaging it away. Trade-off: it's
-opt-in and reveals internal query volume to anyone who can see response
-headers, so it's gated behind a setting rather than always-on.
+**Why this middleware is needed at all, given the Postgres-side metrics
+(#2/#3) already exist**: those are whole-database counters — anything else
+concurrently hitting the same Postgres instance (another user, a celery
+beat tick) leaks into the delta, which is why the tool has to fall back to
+reporting min/avg/median/max and calling it noise-tolerant rather than
+exact. This middleware sidesteps that problem entirely rather than
+averaging around it: the count/timing is attributed to *this specific
+request's connection usage* during *this specific call to `get_response`*,
+so nothing another client does can appear in it. It's the only metric in
+the tool that's exact at n=1.
+
+Trade-off for that precision: it's opt-in specifically because exposing
+query counts/timings in a response header is information disclosure about
+internal implementation to anyone who can see response headers (not
+secrets, but still not something to leave on for the general public) —
+hence gated behind a setting rather than always-on.
 
 Enable:
 ```
 EXPOSE_DB_QUERY_STATS_HEADER=True
 ```
-(env var, read via `ast.literal_eval` in `geonode/settings.py`). Only ever
-turn this on for an instance you're actively perf-testing.
+(env var, read via `ast.literal_eval` in `geonode/settings.py`, same
+pattern GeoNode already uses for other boolean settings). Only ever turn
+this on for an instance you're actively perf-testing — restart the
+GeoNode process after setting it, same as any other Django setting change.
+On the perf_tool side, `GeoNodeClient._record_query_stats()` reads both
+headers off every response and `query_stats()` sums them since the last
+`reset_query_stats()` call — nothing to configure there, it's automatic
+once the header is present.
 
 ### `RequestProfilingMiddleware`
 
-Wraps the request in stdlib `cProfile`, then uses `pstats` to extract the
-top N (15) functions by **self time** (`tottime`, not `cumtime`) whose
-file path contains `/geonode/`, joined with `|` into `X-Profile-Top`
-(header values can't carry newlines).
+Same shape as the middleware above (`__init__`/`__call__`, passthrough
+when its setting is off), but instruments the whole request with stdlib
+`cProfile` instead of just the DB layer.
 
-**Why `tottime` and not `cumtime`**: `cumtime` on a request profile is
-dominated by the outer middleware/dispatch chain — every wrapper down to
-the view shows almost the same cumulative number, which just retraces the
-call stack rather than pointing at where time is actually spent.
-`tottime` isolates time spent *in that function itself*.
+Mechanism, step by step:
 
-**Why filtered to `/geonode/` paths**: an unfiltered top-N by self time is
-dominated by psycopg2/Django/DRF internals — real time, but no app code
-behind it to change. The one place that noise *is* the finding (an
-unindexed query showing up as time spent in the DB driver, a per-row
-`reverse()` call) still surfaces here, just attributed to the geonode call
-site that triggered it rather than the library frame that happened to
-burn the cycles. `strip_dirs()` is deliberately not called before the
-filter — the regex needs the full path to match against, not just the
-bare filename; the path gets trimmed down to `geonode/...` afterward,
-once filtering no longer needs it.
+1. If `settings.EXPOSE_REQUEST_PROFILING` is falsy: passthrough, no
+   profiler object even created.
+2. Otherwise: `profiler = cProfile.Profile()`, `profiler.enable()`,
+   `self.get_response(request)` inside a `try`, `profiler.disable()` in
+   `finally` — the `finally` matters, an exception raised inside the view
+   still needs the profiler turned back off, or every later request on
+   that worker process would be recorded into the same still-running
+   profile.
+3. `cProfile` (a C-implemented deterministic profiler, not a statistical
+   sampler) records every function call/return during that window with
+   real counts and timings — everything the view does, every ORM call,
+   every template render, every signal handler, down through the standard
+   library.
+4. The recorded data is fed into `pstats.Stats(profiler, stream=buf)` and
+   sorted with `.sort_stats("tottime")`.
+5. `stats.print_stats(r"/geonode/", self.TOP_N)` — `pstats`' own regex
+   filter argument, applied *before* truncating to the top 15, so the
+   top-15 cut is taken from the already-`/geonode/`-filtered set, not from
+   the global top 15 with non-matching rows dropped afterward (which would
+   often return fewer than 15, or none, on a request dominated by
+   framework/driver time).
+6. `print_stats` writes its usual human-readable table into the `buf`
+   `StringIO`; the first 5 lines (call-count summary, sort-order line,
+   column headers) are sliced off, each remaining line is
+   whitespace-trimmed, and the leading absolute path on each is trimmed
+   down to start at `geonode/` with a regex substitution — cosmetic only,
+   done after filtering so it doesn't interfere with the `/geonode/` match.
+7. The resulting lines are joined with `" | "` into one
+   `X-Profile-Top` header — headers are single-line, so this is the only
+   way to carry a multi-row table out of a request/response cycle without
+   inventing a side channel (a file, a cache key) for something this
+   throwaway.
 
-Real per-request overhead — cProfile instruments every function call.
-Gated separately from query-stats since it's the more expensive of the
-two.
+**Why `tottime` and not `cumtime`**: `cumtime` (cumulative time, including
+everything a function calls) on a request profile is dominated by the
+outer middleware/dispatch chain — Django's `BaseHandler`, URL resolution,
+DRF's `dispatch()` — every wrapper down to the actual view shows almost
+the same cumulative number, because they're all on the same call stack
+down to the leaf. That just retraces the call graph, it doesn't say where
+CPU time is actually spent. `tottime` (self time, excluding sub-calls)
+isolates time spent *inside that function's own code*, which is what you'd
+actually go edit.
+
+**Why filtered to `/geonode/` paths**: an unfiltered top-15 by self time on
+a typical DRF request is dominated by psycopg2 (`cursor.execute`),
+Django's ORM internals, and DRF serializer machinery — real time, all
+correctly measured, but no application code behind any of those frames to
+change. The one place that noise *is* the actual finding — an unindexed
+query burning time in the DB driver, a per-row `.reverse()`/property
+access in a serializer — still surfaces in this list, just attributed to
+whichever geonode call site *triggered* that work, since that's the frame
+in the call stack that's inside `/geonode/`. `strip_dirs()` is
+deliberately never called on the `pstats.Stats` object — that would
+shorten every path to a bare filename before filtering, and the `/geonode/`
+regex needs the full path to match against (multiple apps can have a
+`views.py`, `models.py`, etc.); the path is trimmed to start at
+`geonode/...` only afterward, once filtering no longer needs the prefix.
+
+**Why this middleware is needed at all**: wall time (#1) says *whether*
+a scenario got slower; `pg_stat_*`/query-count say whether it's DB-bound.
+Neither says *which Python function* to open next. This is the one signal
+in the tool that names actual call sites — the profiling equivalent of
+`RequestQueryStatsMiddleware`'s "attributed to exactly this request", but
+for CPU time instead of query count, and with a call-site name attached
+instead of just a number.
+
+Real, non-negligible per-request overhead — cProfile instruments every
+single function call/return in the request, which is why it's gated by a
+*separate* setting from query-stats rather than folded into the same one:
+you may want query counts on a broader perf-testing instance without
+paying cProfile's cost on every request.
 
 Enable:
 ```
 EXPOSE_REQUEST_PROFILING=True
 ```
 Never leave this on outside an active profiling session; never in
-production.
+production — restart the GeoNode process after setting it. On the
+perf_tool side, `GeoNodeClient._record_query_stats()` also captures
+`X-Profile-Top` (same method handles both headers) into
+`self._profile_top`, overwritten on every request rather than accumulated
+— unlike query-stats, concatenating separate cProfile runs from multiple
+requests in one scenario wouldn't be meaningful, so only the last
+request's profile is kept.
 
 ### Why both middlewares are opt-in via env var, not always-on
 
