@@ -23,7 +23,7 @@ To setup your project follow these instructions:
 
     ```bash
     git clone https://github.com/GeoNode/geonode-project.git -b <your_branch>
-    cd project
+    cd geonode-project
     ```
 
 2. Create the .env file
