@@ -1,10 +1,3 @@
-# perf_tool — technical notes
-
-Audience: Django/GeoNode devs. Covers *how* the tool measures things and
-*why* those specific metrics, plus the two GeoNode-side middlewares it
-depends on and how to turn them on. For usage (starting it, running a
-scenario, nginx wiring), see `../PERF_TOOL.md`.
-
 ## Design goals that shaped every choice below
 
 - **Trustworthy with zero privilege.** Everything must work against the
