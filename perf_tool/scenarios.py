@@ -52,16 +52,27 @@ def upload_csv(client, params):
         file_path = uploaded_path or _make_sample_csv(rows)
         if not uploaded_path:
             tmp_path = file_path
+        # Split the sync accept from the async import pipeline explicitly —
+        # the overall wall time (measured by app.py around this whole
+        # function) doesn't say whether a regression is in the HTTP
+        # round-trip or in celery/GeoServer; these two numbers do.
+        t0 = time.time()
         r = client.upload_file("/uploads/upload", file_path)
+        accept_s = round(time.time() - t0, 3)
         if r.status_code != 201:
-            return {"ok": False, "http_status": r.status_code, "detail": r.text[:500]}
+            return {"ok": False, "http_status": r.status_code, "detail": f"[accept {accept_s}s] {r.text[:500]}"}
         execution_id = r.json().get("execution_id")
+        t1 = time.time()
         result = client.poll_execution(execution_id, timeout=int(params.get("timeout", 180)))
+        pipeline_s = round(time.time() - t1, 3)
         ok = result.get("status") == "finished"
         return {
             "ok": ok,
             "http_status": r.status_code,
-            "detail": f"execution {execution_id}: {result.get('status')} — {result.get('output_params')}",
+            "detail": (
+                f"[accept {accept_s}s + pipeline {pipeline_s}s] execution {execution_id}: "
+                f"{result.get('status')} — {result.get('output_params')}"
+            ),
         }
     finally:
         if tmp_path:

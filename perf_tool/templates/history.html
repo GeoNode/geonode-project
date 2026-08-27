@@ -11,7 +11,7 @@
 <div class="table-wrap">
 <table>
   <thead>
-    <tr><th></th><th></th><th>id</th><th>when</th><th>label</th><th>scenario</th><th>iterations</th><th>avg wall time (s)</th><th>avg xact_commit Δ</th></tr>
+    <tr><th></th><th></th><th>id</th><th>when</th><th>label</th><th>scenario</th><th>iterations</th><th>avg wall time (s)</th><th title="Standard deviation of wall time across iterations — high relative to avg means this run was noisy.">stdev (s)</th><th>avg xact_commit Δ</th></tr>
   </thead>
   <tbody>
     {% for r in runs %}
@@ -24,6 +24,7 @@
       <td>{{ r.scenario_label }}</td>
       <td>{{ r.aggregate.count }}</td>
       <td>{{ r.aggregate.wall_time.avg }}</td>
+      <td>{{ r.aggregate.wall_time.stdev }}</td>
       <td>{{ r.aggregate.xact_commit.avg }}</td>
     </tr>
     {% endfor %}

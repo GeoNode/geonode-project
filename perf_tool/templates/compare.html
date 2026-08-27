@@ -19,8 +19,24 @@
     <h3>Change (A → B)</h3>
     {% set wt_change = ((agg_b.wall_time.avg - agg_a.wall_time.avg) / agg_a.wall_time.avg * 100) if agg_a.wall_time.avg else 0 %}
     {% set xc_change = ((agg_b.xact_commit.avg - agg_a.xact_commit.avg) / agg_a.xact_commit.avg * 100) if agg_a.xact_commit.avg else 0 %}
-    <p>wall time: <strong>{{ '%+.1f'|format(wt_change) }}%</strong></p>
-    <p>xact_commit: <strong>{{ '%+.1f'|format(xc_change) }}%</strong></p>
+    <p>wall time: <strong>{{ '%+.1f'|format(wt_change) }}%</strong>
+      {% if wall_time_within_noise is none %}
+      <span class="hint">(≤1 iteration on a run — can't tell noise from a real change, run more iterations)</span>
+      {% elif wall_time_within_noise %}
+      <span class="hint">⚠ within combined stdev — plausibly just run-to-run noise, not a confirmed change</span>
+      {% else %}
+      <span class="hint">exceeds combined stdev — likely a real change, not noise</span>
+      {% endif %}
+    </p>
+    <p>xact_commit: <strong>{{ '%+.1f'|format(xc_change) }}%</strong>
+      {% if xact_commit_within_noise is none %}
+      <span class="hint">(≤1 iteration on a run — can't tell noise from a real change)</span>
+      {% elif xact_commit_within_noise %}
+      <span class="hint">⚠ within combined stdev — plausibly noise</span>
+      {% else %}
+      <span class="hint">exceeds combined stdev — likely real</span>
+      {% endif %}
+    </p>
   </div>
 </section>
 

@@ -8,7 +8,9 @@ Deliberately not fancy: Flask, server-rendered HTML, SQLite for run history.
 See PERF_TOOL.md for how to use it.
 """
 import json
+import math
 import os
+import re
 import statistics
 import time
 from urllib.parse import urlparse
@@ -60,6 +62,9 @@ def _run_once(client, conn, scenario_key, params):
     try:
         result = scenario_fn(client, params)
     except Exception as e:
+        # Full traceback server-side only — the response/report only ever
+        # gets the generic type/message, never a raw exception dump.
+        app.logger.exception("scenario '%s' raised (params=%s)", scenario_key, params)
         result = {"ok": False, "http_status": None, "detail": f"{type(e).__name__}: {e}"}
     wall_time = time.time() - t0
     after = db_stats.snapshot(conn)
@@ -82,8 +87,28 @@ def _run_once(client, conn, scenario_key, params):
     }
 
 
+def _stats(values, ndigits=3):
+    """min/avg/median/stdev/max for one metric across iterations. stdev is
+    0 when there's only one value (statistics.stdev needs >=2 and a single
+    run can't say anything about run-to-run noise anyway) — callers should
+    treat a 0 stdev from a single-iteration run as "unknown", not "no
+    noise". None (not an empty dict) when there are no values at all, so
+    templates can tell "no data" apart from "all zeros"."""
+    if not values:
+        return None
+    return {
+        "min": round(min(values), ndigits),
+        "avg": round(statistics.mean(values), ndigits),
+        "median": round(statistics.median(values), ndigits),
+        "stdev": round(statistics.stdev(values), ndigits) if len(values) > 1 else 0.0,
+        "max": round(max(values), ndigits),
+        "count": len(values),
+    }
+
+
 def _aggregate(iterations):
     times = [it["wall_time"] for it in iterations]
+    ok_times = [it["wall_time"] for it in iterations if it["ok"]]
     commits = [it["db"]["db"].get("xact_commit", 0) for it in iterations]
     # .get() with a default: runs saved before this field existed won't have it
     req_counts = [it.get("request_db", {}).get("count", 0) for it in iterations]
@@ -91,31 +116,83 @@ def _aggregate(iterations):
     return {
         "count": len(iterations),
         "ok_count": sum(1 for it in iterations if it["ok"]),
-        "wall_time": {
-            "min": round(min(times), 3),
-            "avg": round(statistics.mean(times), 3),
-            "median": round(statistics.median(times), 3),
-            "max": round(max(times), 3),
-        },
-        "xact_commit": {
-            "min": min(commits),
-            "avg": round(statistics.mean(commits), 1),
-            "median": round(statistics.median(commits), 1),
-            "max": max(commits),
-        },
-        "request_query_count": {
-            "min": min(req_counts),
-            "avg": round(statistics.mean(req_counts), 1),
-            "median": round(statistics.median(req_counts), 1),
-            "max": max(req_counts),
-        },
-        "request_query_time_ms": {
-            "min": round(min(req_times), 2),
-            "avg": round(statistics.mean(req_times), 2),
-            "median": round(statistics.median(req_times), 2),
-            "max": round(max(req_times), 2),
-        },
+        # every iteration, successes and failures alike — a fast-failing
+        # 4xx pulls this down just as much as a slow success pulls it up.
+        # Check ok_count/count before trusting this in isolation.
+        "wall_time": _stats(times, 3),
+        # same metric, successful iterations only — None when nothing
+        # succeeded. This is usually the number you actually want.
+        "wall_time_ok": _stats(ok_times, 3),
+        "xact_commit": _stats(commits, 1),
+        "request_query_count": _stats(req_counts, 1),
+        "request_query_time_ms": _stats(req_times, 2),
     }
+
+
+def _aggregate_stat_statements(iterations, top_n=30):
+    """Sum pg_stat_statements calls/time across every iteration, keyed by
+    query text (queryid isn't preserved past db_stats.diff()). Replaces
+    showing only the last iteration's snapshot — a query that ran on every
+    iteration but wasn't the very last one used to disappear entirely."""
+    totals = {}
+    for it in iterations:
+        for row in it["db"].get("stat_statements") or []:
+            bucket = totals.setdefault(row["query"], {"query": row["query"], "calls": 0, "total_time_ms": 0.0})
+            bucket["calls"] += row["calls"]
+            bucket["total_time_ms"] += row["total_time_ms"]
+    if not totals:
+        return None
+    rows = sorted(totals.values(), key=lambda r: r["calls"], reverse=True)[:top_n]
+    for row in rows:
+        row["total_time_ms"] = round(row["total_time_ms"], 2)
+    return rows
+
+
+# One line of pstats.print_stats() output, post-processing already applied
+# by RequestProfilingMiddleware (leading path trimmed to "geonode/..."):
+#   ncalls  tottime  percall  cumtime  percall  geonode/mod.py:12(func)
+# ncalls can read "3/1" for recursive calls — only the primary (left) count
+# is summed here, matching what a plain call-count would mean to a reader.
+_PSTATS_LINE_RE = re.compile(
+    r"^(?P<ncalls>\d+(?:/\d+)?)\s+(?P<tottime>[\d.]+)\s+[\d.]+\s+[\d.]+\s+[\d.]+\s+(?P<func>.+)$"
+)
+
+
+def _aggregate_profile_top(iterations, top_n=15):
+    """Sum cProfile self-time (tottime) per function across every iteration
+    that has an X-Profile-Top header, instead of showing only the last
+    iteration's profile — a function that's consistently hot across the
+    run but wasn't the slowest specifically on the final iteration used to
+    never surface."""
+    totals = {}
+    for it in iterations:
+        profile_top = it.get("profile_top") or ""
+        for line in profile_top.split(" | "):
+            m = _PSTATS_LINE_RE.match(line.strip())
+            if not m:
+                continue
+            func = m.group("func")
+            bucket = totals.setdefault(func, {"func": func, "ncalls": 0, "tottime": 0.0})
+            bucket["ncalls"] += int(m.group("ncalls").split("/")[0])
+            bucket["tottime"] += float(m.group("tottime"))
+    if not totals:
+        return None
+    rows = sorted(totals.values(), key=lambda r: r["tottime"], reverse=True)[:top_n]
+    for row in rows:
+        row["tottime"] = round(row["tottime"], 4)
+    return rows
+
+
+def _within_noise(agg_a, agg_b, metric):
+    """None: can't judge (either run has <2 iterations, so its stdev is
+    unknown rather than genuinely zero). True: the two averages differ by
+    less than the combined stdev of both runs — plausibly just run-to-run
+    noise, not a real change. False: the difference exceeds that band."""
+    a, b = agg_a.get(metric), agg_b.get(metric)
+    if not a or not b or a["count"] < 2 or b["count"] < 2:
+        return None
+    combined_stdev = math.sqrt(a["stdev"] ** 2 + b["stdev"] ** 2)
+    return abs(b["avg"] - a["avg"]) <= combined_stdev
 
 
 @app.route("/api/lookup/resources", methods=["POST"])
@@ -165,6 +242,7 @@ def run():
     username = request.form["username"]
     password = request.form["password"]
     iterations_n = max(1, min(int(request.form.get("iterations", 1)), 50))
+    warmup_n = max(0, min(int(request.form.get("warmup_iterations", 0) or 0), 20))
     label = request.form.get("label", "")
 
     params = {}
@@ -192,6 +270,13 @@ def run():
 
     conn = db_stats.get_connection()
     try:
+        # Discarded on purpose: cold Django/GeoServer/DB-plan caches on the
+        # very first hit otherwise skew iteration 1 (and therefore the
+        # min/avg) in a way that has nothing to do with the code being
+        # measured. Not counted, not saved — same scenario/params, run and
+        # thrown away before the timed iterations start.
+        for _ in range(warmup_n):
+            _run_once(client, conn, scenario_key, params)
         iterations = [_run_once(client, conn, scenario_key, params) for _ in range(iterations_n)]
     finally:
         conn.close()
@@ -199,6 +284,9 @@ def run():
             os.unlink(tmp_upload_path)
 
     saved_params = {k: v for k, v in params.items() if k != "uploaded_file_path"}
+    if warmup_n:
+        # kept only as a visible note on the run, not fed into any metric
+        saved_params["_warmup_iterations_discarded"] = warmup_n
     run_id = storage.save_run(scenario_key, saved_params, iterations, label=label)
     return redirect(url_for("show_run", run_id=run_id))
 
@@ -219,22 +307,14 @@ def _run_context(run_id):
     if not run_data:
         return None
     aggregate = _aggregate(run_data["iterations"])
-    last_stat_statements = None
-    for it in reversed(run_data["iterations"]):
-        if it["db"].get("stat_statements"):
-            last_stat_statements = it["db"]["stat_statements"]
-            break
-    last_profile_top = None
-    for it in reversed(run_data["iterations"]):
-        if it.get("profile_top"):
-            last_profile_top = it["profile_top"].split(" | ")
-            break
     return {
         "run": run_data,
         "aggregate": aggregate,
         "table_totals": _table_totals(run_data["iterations"]),
-        "stat_statements": last_stat_statements,
-        "profile_top": last_profile_top,
+        # summed across every iteration, not just the last one — see
+        # _aggregate_stat_statements/_aggregate_profile_top docstrings.
+        "stat_statements": _aggregate_stat_statements(run_data["iterations"]),
+        "profile_top": _aggregate_profile_top(run_data["iterations"]),
         "scenario_label": SCENARIOS.get(run_data["scenario"], {}).get("label", run_data["scenario"]),
     }
 
@@ -293,8 +373,16 @@ def _build_report_text(ctx):
     w("")
     w("AVERAGE RESULTS")
     w("-" * 60)
-    w(f"Average wall time:       {agg['wall_time']['avg']} s   (over {agg['count']} run(s))")
-    w(f"Average xact_commit Δ:   {agg['xact_commit']['avg']}   (over {agg['count']} run(s))  [whole-database]")
+    w(
+        f"Average wall time:       {agg['wall_time']['avg']} s   (stdev {agg['wall_time']['stdev']} s, "
+        f"over {agg['count']} run(s), {agg['ok_count']} successful)"
+    )
+    if agg["wall_time_ok"] and agg["ok_count"] < agg["count"]:
+        w(f"  ...successful-only:    {agg['wall_time_ok']['avg']} s   (over {agg['ok_count']} run(s))")
+    w(
+        f"Average xact_commit Δ:   {agg['xact_commit']['avg']}   (stdev {agg['xact_commit']['stdev']}, "
+        f"over {agg['count']} run(s))  [whole-database]"
+    )
     if agg["request_query_count"]["max"] > 0:
         w(
             f"Average DB queries:      {agg['request_query_count']['avg']}   "
@@ -388,6 +476,8 @@ def compare():
         run_b=run_b,
         agg_a=agg_a,
         agg_b=agg_b,
+        wall_time_within_noise=_within_noise(agg_a, agg_b, "wall_time"),
+        xact_commit_within_noise=_within_noise(agg_a, agg_b, "xact_commit"),
         totals_a=_table_totals(run_a["iterations"]),
         totals_b=_table_totals(run_b["iterations"]),
         scenario_label_a=SCENARIOS.get(run_a["scenario"], {}).get("label", run_a["scenario"]),

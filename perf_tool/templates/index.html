@@ -73,6 +73,10 @@
       <span id="resource-picker-status" class="hint"></span>
     </div>
 
+    <label>Warm-up iterations (run first, then discarded — not counted, not saved)
+      <input type="number" name="warmup_iterations" id="warmup_iterations" value="0" min="0" max="20">
+    </label>
+    <p class="hint">Use this to burn off cold caches (Django, GeoServer, DB query plans) before the timed iterations start — otherwise iteration 1 alone can skew the min/avg for no reason related to the code being measured.</p>
     <label>Repeat the test
       <input type="number" name="iterations" id="iterations" value="1" min="1" max="50">
     </label>

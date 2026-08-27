@@ -9,18 +9,24 @@
 
 <section class="summary-grid">
   <div class="card">
-    <h3>Wall time (s)</h3>
-    <p>min {{ aggregate.wall_time.min }} &middot; avg <strong>{{ aggregate.wall_time.avg }}</strong> &middot; median {{ aggregate.wall_time.median }} &middot; max {{ aggregate.wall_time.max }}</p>
+    <h3 title="stdev across iterations — high relative to avg means don't trust a single run's number, this scenario is noisy on this instance right now.">Wall time (s)</h3>
+    <p>min {{ aggregate.wall_time.min }} &middot; avg <strong>{{ aggregate.wall_time.avg }}</strong> &middot; median {{ aggregate.wall_time.median }} &middot; max {{ aggregate.wall_time.max }} &middot; stdev {{ aggregate.wall_time.stdev }}</p>
+    {% if aggregate.wall_time_ok and aggregate.ok_count < aggregate.count %}
+    <p class="hint">successful iterations only: avg <strong>{{ aggregate.wall_time_ok.avg }}</strong> (stdev {{ aggregate.wall_time_ok.stdev }}) over {{ aggregate.ok_count }} — the "all iterations" number above is pulled around by the {{ aggregate.count - aggregate.ok_count }} failure(s), see Success rate.</p>
+    {% endif %}
+    {% if aggregate.wall_time.stdev and aggregate.wall_time.avg and (aggregate.wall_time.stdev / aggregate.wall_time.avg) > 0.2 %}
+    <p class="hint">⚠ stdev is over 20% of the average — this run is noisy, treat the average with caution (more iterations, or a quieter instance).</p>
+    {% endif %}
   </div>
   <div class="card">
     <h3 title="Whole-database Postgres counter — includes anything else hitting this instance while the test ran.">DB statements (xact_commit Δ)</h3>
-    <p>min {{ aggregate.xact_commit.min }} &middot; avg <strong>{{ aggregate.xact_commit.avg }}</strong> &middot; median {{ aggregate.xact_commit.median }} &middot; max {{ aggregate.xact_commit.max }}</p>
+    <p>min {{ aggregate.xact_commit.min }} &middot; avg <strong>{{ aggregate.xact_commit.avg }}</strong> &middot; median {{ aggregate.xact_commit.median }} &middot; max {{ aggregate.xact_commit.max }} &middot; stdev {{ aggregate.xact_commit.stdev }}</p>
   </div>
   <div class="card">
     <h3 title="Counted inside Django for this request only (X-DB-Query-Count / X-DB-Query-Time-Ms response headers) — immune to concurrent activity elsewhere on the instance, unlike the xact_commit Δ card. Needs EXPOSE_DB_QUERY_STATS_HEADER=True on the target GeoNode; 0 means it's off there.">DB queries (this request only)</h3>
     {% if aggregate.request_query_count.max > 0 %}
     <p>avg <strong>{{ aggregate.request_query_count.avg }}</strong> queries &middot; avg <strong>{{ aggregate.request_query_time_ms.avg }}</strong> ms in DB</p>
-    <p class="hint">min {{ aggregate.request_query_count.min }} / median {{ aggregate.request_query_count.median }} / max {{ aggregate.request_query_count.max }} queries</p>
+    <p class="hint">min {{ aggregate.request_query_count.min }} / median {{ aggregate.request_query_count.median }} / max {{ aggregate.request_query_count.max }} queries &middot; stdev {{ aggregate.request_query_count.stdev }}</p>
     {% else %}
     <p class="hint">Not available — target GeoNode doesn't have <code>EXPOSE_DB_QUERY_STATS_HEADER=True</code> set. See "How it works".</p>
     {% endif %}
@@ -114,7 +120,7 @@
 
   <div class="tab-panel" id="tab-queries">
     {% if stat_statements %}
-    <p class="hint">By call count, last iteration, pg_stat_statements.</p>
+    <p class="hint">By call count, summed across all {{ run.iterations|length }} iteration(s), pg_stat_statements. Same query text appearing in multiple iterations is one row with combined calls/time, not repeated per iteration.</p>
     <div class="table-wrap">
     <table>
       <thead><tr><th>calls</th><th>total time (ms)</th><th>query</th></tr></thead>
@@ -136,10 +142,16 @@
 
   <div class="tab-panel" id="tab-profile">
     {% if profile_top %}
-    <p class="hint">geonode's own code only, by self time, last iteration, cProfile. Django/DRF/library frames are filtered out — check "how it works" for why.</p>
+    <p class="hint">geonode's own code only, by self time (tottime) summed across all {{ run.iterations|length }} iteration(s), cProfile. A function hot on several iterations but not the single slowest one now shows up too. Django/DRF/library frames are filtered out — check "how it works" for why.</p>
     <div class="table-wrap">
-    <pre class="code-block">{% for line in profile_top %}{{ line }}
-{% endfor %}</pre>
+    <table>
+      <thead><tr><th>total tottime (s)</th><th>calls</th><th>function</th></tr></thead>
+      <tbody>
+        {% for row in profile_top %}
+        <tr><td>{{ row.tottime }}</td><td>{{ row.ncalls }}</td><td class="detail"><code>{{ row.func }}</code></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
     </div>
     {% else %}
     <p class="hint">

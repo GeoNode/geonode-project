@@ -332,6 +332,159 @@ separate decision, not a side effect of this tool). The tool detects this
 the same way it detects a missing `pg_stat_statements` and degrades
 cleanly — nothing else breaks.
 
+## What each built-in scenario actually exercises
+
+`scenarios.py` — each is a plain `fn(client, params) -> {ok, http_status,
+detail}`; timing/DB measurement wraps the call in `app.py`, scenarios only
+know how to talk to GeoNode:
+
+- `list_resources` / `list_maps` — single `GET /api/v2/resources` or
+  `/api/v2/maps`. Read-only, cheapest scenarios — good baseline for
+  "does pagination/serialization regress", expect `xact_commit Δ` near
+  zero and no `n_tup_ins`/`upd`/`del` on the tracked tables.
+- `upload_csv` — the heaviest scenario: `POST /uploads/upload` (sync
+  accept, outside `/api/v2/`) then `poll_execution()` against
+  `/api/v2/resource-service/execution-status/<id>` every 2s until
+  `finished`/`failed`. Wall time therefore includes the celery import
+  pipeline and GeoServer, not just the initial HTTP round-trip — this is
+  the scenario where the DB-side metrics (per-table writes, query count)
+  matter most, since the row count is controllable (`rows` param, or
+  upload a real file) to scale the load deliberately.
+- `create_map` / `create_geoapp` — single `POST`. `create_geoapp` without
+  an explicit `resource_type` first calls `lookup_geoapp_types()` (a
+  `GET /api/v2/geoapps` to discover existing types) and creates one of
+  each — so an "auto" run makes N+1 requests, not 1; only
+  `GeoNodeClient.profile_top()`'s last-response behavior applies once
+  that loop finishes, and `query_stats()` sums across the whole loop since
+  it's cumulative, not last-call.
+- `resource_detail` / `copy_resource` / `update_resource_metadata` —
+  operate on a real existing resource (`pk` from the UI's resource
+  picker, backed by `lookup_resources()`), not a freshly synthetic one —
+  useful for measuring against realistically-sized/permissioned data
+  rather than an empty new row.
+- `custom_request` — escape hatch, one arbitrary GET/POST/PATCH/PUT.
+  Measurement code doesn't care what it does; use it for anything not
+  covered above (a specific endpoint under investigation).
+
+## Aggregation granularity — how each tab summarizes across iterations
+
+- **Wall time, `xact_commit`, per-table totals** (`_aggregate()` /
+  `_table_totals()` in `app.py`) — min/avg/median/stdev/max across
+  **every** iteration for the scalar ones, a per-table sum for the table
+  breakdown.
+- **`pg_stat_statements` top queries** (`_aggregate_stat_statements()`) —
+  summed across **every** iteration, keyed by query text (the only key
+  available — `queryid` doesn't survive `db_stats.diff()`). A query that
+  ran on several iterations is one row with combined `calls`/
+  `total_time_ms`, not repeated once per iteration and not silently
+  dropped if it wasn't part of the very last iteration.
+- **Profiling top functions** (`_aggregate_profile_top()`) — same idea:
+  each `X-Profile-Top` header line is parsed (`ncalls`, `tottime`,
+  function) with `_PSTATS_LINE_RE`, and `tottime`/`ncalls` are summed per
+  function across every iteration that had the header set, sorted by
+  total `tottime` descending, top 15 kept. A function that's consistently
+  warm across the run but wasn't the single slowest one on the final
+  iteration now shows up — it used not to.
+
+Both aggregations parse/key on data every iteration already carries
+(`it["db"]["stat_statements"]`, `it["profile_top"]`) — no new data
+collection, just no longer discarding all but the last iteration's copy
+of it.
+
+## `stdev`, and reading it before trusting an average
+
+Every `_stats()` result (`app.py`) — wall time, xact_commit, request query
+count/time — carries a `stdev` alongside min/avg/median/max: `0.0` when
+there's only 1 iteration (can't say anything about run-to-run noise from
+one sample — read that `0.0` as "unknown", not "no noise"), otherwise
+`statistics.stdev()` over the iterations. The result page's wall-time card
+flags it directly when `stdev` exceeds 20% of `avg` — a cheap, visible
+signal that a given run is too noisy to read its average at face value,
+directly acting on the tool's own "relative over absolute" design goal
+rather than leaving the reader to eyeball min/max and guess.
+
+`compare.html`'s "Change (A → B)" card goes one step further:
+`_within_noise()` compares `abs(avg_b - avg_a)` against the two runs'
+*combined* stdev (`sqrt(stdev_a² + stdev_b²)`) and labels the delta as
+"plausibly noise" or "likely a real change" accordingly — `None` (shown
+as "can't tell") when either run only has 1 iteration, since a single
+sample's stdev is `0.0` by construction and would otherwise make every
+tiny difference look "real". This directly targets a gap the tool had
+before: two averages that differ could always be eyeballed, but nothing
+said whether that difference was bigger than the noise floor already
+visible per-run.
+
+## Warm-up iterations (discarded, not measured)
+
+The run form (`index.html`) has a "warm-up iterations" field (0–20,
+default 0) alongside the existing "repeat the test" field. Warm-up
+iterations run the *same* scenario/params first via `_run_once()`, their
+results thrown away, before the timed iterations that get saved and
+aggregated start (`run()` in `app.py`). Exists because the first hit
+against a scenario often eats one-time costs unrelated to the code being
+measured — cold Django import caches, a cold Postgres query plan, a cold
+GeoServer/GeoWebCache tile/style cache — which would otherwise land
+entirely on iteration 1 and skew `min`/`avg` for reasons that have nothing
+to do with what's actually being compared. When used, the count is noted
+in the saved run's params (`_warmup_iterations_discarded`) purely for
+visibility on the result page — it never feeds into any metric.
+
+## Failed iterations still count toward the "all iterations" aggregate
+
+An iteration that fails (`ok: False` — non-2xx status, exception raised in
+the scenario function, upload that never reaches `finished`) still
+contributes its wall time and DB deltas to `_aggregate()`'s "all
+iterations" min/avg/median/stdev/max; only `ok_count` (shown as "success
+rate") reflects how many actually succeeded. A run with a low success rate
+can still show a "reasonable" average wall time — a quick 4xx pulls the
+average *down*, masking a real slowdown in the iterations that did
+succeed.
+
+To make this less of a trap, `_aggregate()` also computes `wall_time_ok`
+— the same stats, successful iterations only, `None` when nothing
+succeeded — and the result page shows it next to the all-iterations number
+whenever the two counts differ, rather than requiring the reader to
+cross-reference the success-rate card themselves.
+
+## Exceptions inside a scenario are logged server-side, not just truncated into `detail`
+
+`_run_once()`'s `except Exception` clause (a scenario function raising —
+a malformed response, a timeout, a bug) calls `app.logger.exception(...)`
+with the scenario key and params before building the generic
+`f"{type(e).__name__}: {e}"` string that goes into `detail`/the saved run/
+the PDF report. The full traceback lands in perf_tool's own logs
+(`docker compose logs perftool`) for debugging; the response/report never
+carries more than the exception type and message — same broad-except-at-
+the-boundary-plus-`logger.exception`-plus-generic-response shape used
+elsewhere in GeoNode itself, not something invented for this tool.
+
+## `upload_csv`'s wall time is split into accept vs. pipeline
+
+`scenarios.upload_csv()` times the initial `POST /uploads/upload` (sync
+accept) and the subsequent `poll_execution()` loop (async celery/GeoServer
+pipeline) separately, and reports both in `detail`
+(`[accept 0.08s + pipeline 4.62s] execution ...`) alongside the overall
+wall time `app.py` already measures around the whole call. Before this,
+the two were indistinguishable in a single wall-time number — a
+regression in either the synchronous accept path or the async pipeline
+looked identical from the outside. Only implemented for `upload_csv`,
+since it's the one built-in scenario with a real synchronous/asynchronous
+split; the other scenarios are already single HTTP calls, so there's
+nothing to separate.
+
+## Deliberately not added: process-level (CPU/RSS) metrics
+
+Was considered — the four metric families above say a lot about the
+*database*, nothing about whether the GeoNode/Celery/GeoServer process
+itself is CPU-bound or thrashing memory during the same window. Not added
+because reading another container's cgroup/CPU stats from inside
+`perftool` needs either a mounted docker socket or host-level privilege —
+directly against the "trustworthy with zero privilege" design goal at the
+top of this doc. Adding it would be a deliberate, separate infra decision
+(what to mount, what it exposes to the perftool container), not a
+drive-by code change alongside everything else here — revisit if it turns
+out to be needed.
+
 ## Client-side quirks worth knowing before touching `geonode_client.py`
 
 Not metrics, but affect whether the metrics above get produced at all —
