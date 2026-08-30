@@ -14,7 +14,7 @@
                 "0.0.0.0:8000"
             ],
             "env": {
-                "ASYNC_SIGNALS": "True",
+                "ASYNC_SIGNALS": "False",
             },
             "django": true,
             "autoStartBrowser": false,
@@ -95,6 +95,24 @@
             "autoStartBrowser": false,
             "program": "${workspaceFolder}/venv/bin/celery",
             "justMyCode": false
-        }
+        },
+        {
+            "name": "Example test",
+            "type": "debugpy",
+            "request": "launch",
+            "args": [
+                "test",
+                "geonode.base.api.tests.BaseApiTests",
+                "--keepdb"
+            ],
+            "env": {
+                "ASYNC_SIGNALS": "False",
+                "SAFE_URL_CHECK_ENABLED": "False"
+            },
+            "django": true,
+            "autoStartBrowser": false,
+            "program": "${workspaceFolder}/project/manage.py",
+            "justMyCode": false
+        },
     ]
 }
