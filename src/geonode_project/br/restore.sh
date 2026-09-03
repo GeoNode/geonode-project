@@ -89,7 +89,7 @@ if md5sum -c /$BKP_FOLDER_NAME/$NEW_UUID/$BKP_FILE_NAME.md5; then
         echo "-----------------------------------------------------"
         echo " Cleanup redis cache"
         echo "-----------------------------------------------------"
-        response=$(printf 'FLUSHALL\r\n' | timeout 30 nc redis 6379); [[ "$response" == *"+OK"* ]] && echo "OK: flush confirmed" || { echo "ERROR: flush not confirmed" >&2; false; }
+        printf 'FLUSHALL\r\n' | timeout 30 nc redis 6379 | grep -q "+OK" && echo "OK: flush confirmed" || { echo "ERROR: flush not confirmed" >&2; exit 1; }
         echo "-----------------------------------------------------"
         echo "Cache cleanup done"
         echo "-----------------------------------------------------"
