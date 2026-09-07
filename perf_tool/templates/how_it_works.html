@@ -87,14 +87,32 @@
   off; everything else on this page keeps working either way.
 </p>
 
-<h2>"Slowest functions" — Python-level profiling, geonode code only</h2>
+<h2 id="slowest-functions">"Slowest functions" — Python-level profiling, geonode code only</h2>
 <p>
   DB and query counters explain how much work ran; they don't say which
-  line of code asked for it. <code>geonode.base.middleware.
+  line of code asked for it. <code>geonode_project.profiling_middleware.
   RequestProfilingMiddleware</code> wraps the request in stdlib
   <code>cProfile</code> and returns the slowest functions by <strong>self
   time</strong> (tottime — time spent in that function alone, excluding
-  its sub-calls) as an <code>X-Profile-Top</code> header.
+  its sub-calls, reported in milliseconds) as an <code>X-Profile-Top</code>
+  header.
+</p>
+<p>
+  This project swaps in its own version of this middleware instead of using
+  <code>geonode.base.middleware.RequestProfilingMiddleware</code> directly
+  (same idea, different number source): the stock middleware builds its
+  header off <code>pstats.Stats.print_stats()</code>'s text table, and
+  stdlib's own formatter for that table (<code>pstats.f8</code>) is
+  hardcoded to <code>"%8.3f" % x</code> — 3 decimal places, in seconds. Any
+  function whose self time is under ~0.0005s prints as the literal string
+  <code>0.000</code> in that text, with the real value already gone before
+  this tool's parser ever sees the line. Most individual geonode-code
+  frames on a DB-bound request genuinely are sub-millisecond (see below),
+  so the stock middleware's numbers read as all-zero far too often to be
+  useful. The project's version reads <code>pstats.Stats().stats</code> —
+  the same profiling run's underlying dict, full float precision, no text
+  round-trip — and reports it in milliseconds, which is precise enough to
+  show real numbers down to single-digit microseconds.
 </p>
 <p>
   Sorted by self time, not cumulative time: cumulative time on a request
@@ -109,6 +127,17 @@
   that noise IS the finding (an unindexed query, a per-row
   <code>reverse()</code> call) still shows up here, attributed to the
   geonode call site that triggered it.
+</p>
+<p>
+  <strong>Every row still reading close to 0 ms is a real result, not a
+  broken feature</strong>, for a DB-bound scenario: the query execution
+  itself runs inside psycopg2's C extension, a frame that doesn't match
+  <code>/geonode/</code> and is filtered out same as Django/DRF internals —
+  only geonode's own thin Python glue around that call (build the
+  queryset, check permissions) is left, and that can genuinely take only a
+  few microseconds. When that happens, the DB-facing tabs (Top queries,
+  per-table writes/reads) are where the actual cost of a DB-bound request
+  shows up; this tab is for CPU time spent in geonode's own Python code.
 </p>
 <p class="hint">
   Off by default (<code>EXPOSE_REQUEST_PROFILING=False</code>) — cProfile

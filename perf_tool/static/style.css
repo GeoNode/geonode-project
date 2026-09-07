@@ -190,3 +190,14 @@ code {
 .repeat-buttons { display: flex; gap: 0.5rem; margin: 0.4rem 0 0.8rem; flex-wrap: wrap; }
 .repeat-buttons button { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 0.4rem 0.9rem; font-size: 0.85rem; font-weight: 500; }
 .repeat-buttons button:hover { border-color: var(--accent); color: var(--accent); }
+
+.dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.4rem; }
+.dot.ok { background: var(--ok); }
+.dot.warn { background: #e0a83a; }
+.dot.fail { background: var(--fail); }
+.dot.unknown { background: var(--muted); }
+
+.bar { background: #0c0e12; border: 1px solid var(--border); border-radius: 4px; height: 0.6rem; overflow: hidden; margin-top: 0.4rem; }
+.bar > span { display: block; height: 100%; background: var(--accent); }
+.bar > span.warn { background: #e0a83a; }
+.bar > span.fail { background: var(--fail); }

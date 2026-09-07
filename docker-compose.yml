@@ -188,6 +188,20 @@ services:
       - "5001:5001"
     volumes:
       - perftool-data:/data
+      # Both read-only, both used for exactly one thing each — see
+      # perf_tool/health.py. docker.sock: container status on the Health
+      # page. NOTE the read-only flag only stops writes to the *socket
+      # file*, not the Docker API reachable through it — this still grants
+      # perftool the same host-level power any container with real docker
+      # access has (start/stop/inspect any container, read any volume).
+      # Accepted here the same way the rest of this tool is (see
+      # PERF_TOOL.md "What this tool is not"): a single-operator internal
+      # tool, not hardened for exposure outside the docker network.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Host root, read-only, purely for shutil.disk_usage() — this
+      # container's own "/" is a thin, near-empty overlay and wouldn't
+      # report anything meaningful about actual host disk space.
+      - /:/hostfs:ro
     restart: unless-stopped
     depends_on:
       db:

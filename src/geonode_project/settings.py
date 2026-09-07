@@ -77,4 +77,18 @@ TEMPLATES[0].pop("APP_DIRS", None)
 PROJECT_FIXTURES = [
     # List project-related fixture files here, in the order they should be loaded.
 ]
-EXPOSE_REQUEST_PROFILING=True
+EXPOSE_REQUEST_PROFILING = True
+EXPOSE_DB_QUERY_STATS_HEADER = True
+
+# geonode.base.middleware.RequestProfilingMiddleware reports tottime via
+# pstats' print_stats(), which truncates to 3 decimal places *in seconds* —
+# any geonode-code frame under ~0.0005s (most of them, on a DB-bound
+# request) prints as a literal "0.000". Swap in a project-local version
+# that reads pstats' full-precision stats dict directly and reports
+# milliseconds instead — see profiling_middleware.py for the why.
+MIDDLEWARE = [
+    "geonode_project.profiling_middleware.RequestProfilingMiddleware"
+    if m == "geonode.base.middleware.RequestProfilingMiddleware"
+    else m
+    for m in MIDDLEWARE
+]

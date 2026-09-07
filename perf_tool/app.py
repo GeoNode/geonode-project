@@ -20,6 +20,7 @@ from fpdf import FPDF
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 import db_stats
+import health
 import storage
 from geonode_client import GeoNodeClient, LoginError
 from scenarios import SCENARIOS, lookup_resources
@@ -52,6 +53,15 @@ _default_base_host = urlparse(DEFAULT_BASE_URL).hostname or ""
 DEFAULT_HOST_HEADER = os.environ.get(
     "GEONODE_HOST_HEADER", "localhost" if _default_base_host in ("localhost", "127.0.0.1") else ""
 )
+
+# The Health page's TTFB check runs unattended on every page load (no form,
+# no chance for a human to notice and swap in the internal name the way the
+# "Using it" section of PERF_TOOL.md walks through for a manual run) — so
+# for this one check specifically, make that substitution automatically
+# when DEFAULT_BASE_URL points at "localhost"/"127.0.0.1": from inside this
+# container that always means itself, never nginx, so hitting it as-is
+# would just report perftool's own unreachability as if it were GeoNode's.
+HEALTH_BASE_URL = "http://nginx" if _default_base_host in ("localhost", "127.0.0.1") else DEFAULT_BASE_URL
 
 
 def _run_once(client, conn, scenario_key, params):
@@ -162,19 +172,21 @@ def _aggregate_stat_statements(iterations, top_n=30):
     return {"rows": rows, "n_iterations": n_with_data}
 
 
-# One line of pstats.print_stats() output, post-processing already applied
-# by RequestProfilingMiddleware (leading path trimmed to "geonode/..."):
-#   ncalls  tottime  percall  cumtime  percall  geonode/mod.py:12(func)
+# One line of geonode_project.profiling_middleware.RequestProfilingMiddleware's
+# X-Profile-Top header (full-precision tottime in ms, not pstats.print_stats()'s
+# text table — that truncates to 3 decimal places in seconds, which reads as a
+# flat 0.000 for most individual geonode-code frames on a DB-bound request):
+#   ncalls  tottime_ms  geonode/mod.py:12(func)
 # ncalls can read "3/1" for recursive calls — only the primary (left) count
 # is summed here, matching what a plain call-count would mean to a reader.
 _PSTATS_LINE_RE = re.compile(
-    r"^(?P<ncalls>\d+(?:/\d+)?)\s+(?P<tottime>[\d.]+)\s+[\d.]+\s+[\d.]+\s+[\d.]+\s+(?P<func>.+)$"
+    r"^(?P<ncalls>\d+(?:/\d+)?)\s+(?P<tottime>[\d.]+)\s+(?P<func>.+)$"
 )
 
 
 def _aggregate_profile_top(iterations, top_n=15):
-    """cProfile self-time (tottime) per function, reported as a
-    per-iteration average (avg_tottime/avg_ncalls) rather than a raw sum
+    """cProfile self-time (tottime_ms) per function, reported as a
+    per-iteration average (avg_tottime_ms/avg_ncalls) rather than a raw sum
     across every iteration that has an X-Profile-Top header — same
     reasoning as _aggregate_stat_statements: a sum that scales with however
     many iterations you ran isn't the number worth reading first, "cost
@@ -193,16 +205,17 @@ def _aggregate_profile_top(iterations, top_n=15):
             if not m:
                 continue
             func = m.group("func")
-            bucket = totals.setdefault(func, {"func": func, "ncalls": 0, "tottime": 0.0})
+            bucket = totals.setdefault(func, {"func": func, "ncalls": 0, "tottime_ms": 0.0})
             bucket["ncalls"] += int(m.group("ncalls").split("/")[0])
-            bucket["tottime"] += float(m.group("tottime"))
+            bucket["tottime_ms"] += float(m.group("tottime"))
     if not totals:
         return None
-    rows = sorted(totals.values(), key=lambda r: r["tottime"], reverse=True)[:top_n]
+    rows = sorted(totals.values(), key=lambda r: r["tottime_ms"], reverse=True)[:top_n]
     for row in rows:
-        row["tottime"] = round(row["tottime"], 4)
+        raw_tottime_ms = row["tottime_ms"]
         row["avg_ncalls"] = round(row["ncalls"] / n_with_data, 1)
-        row["avg_tottime"] = round(row["tottime"] / n_with_data, 5)
+        row["avg_tottime_ms"] = round(raw_tottime_ms / n_with_data, 4)
+        row["tottime_ms"] = round(raw_tottime_ms, 3)
     return {"rows": rows, "n_iterations": n_with_data}
 
 
@@ -236,6 +249,23 @@ def api_lookup_resources():
     except Exception as e:
         return jsonify({"error": f"{type(e).__name__}: {e}"}), 502
     return jsonify({"resources": resources})
+
+
+@app.route("/health")
+def health_page():
+    """Continuous "is the stack up" checks — deliberately separate from a
+    timed run: no login, no scenario, safe to hit anytime, meant to be
+    reloaded/polled. See health.py for what each check actually does and
+    what it means when it comes back empty/None instead of data."""
+    return render_template(
+        "health.html",
+        docker_services=health.check_docker_services(),
+        ttfb=health.check_ttfb(HEALTH_BASE_URL, host_header=DEFAULT_HOST_HEADER),
+        celery_workers=health.check_celery_workers(),
+        redis_queues=health.check_redis_queues(),
+        disk_space=health.check_disk_space(),
+        checked_at=time.time(),
+    )
 
 
 @app.route("/how-it-works")

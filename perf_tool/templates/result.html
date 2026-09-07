@@ -142,13 +142,47 @@
 
   <div class="tab-panel" id="tab-profile">
     {% if profile_top %}
-    <p class="hint">geonode's own code only, by self time (tottime), per iteration average (over {{ profile_top_n }} of {{ run.iterations|length }} iteration(s) that had profiling data), cProfile. A function hot on several iterations but not the single slowest one on any one of them now shows up too. Django/DRF/library frames are filtered out — check "how it works" for why.</p>
+    <p class="hint">
+      Where the wall time above was actually spent, inside geonode's own code
+      only — everyone else's frames (Django, DRF, psycopg2, the middleware
+      chain itself) are filtered out. Rows are sorted by <strong>avg tottime</strong>:
+      the row at the top cost this scenario the most CPU time and is where a fix
+      would pay off first. Read <a href="{{ url_for('how_it_works') }}#slowest-functions">how it works</a>
+      for the full method.
+    </p>
+    <p class="hint">
+      Averaged over {{ profile_top_n }} of {{ run.iterations|length }}
+      iteration(s) that had profiling data — a function that's only hot on
+      some iterations (not the single slowest one on any of them) still
+      shows up here, instead of being hidden the way "just the last
+      iteration's profile" would hide it.
+    </p>
+    {% if profile_top and profile_top[0].avg_tottime_ms < 0.05 %}
+    <p class="hint">
+      ⚠ Every row reads close to 0 ms — for a DB-bound request that's usually
+      not a bug, it's the finding: the actual query execution happens inside
+      psycopg2's C code, a frame that doesn't match the "geonode code only"
+      filter above, so it never shows up here at all. What's left is just
+      geonode's thin Python glue around the query (build queryset, check
+      permissions), which genuinely runs in a handful of microseconds. If
+      this scenario is slow, look at the <strong>Top queries</strong> /
+      <strong>Per-table writes/reads</strong> tabs instead — this view only
+      earns its keep when the cost is CPU time in geonode's own Python code
+      (a loop, per-row work, serialization), not time spent waiting on Postgres.
+    </p>
+    {% endif %}
     <div class="table-wrap">
     <table>
-      <thead><tr><th>avg tottime (s) / iteration</th><th>avg calls / iteration</th><th title="Raw sum across all iterations with data, before dividing by iteration count.">total tottime (s)</th><th title="Raw sum across all iterations with data, before dividing by iteration count.">total calls</th><th>function</th></tr></thead>
+      <thead><tr>
+        <th title="Self time in milliseconds: time spent inside that function's own code, NOT counting time it spent waiting on functions it called. This is what you should read as &quot;the cost&quot; — a wrapper/dispatcher function can have huge cumulative time but ~0 tottime because all the real work happened in what it called. Reported in ms (not pstats' default seconds-to-3-decimals) so sub-millisecond geonode-code frames — the common case on a DB-bound request — still show a real, non-zero number.">avg tottime (ms) / iteration</th>
+        <th title="How many times this function was called, per iteration on average. A big avg tottime paired with a big avg calls (hundreds+) usually means an N+1 pattern — one call per row instead of one query for all of them — rather than one slow call.">avg calls / iteration</th>
+        <th title="Raw sum across all iterations with data, before dividing by iteration count.">total tottime (ms)</th>
+        <th title="Raw sum across all iterations with data, before dividing by iteration count.">total calls</th>
+        <th title="file path : line number (function name), exactly as cProfile reported it — open that file at that line to see the code responsible.">function</th>
+      </tr></thead>
       <tbody>
         {% for row in profile_top %}
-        <tr><td><strong>{{ row.avg_tottime }}</strong></td><td><strong>{{ row.avg_ncalls }}</strong></td><td class="hint">{{ row.tottime }}</td><td class="hint">{{ row.ncalls }}</td><td class="detail"><code>{{ row.func }}</code></td></tr>
+        <tr><td><strong>{{ row.avg_tottime_ms }}</strong></td><td><strong>{{ row.avg_ncalls }}</strong></td><td class="hint">{{ row.tottime_ms }}</td><td class="hint">{{ row.ncalls }}</td><td class="detail"><code>{{ row.func }}</code></td></tr>
         {% endfor %}
       </tbody>
     </table>

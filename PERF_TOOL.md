@@ -158,22 +158,44 @@ queries`/`req. DB ms` per-iteration columns will show `0` here — the tool
 detects this the same way it detects a missing `pg_stat_statements` and
 falls back cleanly, nothing else breaks.
 
-## Python-level profiling — same base-image caveat
+## Python-level profiling
 
-A second middleware, `geonode.base.middleware.RequestProfilingMiddleware`,
-wraps the request in stdlib `cProfile` and returns the slowest functions by
-*self* time (tottime, not cumtime — cumtime on a request profile is just
-the middleware/dispatch chain retracing itself), filtered to frames whose
-file path contains `/geonode/` — a raw top-N by self time is dominated by
-psycopg2/Django/DRF internals with no app code behind them to change, and
-the one place that noise IS the finding (an unindexed query, a per-row
-`reverse()` call) still shows up here attributed to the geonode call site
-that triggered it. Returned as an `X-Profile-Top` header, gated by
-`EXPOSE_REQUEST_PROFILING`. Same "needs a newer GeoNode base image"
-limitation as above — it lives in the same source tree. The result page's
-"Slowest functions" tab shows a hint instead of data until that's
-available. Adds real per-request overhead
-when on; leave it off outside a profiling session.
+Unlike the request-scoped query-stats middleware above, this one **is**
+usable here: `.env`'s `GEONODE_BASE_IMAGE_VERSION=master` already includes
+`geonode.base.middleware.RequestProfilingMiddleware` in the base image, so
+there's nothing to wait on.
+
+That middleware wraps the request in stdlib `cProfile` and returns the
+slowest functions by *self* time (tottime, not cumtime — cumtime on a
+request profile is just the middleware/dispatch chain retracing itself),
+filtered to frames whose file path contains `/geonode/` — a raw top-N by
+self time is dominated by psycopg2/Django/DRF internals with no app code
+behind them to change, and the one place that noise IS the finding (an
+unindexed query, a per-row `reverse()` call) still shows up here attributed
+to the geonode call site that triggered it. Gated by
+`EXPOSE_REQUEST_PROFILING`.
+
+**This project uses its own drop-in replacement**,
+`geonode_project.profiling_middleware.RequestProfilingMiddleware`
+(`src/geonode_project/profiling_middleware.py`), swapped in over the stock
+one via a `MIDDLEWARE` list-comprehension in `settings.py` — not a bigger
+change, same header contract (`X-Profile-Top`), same filter, same
+`EXPOSE_REQUEST_PROFILING` gate. The only difference: the stock middleware
+builds its header off `pstats.Stats.print_stats()`'s text table, and
+stdlib's own number formatter there (`pstats.f8`) is hardcoded to
+`"%8.3f" % x` — 3 decimal places, in *seconds*. Any geonode-code frame
+under ~0.0005s self time — the common case on a DB-bound request, since
+the actual query execution is a psycopg2 C-extension frame the
+`/geonode/` filter excludes, leaving only lightweight Python glue —
+prints as a literal `0.000` in that text, with the real value gone before
+anyone downstream can read it. The project's version reads
+`pstats.Stats().stats` directly (the same profiling run's underlying dict,
+full float precision) and reports milliseconds instead of seconds, which
+is precise enough to show real, non-zero numbers down to single-digit
+microseconds.
+
+Adds real per-request overhead when on (cProfile instruments every
+function call) — leave it off outside a profiling session.
 
 ## Using it
 
@@ -248,6 +270,65 @@ differences are the two called out above: `pg_stat_statements` is wired up
 via a `command:` flag instead of a `conf.d` file, and the request-scoped
 query-stats card needs a GeoNode base image with
 `RequestQueryStatsMiddleware` in it to show anything but 0.
+
+## Health — /performance/health
+
+A different question from the rest of this tool: not "how fast was this
+one action" but "is the stack up, right now". No login, no scenario, safe
+to hit anytime — reload it to get a fresh read, nothing on it is saved to
+history. Five independent checks (`perf_tool/health.py`), each fails soft
+(shows "can't reach it" rather than crashing the page) so one broken check
+never takes the others down with it:
+
+- **Docker services** — state (`running`/`exited`/`restarting`/...) and
+  healthcheck status of every container in this compose project, via the
+  Docker Engine API. Needs `/var/run/docker.sock` mounted into `perftool`
+  (already wired up in `docker-compose.yml`) — **note the `:ro` flag only
+  protects the socket *file*, not the API reachable through it**; this
+  still grants perftool the same host-level power any container with real
+  docker access has. Accepted the same way the rest of this tool already
+  is (see "What this tool is not" below): single-operator internal tool,
+  not exposed outside the docker network.
+- **Time to first byte** — a plain `GET /` against this instance, timed to
+  the first response byte only (not full body download) — isolates "the
+  backend is slow to respond" from "the response is just big". Uses the
+  same internal-service-name substitution the manual scenario runner needs
+  by hand (see "Using it" above) automatically, since there's no form here
+  for a human to fix it on.
+- **Celery workers** — `celery inspect ping`/`active`/`reserved` against
+  `BROKER_URL`. Doesn't need geonode's own celery app or task modules
+  imported, just the broker. The 3 calls run in parallel
+  (`ThreadPoolExecutor`), not sequentially — celery's inspect deliberately
+  blocks for the *full* timeout on each one to give every worker a chance
+  to reply, so 3 sequential calls made this page take 9.3s to load,
+  confirmed live; in parallel it's ~1x timeout instead of 3x.
+- **Redis queues** — two numbers: `total_queued` (messages waiting for a
+  free worker — a plain Redis list per queue name; a backlog that keeps
+  growing means workers can't keep up or are down) and `in_flight`
+  (celery's own `unacked` hash — messages already handed to a worker and
+  being processed, not yet acked done). Queue names aren't hardcoded
+  (geonode routes to ~30 of them and that list changes between versions)
+  — scanning for list-type keys finds them without keeping a list in sync
+  by hand.
+
+  **Both active/reserved (Celery workers) and total_queued/in_flight
+  (Redis queues) are snapshots, not a trace** — confirmed live testing
+  against a real CSV upload: a real task chain is many short substeps
+  (`import_orchestrator` -> `import_resource` -> `publish_resource` ->
+  ...), each often done in under a second with idle workers picking them
+  up immediately. Polling all four numbers through the actual upload,
+  each one independently read 0 on some polls and non-zero on others for
+  the *same* run — Redis deletes an empty queue/unacked entry instantly,
+  and celery's active/reserved only reflects the exact instant asked.
+  Seeing 0 on this page does not mean nothing ran since the last load; it
+  means nothing was in that particular state at the instant this load
+  happened. A longer job (a bulk load via `run_full_load_test.py`, a
+  large upload) is far more likely to be caught mid-run than one small
+  CSV — reload a few times during one, or use a bigger one, rather than
+  trusting a single load's zeroes.
+- **Disk space** — host disk usage via a read-only `/:/hostfs:ro` mount
+  into `perftool` (this container's own `/` is a thin, near-empty overlay
+  and wouldn't report anything meaningful on its own).
 
 ## What this tool is not
 
