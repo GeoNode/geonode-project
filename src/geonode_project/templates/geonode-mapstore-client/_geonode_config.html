@@ -1,9 +1,59 @@
 {% extends 'geonode-mapstore-client/_geonode_config.html' %}
 {% block override_local_config %}
 <script>
-    window.__GEONODE_CONFIG__.overrideLocalConfig = function(localConfig, _) {
-        // Here the localConfig can be overridden and/or extended
-        return localConfig;
-    };
+    (function() {
+        console.debug('[GeoNode Mapstore] Script gestartet');
+
+        // Read CQL filters from various URL sources
+        function getCqlFilter() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var cqlFilter = urlParams.get('cql_filter') || urlParams.get('CQL_FILTER');
+
+            // Auch aus Hash-Fragment prüfen (für #/?cql_filter=...)
+            if (!cqlFilter && window.location.hash) {
+                var hashQuery = window.location.hash.split('?')[1];
+                if (hashQuery) {
+                    var hashParams = new URLSearchParams(hashQuery);
+                    cqlFilter = hashParams.get('cql_filter') || hashParams.get('CQL_FILTER');
+                }
+            }
+            return cqlFilter;
+        }
+        // Function to add a CQL_FILTER to a URL
+        function addCqlFilterToUrl(url) {
+            if (!url || typeof url !== 'string') return url;
+
+            if(url.includes("geoserver")){
+                // CQL_FILTER zur URL hinzufügen
+                const separator = url.indexOf('?') !== -1 ? '&' : '?';
+                const newUrl = url + separator + 'CQL_FILTER=' + encodeURIComponent(cqlFilter);
+                //console.debug('[GeoNode CQL] CQL_FILTER zu WMS-Request hinzugefügt:', newUrl.substring(0, 150) + '...');
+                return newUrl;
+            }
+            return url;
+        }
+
+        const cqlFilter = getCqlFilter();
+
+        if (cqlFilter) {
+
+            // Intercept Image.src (for tile-based WMS requests)
+            const imageDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+            if (imageDescriptor && imageDescriptor.set) {
+                Object.defineProperty(HTMLImageElement.prototype, 'src', {
+                    get: imageDescriptor.get,
+                    set: function(value) {
+                        const modifiedValue = addCqlFilterToUrl(value);
+                        imageDescriptor.set.call(this, modifiedValue);
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                console.debug('[GeoNode CQL] Image.src Interception aktiviert');
+            }
+
+            console.debug('[GeoNode CQL] XHR/Fetch/Image Interception aktiviert');
+        }
+    })();
 </script>
 {% endblock %}
