@@ -53,7 +53,7 @@ for entry in "${REPOS[@]}"; do
     rm -rf "${DEV_REQ_DIR}/${folder}"
 
     # Install
-    yes w | pip install --src "$DEV_REQ_DIR" -e "git+${url}@${branch}#egg=${egg}"
+    pip install --src "$DEV_REQ_DIR" -e "git+${url}@${branch}#egg=${egg}"
 
     # Fix ownership
     chown -R 1000:1000 "${DEV_REQ_DIR}/${folder}"
