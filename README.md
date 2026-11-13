@@ -220,6 +220,18 @@ POSTGRESQL_MAX_CONNECTIONS=200
 
 In this case PostgreSQL will run accepting 200 maximum connections.
 
+## Tuning PostgreSQL
+
+Any `.conf` file placed inside `docker/postgresql/conf.d` is loaded by PostgreSQL at startup.
+
+Alternative sets of `.conf` files can be kept in separate folders inside `docker/postgresql/profiles`
+(e.g. `docker/postgresql/profiles/production`). A profile is loaded only if its name is set in the
+**POSTGRESQL_PROFILE** variable in **.env** file as below:
+
+```
+POSTGRESQL_PROFILE=production
+```
+
 ## Developing with Dev Containers in VS Code
 
 This repo includes a .devcontainer folder with the condigurations to run Django and Celery inside a VS Code Dev Container.
