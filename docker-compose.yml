@@ -134,13 +134,21 @@ services:
       dockerfile: Dockerfile
       args:
         - BASE_IMAGE_VERSION=${POSTGRES_BASE_IMAGE_VERSION}
-    command: postgres -c "max_connections=${POSTGRESQL_MAX_CONNECTIONS}"
+    entrypoint: ["/usr/local/bin/geonode-postgres-entrypoint.sh"]
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql/postgresql.conf
     container_name: db4${COMPOSE_PROJECT_NAME}
     env_file:
       - .env
     volumes:
       - dbdata:/var/lib/postgresql/data
       - dbbackups:/pg_backups
+      - ./docker/postgresql/docker-entrypoint-wrapper.sh:/usr/local/bin/geonode-postgres-entrypoint.sh:ro
+      - ./docker/postgresql/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./docker/postgresql/conf.d:/etc/postgresql/conf.d:ro
+      - ./docker/postgresql/profiles:/etc/postgresql/profiles:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d postgres -U postgres"]
