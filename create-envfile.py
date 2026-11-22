@@ -135,7 +135,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="ENV file builder",
         description="Tool for generate environment file automatically. The information can be passed or via CLI or via JSON file ( --file /path/env.json)",
-        usage="python create-envfile.py localhost -f /path/to/json/file.json",
+        usage="python create-envfile.py -hn localhost -f /path/to/json/file.json",
         allow_abbrev=False
     )
     parser.add_argument(
