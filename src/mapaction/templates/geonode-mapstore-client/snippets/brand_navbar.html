@@ -1,0 +1,86 @@
+{% load static %}
+{% load get_menu_json %}
+{% get_user_menu as USER_MENU %}
+
+{% block extra_style %}
+{% endblock %}
+
+<style>
+    #{{ id|default:'' }}-bottom {
+        display: none;
+        margin-bottom: 0;
+    }
+    @media (max-width: 748px) {
+        #{{ id|default:'' }} .gn-menu-content-center > * {
+            display: none;
+        }
+        #{{ id|default:'' }}-bottom {
+            display: flex;
+            width: calc(100% - 16px);
+            margin: 8px;
+        }
+    }
+</style>
+
+<nav id="{{ id|default:'' }}" class="gn-menu gn-menu-symmetric">
+    <div class="gn-menu-container">
+        <div class="gn-menu-content">
+            <div class="gn-menu-content-left">
+                {% block left_menu %}
+                <ul class="gn-menu-list">
+                    <li>
+                        <a href="/">
+                            {% if custom_theme.logo and custom_theme.logo.url %}
+                                <img src="{{ custom_theme.logo.url }}">
+                            {% else %}
+                                <img src="{% block logo_src %}/static/mapaction/mapaction-logo.svg{% endblock %}">
+                            {% endif %}
+                        </a>
+                    </li>
+                </ul>
+                {% endblock %}
+            </div>
+            <div class="gn-menu-content-center">
+                {% block center_menu %}
+                    {% include './search_bar.html' with search_bar_id='gn-search-bar' %}
+                {% endblock %}
+            </div>
+            <div class="gn-menu-content-right">
+                {% block right_menu %}
+                <ul class="gn-menu-list">
+                    {% for menu_item in USER_MENU %}
+                        {% include './menu_item.html' with menu_item=menu_item align_right=True %}
+                    {% endfor %}
+                </ul>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</nav>
+<div id="{{ id|default:'' }}-bottom">
+    {% block bottom_menu %}
+        {% include './search_bar.html' with search_bar_id='gn-search-bar-bottom' %}
+    {% endblock %}
+</div>
+{% block extra_script %}
+    <script type="text/javascript">
+        (function() {
+            function manageUrlChange() {
+                var signInElement = document.getElementById("sign-in");
+                if (signInElement){
+                    if (window.location.pathname === '/account/login/'){
+                        signInElement.setAttribute("href", window.location.href)
+                    }
+                    else {
+                        var href = signInElement.getAttribute("href").split("next=")[0];
+                        var url_parts = window.location.href.split(window.location.pathname);
+                        var path_name = encodeURIComponent(window.location.pathname + url_parts[url_parts.length-1]);
+                        signInElement.setAttribute("href", href.concat("next=".concat(path_name)));
+                    }
+                }
+            }
+            window.addEventListener('DOMContentLoaded', manageUrlChange);
+            window.addEventListener('hashchange', manageUrlChange, false);
+        })();
+    </script>
+{% endblock extra_script %}

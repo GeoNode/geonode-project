@@ -168,3 +168,19 @@ TEMPLATES[0]['OPTIONS']['context_processors'] += [
     "kartoza_geonode.middleware.project_version",
     "kartoza_geonode.middleware.site_preferences",
 ]
+
+# ---------------------------------------------------------------- MapAction
+INSTALLED_APPS += ("mapaction",)
+
+MAPACTION_SERVICE_USERNAME = os.getenv("MAPACTION_SERVICE_USERNAME", "mapaction")
+MAPACTION_CONTACT_EMAIL = os.getenv("MAPACTION_CONTACT_EMAIL", "geonode@mapaction.org")
+# Agreed 5 Nov / 17 Nov: older versions stay reachable by link but are not listed
+MAPACTION_HIDE_SUPERSEDED = ast.literal_eval(os.getenv("MAPACTION_HIDE_SUPERSEDED", "True"))
+
+# Catalogue filters: MapAction's thesauri (Emergency, Hazard, Theme, Product type, Language) and Country.
+# Owner, group, category and free keyword filters are not used by MapAction.
+FACET_PROVIDERS = [
+    {"class": "geonode.facets.providers.baseinfo.ResourceTypeFacetProvider"},
+    {"class": "mapaction.facets.CountryFacetProvider", "config": {"order": 2, "type": "select"}},
+    {"class": "geonode.facets.providers.thesaurus.ThesaurusFacetProvider", "config": {"type": "select"}},
+]

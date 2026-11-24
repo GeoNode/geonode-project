@@ -1,0 +1,112 @@
+{% load mapaction_tags %}
+{% load get_menu_json %}
+{% mapaction_left_menu as BASE_TOPBAR_MENU_LEFT %}
+{% get_menu_json 'TOPBAR_MENU' as TOPBAR_MENU %}
+{% get_menu_json 'TOPBAR_MENU_LEFT' as TOPBAR_MENU_LEFT %}
+{% get_base_right_topbar_menu as BASE_TOPBAR_MENU_RIGHT %}
+{% get_menu_json 'TOPBAR_MENU_RIGHT' as TOPBAR_MENU_RIGHT %}
+
+<nav id="{{ id|default:'' }}" class="gn-menu gn-primary" data-gn-menu-resize="true">
+    <div class="gn-menu-container">
+        <div class="gn-menu-content">
+            <div class="gn-menu-content-side gn-menu-content-left">
+                {% block left_menu %}
+                <div class="dropdown">
+                    <button
+                        class="btn btn-primary dropdown-toggle"
+                        type="button"
+                        id="gn-topbar-small-menu"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="true"
+                    >
+                        <i class="fa fa-bars"> </i>
+                    </button>
+                    <ul
+                        class="dropdown-menu"
+                        aria-labelledby="gn-topbar-small-menu"
+                    >
+                        {% for menu_item in BASE_TOPBAR_MENU_LEFT %}
+                            {% include './menu_item_compact.html' with menu_item=menu_item %}
+                        {% endfor %}
+                        {% for menu_item in TOPBAR_MENU %}
+                            {% include './menu_item_compact.html' with menu_item=menu_item variant='primary' %}
+                        {% endfor %}
+                        {% for menu_item in TOPBAR_MENU_LEFT %}
+                            {% include './menu_item_compact.html' with menu_item=menu_item %}
+                        {% endfor %}
+
+                    </ul>
+                </div>
+                <ul class="gn-menu-list">
+                    {% for menu_item in BASE_TOPBAR_MENU_LEFT %}
+                        {% include './menu_item.html' with menu_item=menu_item variant='primary' %}
+                    {% endfor %}
+                    {% for menu_item in TOPBAR_MENU %}
+                        {% include './menu_item.html' with menu_item=menu_item variant='primary' %}
+                    {% endfor %}
+                    {% for menu_item in TOPBAR_MENU_LEFT %}
+                        {% include './menu_item.html' with menu_item=menu_item variant='primary' %}
+                    {% endfor %}
+                </ul>
+                {% endblock %}
+            </div>
+            <div class="gn-menu-content-center">
+                {% block center_menu %}
+                {% endblock %}
+            </div>
+            <div class="gn-menu-content-right">
+                {% block right_menu %}
+                <ul class="gn-menu-list">
+                    {% for menu_item in BASE_TOPBAR_MENU_RIGHT %}
+                        {% include './menu_item.html' with menu_item=menu_item variant='primary' align_right=True %}
+                    {% endfor %}
+                    {% for menu_item in TOPBAR_MENU_RIGHT %}
+                        {% include './menu_item.html' with menu_item=menu_item variant='primary' align_right=True %}
+                    {% endfor %}
+
+                    {% block language_selector %}
+                        {% include './language_selector.html' with variant='primary' align_right=True %}
+                    {% endblock %}
+                </ul>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+</nav>
+<script>
+    (function () {
+        function onResizeMenu(menu) {
+            const menuContent = menu.querySelector('.gn-menu-content');
+            const leftSide = menu.querySelector('.gn-menu-content-left');
+            const leftSideMenuList = menu.querySelector('.gn-menu-content-left > .gn-menu-list');
+            leftSideMenuList.style.position = 'absolute';
+            leftSideMenuList.style.top = '50%';
+            leftSideMenuList.style.transform = 'translateY(-50%)';
+            const leftSideMenuDisplay = leftSideMenuList.style.display;
+            const leftSideDropdown = menu.querySelector('.gn-menu-content-left > .dropdown');
+            leftSideDropdown.style.position = 'absolute';
+            leftSideDropdown.style.top = '50%';
+            leftSideDropdown.style.transform = 'translateY(-50%)';
+            function resize() {
+                if (leftSide.clientWidth < leftSideMenuList.clientWidth) {
+                    leftSideMenuList.style.visibility = 'hidden';
+                    leftSideDropdown.style.visibility = 'visible';
+                } else {
+                    leftSideMenuList.style.visibility = 'visible';
+                    leftSideDropdown.style.visibility = 'hidden';
+                }
+            }
+
+            window.addEventListener('resize', resize);
+            window.addEventListener('DOMContentLoaded', resize);
+
+            resize();
+        }
+        const menus = document.querySelectorAll('[data-gn-menu-resize="true"]');
+        for (var i = 0; i < menus.length; i++) {
+            const menu = menus[i];
+            onResizeMenu(menu);
+        }
+    })();
+</script>

@@ -1,0 +1,83 @@
+{% extends 'geonode-mapstore-client/_geonode_config.html' %}
+{% block override_local_config %}
+<script>
+/*
+ * MapAction: configure GeoNode's client for map products, without rebuilding it.
+ *  - catalogue filters: Emergency, Hazard, Theme, Product type, Language (thesauri), Country, date, map area
+ *  - details panel: a "Map" tab, "Downloads" (PDF, JPG, atlas sheets) and "Versions" (linked versions)
+ *  - "New" menu: upload a map; nothing about datasets, maps, geostories or dashboards
+ */
+window.__GEONODE_CONFIG__.overrideLocalConfig = function(localConfig, _) {
+    var g = function(path) { return "{context.get(state('gnResourceData'), '" + path + "')}"; };
+
+    var filtersFormItems = [
+        { type: 'search' },
+        { type: 'group', labelId: 'gnhome.customFiltersTitle', items: [
+            { id: 'my-resources', labelId: 'gnhome.myResources', type: 'filter', disableIf: "{!state('user')}" },
+            { id: 'favorite', labelId: 'gnhome.favorites', type: 'filter', disableIf: "{!state('user')}" }
+        ], disableIf: "{!state('user')}" },
+        { type: 'divider', disableIf: "{!state('user')}" },
+        { type: 'accordion', style: 'facet', facet: 'thesaurus' },
+        { type: 'select', facet: 'place' },
+        { type: 'date-range', filterKey: 'date', labelId: 'gnviewer.dateFilter' },
+        { labelId: 'gnviewer.extent', type: 'extent' }
+    ];
+
+    var mapTab = { type: 'tab', id: 'map', label: 'Map', items: [
+        { label: 'Emergency', type: 'link', href: g('mapaction.emergency.url'), value: g('mapaction.emergency.title') },
+        { label: 'Map number', type: 'text', value: g('mapaction.map_number') },
+        { label: 'Version', type: 'text', value: g('mapaction.version_label') },
+        { label: 'Latest version', type: 'link', href: g('mapaction.latest_url'),
+          value: "{context.get(state('gnResourceData'), 'mapaction.latest_url') ? 'Open the latest version' : ''}" },
+        { label: 'Product type', type: 'text', value: g('mapaction.product_type') },
+        { label: 'Themes', type: 'text', value: g('mapaction.themes') },
+        { label: 'Hazard', type: 'text', value: g('mapaction.emergency.hazard') },
+        { labelId: 'gnviewer.regions', type: 'query', value: g('regions'), valueKey: 'name', pathname: '/',
+          queryTemplate: { 'filter{regions.code.in}': '${code}' } },
+        { label: 'Map date', type: 'date', format: 'D MMMM YYYY, HH:mm', value: g('date') },
+        { label: 'Credits', type: 'text', value: g('attribution') },
+        { labelId: 'gnviewer.language', type: 'text', value: g('mapaction.languages') },
+        { label: 'Details', type: 'html', value: g('supplemental_information') },
+        { labelId: 'gnviewer.pointOfContact', type: 'link', value: "{context.getUserResourceNames(context.get(state('gnResourceData'), 'poc'))}",
+          disableIf: "{!context.get(state('gnResourceData'), 'poc')}" }
+    ] };
+    var downloadsTab = { type: 'assets', id: 'downloads', label: 'Downloads', items: g('mapaction.files') };
+    // Every version of this map, newest first (built by MapAction's model; GeoNode's linked-resources list
+    // only shows the direct neighbour of each version)
+    var versionsTab = { type: 'tab', id: 'versions', label: 'Versions', items: [
+        { label: 'All versions', type: 'html',
+          value: g('mapaction.versions_html') }
+    ] };
+
+    var mapActionTabs = function(defaultTabs) {
+        var locations = (defaultTabs || []).filter(function(t) { return t.type === 'locations'; });
+        return [mapTab, downloadsTab, versionsTab].concat(locations);
+    };
+
+    var plugins = localConfig.plugins || {};
+    (plugins.catalogue || []).forEach(function(plugin) {
+        if (plugin.name !== 'ResourcesGrid' || !plugin.cfg) { return; }
+        var cfg = plugin.cfg;
+        cfg.detailsTabs = mapActionTabs(cfg.detailsTabs);
+        var uploadMenu = cfg.documentsPage && cfg.documentsPage.menuItems;
+        ['allPage', 'documentsPage'].forEach(function(page) {
+            if (cfg[page]) {
+                cfg[page].filtersFormItems = filtersFormItems;
+                if (uploadMenu) { cfg[page].menuItems = uploadMenu; }
+            }
+        });
+        cfg.filtersFormItems = filtersFormItems;
+        // Numbered pages (as on CKAN) instead of endless scrolling, so the footer is reachable
+        cfg.pagination = true;
+    });
+    ['document_viewer', 'document_viewer_mobile', 'document_embed'].forEach(function(page) {
+        (plugins[page] || []).forEach(function(plugin) {
+            if (plugin.name === 'DetailViewer' && plugin.cfg) {
+                plugin.cfg.tabs = mapActionTabs(plugin.cfg.tabs);
+            }
+        });
+    });
+    return localConfig;
+};
+</script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ emergency.title }} - MapAction{% endblock %}
+{% block body %}
+{% include "mapaction/_style.html" %}
+<div class="ma-page">
+  <div class="ma-crumbs"><a href="{% url 'mapaction:emergencies' %}">Emergencies</a> / {{ emergency.title }}</div>
+  <div class="ma-head">
+    {% if emergency.image_url %}<img src="{{ emergency.image_url }}" alt="">{% endif %}
+    <div style="flex:1;min-width:260px">
+      <h1>{{ emergency.title }}</h1>
+      <div class="ma-meta">
+        {% if emergency.hazard %}<span class="ma-pill red">{{ emergency.hazard }}</span>{% endif %}
+        {% for c in emergency.countries.all %}<span class="ma-pill">{{ c.name }}</span>{% endfor %}
+        <span>{{ versions|length }} map{{ versions|length|pluralize }}</span>
+      </div>
+      {% if emergency.description %}<p style="margin:6px 0;max-width:780px">{{ emergency.description|truncatewords:70 }}</p>{% endif %}
+      <div class="ma-actions">
+        {% if catalogue_url %}<a href="{{ catalogue_url }}">Search and filter these maps</a>{% endif %}
+        {% if can_upload %}<a class="secondary" href="{% url 'mapaction:emergency-upload' emergency.code %}">&#8679; Add maps (upload ZIP)</a>{% endif %}
+        {% if user.is_staff and emergency.source_url %}<a class="secondary" href="{{ emergency.source_url }}" target="_blank" rel="noopener">On the old site</a>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <ul class="ma-list">
+  {% for v in versions %}
+    {% with doc=v.resource %}
+    <li class="ma-item">
+      <a href="/catalogue/#/document/{{ doc.pk }}"><img src="{{ doc.thumbnail_url }}" alt="" loading="lazy"></a>
+      <div style="flex:1;min-width:0">
+        <h3><a href="/catalogue/#/document/{{ doc.pk }}">{{ doc.title }}</a></h3>
+        <div class="ma-latest"><span class="ma-badge">Latest</span>
+          {{ v.label }}{% if v.map_created %} · {{ v.map_created|date:"j M Y H:i" }}{% endif %}{% if v.get_product_type_display %} · {{ v.get_product_type_display }}{% endif %}</div>
+        <p>{{ doc.abstract|striptags|truncatewords:45 }}</p>
+        <div class="ma-get">
+          {% if v.primary %}
+          <a class="ma-primary" href="{{ v.primary.get_download_url }}" title="{{ v.primary.filename }}">&#11015; Download {% if v.get_product_type_display == 'Atlas' %}atlas {% endif %}{{ v.primary.get_role_display }}{% if v.primary.size %} · {{ v.primary.size|filesizeformat }}{% endif %}</a>
+          {% endif %}
+          {% if v.jpg %}<a class="ma-secondary" href="{{ v.jpg.get_download_url }}" title="{{ v.jpg.filename }}">JPG{% if v.jpg.size %} · {{ v.jpg.size|filesizeformat }}{% endif %}</a>{% endif %}
+          {% for f in v.others %}<a class="ma-secondary" href="{{ f.get_download_url }}" title="{{ f.filename }}">{{ f.label }}</a>{% endfor %}
+        </div>
+        {% if v.sheets %}
+        <details class="ma-sheets"><summary>{{ v.sheets|length }} sheet{{ v.sheets|length|pluralize }} in this {{ v.get_product_type_display|default:"map"|lower }}</summary>
+          {% for f in v.sheets %}<a href="{{ f.get_download_url }}" title="{{ f.filename }}">{{ f.label }}{% if f.size %} <small>{{ f.size|filesizeformat }}</small>{% endif %}</a>{% endfor %}
+        </details>
+        {% endif %}
+        {% if v.older %}
+        <div class="ma-older">Older version{{ v.older|length|pluralize }} (superseded):
+          {% for o in v.older|slice:":6" %}<a href="/catalogue/#/document/{{ o.resource_id }}">{{ o.label }}{% if o.map_created %} · {{ o.map_created|date:"j M" }}{% endif %}</a>{% if not forloop.last %}, {% endif %}{% endfor %}{% if v.older|length > 6 %} and {{ v.older|length|add:"-6" }} more{% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </li>
+    {% endwith %}
+  {% empty %}
+    <li>No maps you can see for this emergency.</li>
+  {% endfor %}
+  </ul>
+</div>
+{% endblock %}

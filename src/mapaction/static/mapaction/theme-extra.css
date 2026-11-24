@@ -1,0 +1,17 @@
+/* GeoNode HTML-escapes this field, so no angle brackets, quotes or ampersands anywhere in here */
+
+/* (The hosted theme hid GeoNode's second footer credit here; MapAction's own footer replaces it.) */
+
+/* Banner: shorter, and the image is already tinted so it needs no multiply */
+.msgapi #gn-hero { height: auto; background-blend-mode: normal; }
+.msgapi #gn-hero .jumbotron {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+  background-color: transparent;
+}
+.msgapi #gn-hero .jumbotron .gn-hero-description { width: 100%; }
+.msgapi #gn-hero .jumbotron .gn-hero-description h1 { margin-top: 0; margin-bottom: 0.75rem; }
+.msgapi #gn-hero .jumbotron .gn-hero-description p { margin-top: 0.75rem; max-width: 52rem; }
+.msgapi #gn-hero .gn-hero-tools { display: none; }

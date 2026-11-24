@@ -1,0 +1,38 @@
+{% load static %}
+{% load mapaction_tags %}
+{% mapaction_current_emergencies as CURRENT_EMERGENCIES %}
+<header class="gn-main-header">
+    {% if CURRENT_EMERGENCIES %}
+    {# MapAction's red bar, as on maps.mapaction.org: staff pick the emergencies in admin > Emergencies #}
+    <div class="ma-current">
+        <span class="ma-current-title">Latest maps and data</span>
+        <ul>{% for em in CURRENT_EMERGENCIES %}<li><a href="{{ em.url }}">{{ em.label }}</a></li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    {% include './brand_navbar.html'  with id='gn-brand-navbar' %}
+</header>
+<div class="gn-main-header-placeholder"></div>
+{% if show_hero %}
+    {% include './hero.html' %}
+{% endif %}
+
+{% include './topbar.html' with id='gn-topbar' %}
+
+<script>
+    (function () {
+        const mainHeader = document.querySelector('.gn-main-header');
+        const mainHeaderPlaceholder = document.querySelector('.gn-main-header-placeholder');
+        const topbar = document.querySelector('#gn-topbar');
+        function resize() {
+            if (mainHeaderPlaceholder && mainHeader) {
+                mainHeaderPlaceholder.style.height = mainHeader.clientHeight + 'px';
+            }
+            if (topbar && mainHeader) {
+                topbar.style.top = mainHeader.clientHeight + 'px';
+            }
+        }
+        window.addEventListener('resize', resize);
+        window.addEventListener('DOMContentLoaded', resize);
+        resize();
+    })();
+</script>

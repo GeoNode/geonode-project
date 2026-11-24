@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+{% block title %}Emergencies - MapAction{% endblock %}
+{% block extra_head %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+{% endblock %}
+{% block body_outer %}
+{% include "mapaction/_style.html" %}
+<style>
+  .ma-wide { max-width: 1200px; margin: 0 auto; padding: 24px 0 48px; color: #3e3e3e; }
+  .ma-wide h1 { color: #18448D; font-size: 26px; margin: 0 0 4px; }
+  .ma-sub { color: #666; margin: 0 0 16px; }
+  #ma-map { height: 440px; border-radius: 6px; border: 1px solid #dfe3ea; z-index: 1; }
+  .ma-tl { margin: 14px 0 6px; padding: 14px 16px 10px; border: 1px solid #dfe3ea; border-radius: 6px; background: #fff; }
+  .ma-tl-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .ma-tl-head strong { color: #18448D; font-size: 15px; }
+  .ma-tl-range { font-weight: 700; color: #E63B2E; }
+  .ma-tl-head button { border: 1px solid #18448D; background: #fff; color: #18448D; border-radius: 4px; padding: 3px 10px; font-size: 13px; cursor: pointer; }
+  .ma-tl-head button.on, .ma-tl-head button:hover { background: #18448D; color: #fff; }
+  .ma-tl-head label { font-size: 13px; color: #555; margin: 0 0 0 4px; font-weight: 400; display: inline-flex; gap: 6px; align-items: center; }
+  .ma-tl-count { margin-left: auto; font-size: 13px; color: #555; }
+  .ma-track { position: relative; height: 100px; user-select: none; touch-action: none; cursor: crosshair; }
+  #ma-bars { position: absolute; inset: 0 0 0 0; width: 100%; height: 100%; display: block; }
+  .ma-win { position: absolute; top: 0; bottom: 0; background: rgba(230, 59, 46, .10); border-left: 2px solid #E63B2E;
+            border-right: 2px solid #E63B2E; cursor: grab; }
+  .ma-win:active, .ma-win.drag { cursor: grabbing; }
+  .ma-win:focus { outline: 2px solid rgba(24, 68, 141, .5); outline-offset: 2px; }
+  .ma-h { position: absolute; top: 50%; width: 14px; height: 34px; margin-top: -17px; background: #E63B2E; border: 2px solid #fff;
+          border-radius: 4px; box-shadow: 0 0 0 1px #E63B2E; cursor: ew-resize; }
+  .ma-h.l { left: -9px; } .ma-h.r { right: -9px; }
+  .ma-axis { position: relative; height: 18px; font-size: 11px; color: #888; margin-top: 4px; }
+  .ma-axis span { position: absolute; transform: translateX(-50%); }
+  .ma-hint { font-size: 12px; color: #888; margin-top: 2px; }
+  .ma-tools { display: flex; gap: 12px; align-items: center; margin: 14px 0; flex-wrap: wrap; }
+  .ma-tools input[type=search] { flex: 1; min-width: 220px; max-width: 420px; padding: 8px 10px; border: 1px solid #ccd3de; border-radius: 4px; }
+  .ma-card .ma-when { display: block; color: #E63B2E; font-weight: 600; font-size: 12px; margin-top: 2px; }
+  .ma-card.current { border-color: #E63B2E; }
+  .leaflet-popup-content { margin: 10px 12px; font-family: 'Montserrat', sans-serif; }
+  .ma-pop { display: flex; gap: 10px; align-items: center; min-width: 220px; }
+  .ma-pop img { width: 44px; height: 44px; object-fit: contain; }
+  .ma-pop a { color: #18448D; font-weight: 600; }
+  .ma-pop span { display: block; font-size: 12px; color: #666; }
+  @media (max-width: 1230px) { .ma-wide { padding-left: 16px; padding-right: 16px; } }
+</style>
+
+<div class="ma-wide">
+  <h1 style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">Emergencies
+    {% if can_upload %}<a href="{% url 'mapaction:upload' %}" style="font-size:14px;background:#E63B2E;color:#fff;padding:6px 14px;border-radius:4px;text-decoration:none">&#8679; Upload maps</a>{% endif %}</h1>
+  <p class="ma-sub">Every MapAction response on the map. Move the time window to see the emergencies of a period, or press Play.</p>
+
+  <div id="ma-map" role="region" aria-label="Map of emergencies"></div>
+
+  <div class="ma-tl">
+    <div class="ma-tl-head">
+      <strong>Timeline</strong>
+      <span class="ma-tl-range" id="ma-range"></span>
+      <button type="button" id="ma-play" title="Step through the years">&#9654; Play</button>
+      <button type="button" id="ma-all">All years</button>
+      <label><input type="checkbox" id="ma-inview"> Only what's on the map</label>
+      <label><input type="checkbox" id="ma-packs"> Include country map packs</label>
+      <span class="ma-tl-count" id="ma-count"></span>
+    </div>
+    <div class="ma-track" id="ma-track">
+      <svg id="ma-bars" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="ma-win" id="ma-win" tabindex="0" role="slider" aria-label="Time window: drag to move it, arrow keys to step">
+        <span class="ma-h l" data-edge="l"></span><span class="ma-h r" data-edge="r"></span>
+      </div>
+    </div>
+    <div class="ma-axis" id="ma-axis"></div>
+    <div class="ma-hint">Drag the red window to move it through time, drag its edges to resize it, or click anywhere to jump there.</div>
+  </div>
+
+  <div class="ma-tools">
+    <input id="ma-q" type="search" placeholder="Filter by country, hazard or name…" aria-label="Filter emergencies">
+  </div>
+  <div class="ma-grid" id="ma-cards"></div>
+</div>
+
+{{ emergencies|json_script:"ma-emergencies" }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function () {
+  var data = JSON.parse(document.getElementById('ma-emergencies').textContent);
+  var esc = function (s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
+  // Months as integers (year * 12 + month0) so a window can be any span and slide month by month
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var fmt = function (m) { return MONTHS[m % 12] + ' ' + Math.floor(m / 12); };
+  data.forEach(function (e) {
+    e.m = e.start ? (+e.start.slice(0, 4)) * 12 + (+e.start.slice(5, 7)) - 1 : (e.year ? e.year * 12 : null);
+  });
+  var ms = data.map(function (e) { return e.m; }).filter(function (m) { return m != null; });
+  var minM = Math.min.apply(null, ms), maxM = Math.max.apply(null, ms);
+  minM -= minM % 12; maxM += 11 - (maxM % 12);  // whole years at both ends
+  var span = maxM - minM + 1;
+  var state = { from: minM, to: maxM, q: '', inView: false, packs: false };
+
+  // ---- map: Esri World Topo by default (no API key), with a basemap switcher
+  var map = L.map('ma-map', { worldCopyJump: true, scrollWheelZoom: false }).setView([12, 20], 2);
+  var esri = function (path) {
+    return 'https://server.arcgisonline.com/ArcGIS/rest/services/' + path + '/MapServer/tile/{z}/{y}/{x}';
+  };
+  var esriAttr = 'Tiles &copy; <a href="https://www.esri.com/">Esri</a> and contributors';
+  var basemaps = {
+    'Topographic': L.tileLayer(esri('World_Topo_Map'), { maxZoom: 18, attribution: esriAttr }),
+    'Light grey': L.layerGroup([
+      L.tileLayer(esri('Canvas/World_Light_Gray_Base'), { maxZoom: 16, attribution: esriAttr }),
+      L.tileLayer(esri('Canvas/World_Light_Gray_Reference'), { maxZoom: 16 })
+    ]),
+    'Streets': L.tileLayer(esri('World_Street_Map'), { maxZoom: 18, attribution: esriAttr }),
+    'Humanitarian (OSM)': L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, tiles by HOT'
+    })
+  };
+  basemaps['Topographic'].addTo(map);
+  L.control.layers(basemaps, null, { position: 'topright' }).addTo(map);
+  var markers = {};
+  data.forEach(function (e) {
+    if (e.lat == null || e.lon == null) { return; }
+    var m = L.circleMarker([e.lat, e.lon], {
+      radius: 5 + 2.2 * Math.sqrt(e.count), color: e.current ? '#E63B2E' : '#ffffff', weight: e.current ? 3 : 1.5,
+      fillColor: '#E63B2E', fillOpacity: 0.75
+    });
+    m.bindPopup('<div class="ma-pop">' + (e.image ? '<img src="' + esc(e.image) + '" alt="">' : '') +
+      '<div><a href="' + esc(e.url) + '">' + esc(e.title) + '</a><span>' + e.count + ' map' + (e.count === 1 ? '' : 's') +
+      (e.hazard ? ' · ' + esc(e.hazard) : '') + (e.m != null ? ' · ' + fmt(e.m) : '') + '</span></div></div>');
+    markers[e.code] = m;
+  });
+  map.on('moveend', function () { if (state.inView) { render(); } });
+
+  // ---- timeline: one bar per month
+  var svg = document.getElementById('ma-bars'), perM = {};
+  data.forEach(function (e) { if (e.m != null && !e.no_emergency) { perM[e.m] = (perM[e.m] || 0) + 1; } });
+  var top = Math.max.apply(null, Object.keys(perM).map(function (k) { return perM[k]; }).concat([1]));
+  svg.setAttribute('viewBox', '0 0 ' + span + ' 100');
+  var bars = [];
+  for (var m = minM; m <= maxM; m++) {
+    if (!perM[m]) { continue; }
+    var h = 8 + 90 * perM[m] / top;
+    var r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    r.setAttribute('x', m - minM + 0.1); r.setAttribute('width', 0.8); r.setAttribute('y', 100 - h); r.setAttribute('height', h);
+    r.setAttribute('data-m', m); svg.appendChild(r); bars.push(r);
+  }
+  // year gridlines and labels
+  var axis = document.getElementById('ma-axis'), firstY = Math.floor(minM / 12), lastY = Math.floor(maxM / 12);
+  var every = (lastY - firstY) > 15 ? 5 : 1;
+  for (var y = firstY; y <= lastY + 1; y++) {
+    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', y * 12 - minM); line.setAttribute('x2', y * 12 - minM); line.setAttribute('y1', 0); line.setAttribute('y2', 100);
+    line.setAttribute('stroke', '#eef1f6'); line.setAttribute('stroke-width', 0.15); svg.insertBefore(line, svg.firstChild);
+    if ((y % every === 0 || y === firstY) && y <= lastY) {
+      var lab = document.createElement('span'); lab.textContent = y;
+      lab.style.left = (100 * (y * 12 - minM) / span) + '%'; axis.appendChild(lab);
+    }
+  }
+
+  // ---- the draggable window
+  var track = document.getElementById('ma-track'), win = document.getElementById('ma-win');
+  function setWindow(a, b) {
+    var w = b - a;
+    if (a < minM) { a = minM; b = a + w; }
+    if (b > maxM) { b = maxM; a = Math.max(minM, b - w); }
+    state.from = Math.round(a); state.to = Math.round(b); render();
+  }
+  function monthAt(clientX) {
+    var rect = track.getBoundingClientRect();
+    return minM + Math.max(0, Math.min(span - 1, Math.floor(span * (clientX - rect.left) / rect.width)));
+  }
+  var drag = null;
+  track.addEventListener('pointerdown', function (ev) {
+    stop();
+    var m = monthAt(ev.clientX), edge = ev.target.getAttribute && ev.target.getAttribute('data-edge');
+    if (edge) {
+      drag = { kind: edge };
+    } else if (ev.target === win) {
+      drag = { kind: 'move', grab: m - state.from, w: state.to - state.from };
+      win.classList.add('drag');
+    } else {
+      // click outside the window: jump there, keeping the window's width (a full year if it was "all")
+      var w = state.to - state.from >= span - 1 ? 11 : state.to - state.from;
+      setWindow(m - Math.floor(w / 2), m - Math.floor(w / 2) + w);
+      drag = { kind: 'move', grab: m - state.from, w: w };
+    }
+    track.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+  });
+  track.addEventListener('pointermove', function (ev) {
+    if (!drag) { return; }
+    var m = monthAt(ev.clientX);
+    if (drag.kind === 'move') { setWindow(m - drag.grab, m - drag.grab + drag.w); }
+    else if (drag.kind === 'l') { setWindow(Math.min(m, state.to), state.to); }
+    else { setWindow(state.from, Math.max(m, state.from)); }
+  });
+  ['pointerup', 'pointercancel'].forEach(function (t) {
+    track.addEventListener(t, function () { drag = null; win.classList.remove('drag'); });
+  });
+  win.addEventListener('keydown', function (ev) {
+    var step = ev.shiftKey ? 12 : 1, w = state.to - state.from;
+    if (ev.key === 'ArrowLeft') { setWindow(state.from - step, state.from - step + w); ev.preventDefault(); }
+    if (ev.key === 'ArrowRight') { setWindow(state.from + step, state.from + step + w); ev.preventDefault(); }
+  });
+  document.getElementById('ma-all').addEventListener('click', function () { stop(); setWindow(minM, maxM); });
+
+  // ---- play: slide the current window forward a month at a time, keeping its width
+  var playing = null, playBtn = document.getElementById('ma-play');
+  function stop() { if (playing) { clearInterval(playing); playing = null; playBtn.classList.remove('on'); playBtn.innerHTML = '&#9654; Play'; } }
+  playBtn.addEventListener('click', function () {
+    if (playing) { stop(); return; }
+    var w = state.to - state.from;
+    if (w >= span - 1) { w = 11; setWindow(minM, minM + w); }   // "all years": start with a 12-month window
+    else if (state.to >= maxM) { setWindow(minM, minM + w); }      // at the end: start again from the beginning
+    playBtn.classList.add('on'); playBtn.innerHTML = '&#10074;&#10074; Pause';
+    playing = setInterval(function () {
+      if (state.to >= maxM) { stop(); return; }
+      setWindow(state.from + 1, state.to + 1);
+    }, 220);
+  });
+
+  document.getElementById('ma-q').addEventListener('input', function () { state.q = this.value.toLowerCase(); render(); });
+  document.getElementById('ma-inview').addEventListener('change', function () { state.inView = this.checked; render(); });
+  document.getElementById('ma-packs').addEventListener('change', function () { state.packs = this.checked; render(); });
+
+  // ---- filter and draw everything from the same state
+  function matches(e) {
+    if (e.no_emergency && !state.packs) { return false; }
+    if (e.m == null || e.m < state.from || e.m > state.to) { return false; }
+    if (state.q) {
+      var hay = (e.title + ' ' + (e.hazard || '') + ' ' + e.countries.join(' ') + ' ' + e.code).toLowerCase();
+      if (hay.indexOf(state.q) < 0) { return false; }
+    }
+    if (state.inView && e.lat != null && !map.getBounds().contains([e.lat, e.lon])) { return false; }
+    return true;
+  }
+  function render() {
+    var shown = data.filter(matches), maps = 0;
+    Object.keys(markers).forEach(function (code) { map.removeLayer(markers[code]); });
+    shown.forEach(function (e) { maps += e.count; if (markers[e.code]) { markers[e.code].addTo(map); } });
+    bars.forEach(function (r) {
+      var m = +r.getAttribute('data-m');
+      r.setAttribute('fill', m >= state.from && m <= state.to ? '#E63B2E' : '#c9d3e6');
+    });
+    win.style.left = (100 * (state.from - minM) / span) + '%';
+    win.style.width = (100 * (state.to - state.from + 1) / span) + '%';
+    var all = state.from <= minM && state.to >= maxM;
+    document.getElementById('ma-range').textContent = all ? 'All years' :
+      (state.from === state.to ? fmt(state.from) : fmt(state.from) + ' – ' + fmt(state.to));
+    win.setAttribute('aria-valuetext', document.getElementById('ma-range').textContent);
+    document.getElementById('ma-count').textContent = shown.length + ' emergencies · ' + maps + ' maps';
+    document.getElementById('ma-cards').innerHTML = shown.map(function (e) {
+      return '<a class="ma-card' + (e.current ? ' current' : '') + '" href="' + esc(e.url) + '">' +
+        (e.image ? '<img src="' + esc(e.image) + '" alt="" loading="lazy">' : '') +
+        '<div><h3>' + esc(e.title) + '</h3><span>' + e.count + ' map' + (e.count === 1 ? '' : 's') +
+        (e.hazard ? ' · ' + esc(e.hazard) : '') + '</span>' +
+        (e.start ? '<span class="ma-when">' + esc(e.start === e.end || !e.end ? e.start : e.start + ' → ' + e.end) + '</span>' : '') +
+        '</div></a>';
+    }).join('') || '<p>No emergencies in this period.</p>';
+  }
+  render();
+})();
+</script>
+{% endblock %}

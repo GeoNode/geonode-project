@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Upload maps - MapAction{% endblock %}
+{% block body_outer %}
+{% include "mapaction/_style.html" %}
+<style>
+  .ma-up { max-width: 860px; margin: 0 auto; padding: 24px 0 48px; }
+  .ma-up h1 { color: #18448D; font-size: 26px; margin: 0 0 6px; }
+  .ma-drop { border: 2px dashed #c9d3e6; border-radius: 8px; padding: 28px; text-align: center; background: #f8fafd; margin: 16px 0; }
+  .ma-drop.over { border-color: #E63B2E; background: #fdf1f0; }
+  .ma-drop input[type=file] { margin: 10px auto; }
+  .ma-up .ma-opts { display: flex; gap: 18px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .ma-up button { background: #E63B2E; color: #fff; border: 0; border-radius: 4px; padding: 9px 22px; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .ma-up button:hover { background: #c22e22; }
+  .ma-res { border: 1px solid #dfe3ea; border-radius: 6px; padding: 14px 16px; margin: 12px 0; }
+  .ma-res h3 { margin: 0 0 6px; font-size: 16px; color: #18448D; }
+  .ma-act { display: inline-block; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .03em;
+            padding: 2px 8px; border-radius: 3px; background: #eef2f9; color: #18448D; }
+  .ma-act.error { background: #fdecea; color: #E63B2E; }
+  .ma-act.done { background: #18448D; color: #fff; }
+  .ma-res ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+  .ma-res .warn { color: #a4430b; }
+  .ma-err { background: #fdecea; color: #a51d12; padding: 10px 14px; border-radius: 4px; }
+  @media (max-width: 900px) { .ma-up { padding-left: 16px; padding-right: 16px; } }
+</style>
+<div class="ma-up">
+  <div class="ma-crumbs"><a href="{% url 'mapaction:emergencies' %}">Emergencies</a>{% if emergency %} / <a href="{{ emergency.get_absolute_url }}">{{ emergency.title }}</a>{% endif %} / Upload</div>
+  <h1>Upload maps{% if emergency %} to {{ emergency.title }}{% endif %}</h1>
+  <p>Upload the product ZIP exported by the ArcGIS add-on (PDF, JPG and XML; atlases with their sheets), or a ZIP of several.
+     The XML decides the emergency, map number and version: the same version replaces the record, a higher version is added
+     and the previous one is kept but no longer listed. Maps marked <em>Public</em> are open to anyone; others to signed-in users.</p>
+
+  {% if error %}<p class="ma-err">{{ error }}</p>{% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="ma-drop" id="ma-drop">
+      <strong>Drop a product ZIP here</strong> or choose it:<br>
+      <input type="file" name="zip" accept=".zip,application/zip" required>
+      <div class="ma-opts">
+        <label><input type="checkbox" name="check_only" value="1" {% if check_only %}checked{% endif %}> Check only (nothing is published)</label>
+        <button type="submit">Upload</button>
+      </div>
+    </div>
+  </form>
+
+  {% if results %}
+  <h2 style="font-size:18px;color:#18448D">{% if check_only %}Check results: nothing was published{% else %}Upload results{% endif %}</h2>
+  {% for r in results %}
+  <div class="ma-res">
+    <h3>{{ r.title|default:r.name }}</h3>
+    <span class="ma-act {% if r.action == 'error' %}error{% elif r.action == 'created' or r.action == 'replaced' %}done{% endif %}">{{ r.action }}</span>
+    {% if r.emergency %}<span class="ma-pill">{{ r.emergency }}</span>{% endif %}
+    {% if r.public is not None %}<span class="ma-pill">{% if r.public %}Public{% else %}Signed-in users only{% endif %}</span>{% endif %}
+    {% if r.sheets %}<span class="ma-pill">{{ r.sheets }} sheets</span>{% endif %}
+    {% if r.record %}<a href="/catalogue/#/document/{{ r.record }}" style="margin-left:8px">Open the map &rarr;</a>{% endif %}
+    {% if r.files %}<div style="font-size:12px;color:#666;margin-top:6px">{{ r.files|join:" · " }}</div>{% endif %}
+    {% if r.warnings %}<ul>{% for w in r.warnings %}<li class="warn">{{ w }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  {% endfor %}
+  {% if check_only %}<p>Happy with this? Choose the same ZIP again, untick <em>Check only</em> and upload.</p>{% endif %}
+  {% endif %}
+</div>
+<script>
+  (function () {
+    var drop = document.getElementById('ma-drop'), input = drop.querySelector('input[type=file]');
+    ['dragenter', 'dragover'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+    ['dragleave', 'drop'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('over'); }); });
+    drop.addEventListener('drop', function (e) { if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; } });
+  })();
+</script>
+{% endblock %}

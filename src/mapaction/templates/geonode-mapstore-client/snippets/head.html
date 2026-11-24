@@ -1,0 +1,21 @@
+{% load static %}
+{% load client_lib_tags %}
+{% load client_version %}
+
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+{%block font%}
+    <link href="{% static 'fonts/montserrat.css' %}" rel="stylesheet">
+{%endblock font %}
+
+<link href="{% static 'mapstore/dist/themes/geonode.css' %}?{% client_version %}" rel="stylesheet" />
+<title>{{ SITE_NAME }}</title>
+
+{%block favicon%}
+    <link rel="shortcut icon" href="{% static 'mapaction/favicon.ico' %}" />
+{%endblock favicon%}
+
+{%block extras%}
+{%endblock extras%}

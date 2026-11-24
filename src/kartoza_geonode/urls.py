@@ -19,7 +19,7 @@
 #########################################################################
 
 from django.conf.urls.i18n import i18n_patterns
-from django.urls import re_path
+from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
 from geonode.urls import urlpatterns
 
@@ -43,4 +43,6 @@ urlpatterns = i18n_patterns(
         SitePreferencesRedirectView.as_view(),
         name='index'
     )
-) + urlpatterns
+) + [
+    path("mapaction/", include("mapaction.urls")),
+] + urlpatterns
